@@ -27,6 +27,8 @@ impl Into<entity::Entity> for EntitySerde {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct EntityServiceSerde {
+    //TODO: remove this
+    #[serde(default)]
     description: String,
 }
 

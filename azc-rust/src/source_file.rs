@@ -1,7 +1,9 @@
 //
 
-use crate::{source_file_serde, symbol};
-use serde_yaml::Result;
+use crate::{result, source_file_serde, symbol};
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct SourceFile {
@@ -10,7 +12,16 @@ pub struct SourceFile {
     pub symbols: Vec<symbol::Symbol>,
 }
 
-pub fn load_from_string(data: &str) -> Result<SourceFile> {
+pub fn load_from_string(data: &str) -> result::Result<SourceFile> {
     let p: source_file_serde::SourceFileSerde = serde_yaml::from_str(data)?;
     Ok(p.into())
+}
+
+pub fn load_from_file<P: AsRef<Path>>(path: P) -> result::Result<SourceFile> {
+    // Open the file in read-only mode with buffer.
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let u: source_file_serde::SourceFileSerde = serde_yaml::from_reader(reader)?;
+    Ok(u.into())
 }

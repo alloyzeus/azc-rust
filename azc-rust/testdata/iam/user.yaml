@@ -1,7 +1,7 @@
 module: iam
 symbols:
 
-  user:
+  - identifier: User
     abstract: User
     kind: entity
     parameters:
@@ -27,3 +27,32 @@ symbols:
               enabled: true
             grpc:
               enabled: true
+
+  - identifier: Application
+    kind: entity
+
+  - identifier: Terminal
+    kind: adjunct
+    parameters:
+      is_entity: true
+      entities:
+        - Application
+      mixins:
+        - name: Deletable
+        - name: Ownable
+          parameters:
+            arity: [1, 4]
+
+  - identifier: Authorization
+    kind: adjunct
+    parameters:
+      is_entity: true
+      entities:
+        - Terminal
+      mixins:
+        - name: Deletable
+        - name: TimeBound
+          parameters:
+            config_options:
+              duration: enabled
+        
