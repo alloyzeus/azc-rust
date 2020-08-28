@@ -1,6 +1,7 @@
 //
 
 use crate::entity;
+use crate::entity_serde;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Result;
 
@@ -54,7 +55,7 @@ struct SymbolSerde {
 
 impl Into<Symbol> for SymbolSerde {
     fn into(self) -> Symbol {
-        let params: Option<entity::EntitySerde>;
+        let params: Option<entity_serde::EntitySerde>;
         if self.parameters.is_mapping() {
             params = serde_yaml::from_value(self.parameters).unwrap();
         } else {
@@ -72,19 +73,7 @@ impl Into<Symbol> for SymbolSerde {
     }
 }
 
-pub fn load_source_file() -> Result<SourceFile> {
-    // Some JSON input data as a &str. Maybe this comes from the user.
-    let data = r#"
-        module: iam
-        symbols:
-          - name: User
-            kind: entity
-            parameters:
-              description: "Test yo!"
-          - name: Application
-            kind: entity
-        "#;
-
+pub fn load_source_file_from_string(data: &str) -> Result<SourceFile> {
     let p: SourceFileSerde = serde_yaml::from_str(data)?;
     Ok(p.into())
 }
