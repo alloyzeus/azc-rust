@@ -1,3 +1,6 @@
+//
+
+use crate::entity;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Result;
 
@@ -15,20 +18,7 @@ struct Symbol {
     parameters: Option<Box<dyn SymbolParameters + 'static>>,
 }
 
-trait SymbolParameters: 'static + std::fmt::Debug {}
-
-#[derive(Debug)]
-struct Entity {
-    description: String,
-    service: Option<EntityService>,
-}
-
-impl SymbolParameters for Entity {}
-
-#[derive(Debug)]
-struct EntityService {
-    description: String,
-}
+pub trait SymbolParameters: 'static + std::fmt::Debug {}
 
 // Serde stuff
 
@@ -64,7 +54,7 @@ struct SymbolSerde {
 
 impl Into<Symbol> for SymbolSerde {
     fn into(self) -> Symbol {
-        let params: Option<EntitySerde>;
+        let params: Option<entity::EntitySerde>;
         if self.parameters.is_mapping() {
             params = serde_yaml::from_value(self.parameters).unwrap();
         } else {
@@ -74,46 +64,10 @@ impl Into<Symbol> for SymbolSerde {
             name: self.name,
             kind: self.kind,
             parameters: if params.is_some() {
-                Some(Box::new(Entity::from(params.unwrap().into())))
+                Some(Box::new(entity::Entity::from(params.unwrap().into())))
             } else {
                 None
             },
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-struct EntitySerde {
-    #[serde(default)]
-    description: String,
-
-    #[serde(default)]
-    service: Option<EntityServiceSerde>,
-}
-
-impl Into<Entity> for EntitySerde {
-    fn into(self) -> Entity {
-        println!("self {:?}", self.service);
-        Entity {
-            description: self.description,
-            service: if self.service.is_some() {
-                Some(self.service.unwrap().into())
-            } else {
-                None
-            },
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct EntityServiceSerde {
-    description: String,
-}
-
-impl Into<EntityService> for EntityServiceSerde {
-    fn into(self) -> EntityService {
-        EntityService {
-            description: self.description,
         }
     }
 }
