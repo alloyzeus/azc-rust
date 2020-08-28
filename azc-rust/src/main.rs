@@ -14,13 +14,13 @@ fn main() {
         r#"
             module: iam
             symbols:
-              - name: User
+              - identifier: User
                 kind: entity
                 parameters:
                   description: "Test yo!"
-              - name: Application
+              - identifier: Application
                 kind: entity
-              - name: Terminal
+              - identifier: Terminal
                 kind: adjunct
                 parameters:
                   entities:

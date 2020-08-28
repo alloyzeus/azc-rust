@@ -2,7 +2,7 @@
 
 #[derive(Debug)]
 pub struct Symbol {
-    pub name: String,
+    pub identifier: String,
     pub kind: String,
     pub parameters: Option<Box<dyn SymbolParameters + 'static>>,
 }

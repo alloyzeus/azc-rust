@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct SymbolSerde {
-    name: String,
+    identifier: String,
     kind: String,
 
     #[serde(default)]
@@ -22,7 +22,7 @@ impl Into<symbol::Symbol> for SymbolSerde {
                     None
                 };
                 symbol::Symbol {
-                    name: self.name,
+                    identifier: self.identifier,
                     kind: self.kind,
                     parameters: if params.is_some() {
                         Some(Box::new(entity::Entity::from(params.unwrap().into())))
@@ -38,7 +38,7 @@ impl Into<symbol::Symbol> for SymbolSerde {
                     None
                 };
                 symbol::Symbol {
-                    name: self.name,
+                    identifier: self.identifier,
                     kind: self.kind,
                     parameters: if params.is_some() {
                         Some(Box::new(adjunct::Adjunct::from(params.unwrap().into())))
