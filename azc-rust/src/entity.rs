@@ -1,6 +1,6 @@
 //
 
-use crate::module;
+use crate::symbol;
 
 #[derive(Debug)]
 pub struct Entity {
@@ -8,7 +8,7 @@ pub struct Entity {
     pub service: Option<EntityService>,
 }
 
-impl module::SymbolParameters for Entity {}
+impl symbol::SymbolParameters for Entity {}
 
 #[derive(Debug)]
 pub struct EntityService {

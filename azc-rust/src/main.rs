@@ -2,10 +2,13 @@
 
 mod entity;
 mod entity_serde;
-mod module;
+mod source_file;
+mod source_file_serde;
+mod symbol;
+mod symbol_serde;
 
 fn main() {
-    let source_file_result = module::load_source_file_from_string(
+    let source_file_result = source_file::load_from_string(
         r#"
             module: iam
             symbols:
