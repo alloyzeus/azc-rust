@@ -1,0 +1,28 @@
+module: iam
+symbols:
+
+  user:
+    abstract: User
+    kind: entity
+    parameters:
+      id:
+        space: 48
+        generator:
+          name: OfflineRandomIntegerIDGenerator
+          parameters:
+            encodings:
+              text:
+                prefix: "ix-"
+      mixins:
+        - name: Deletable
+          parameters:
+            event_emission:
+              enabled: true
+      service:
+        api:
+          protocols:
+            #?RFC: versioning?
+            rest:
+              enabled: true
+            grpc:
+              enabled: true
