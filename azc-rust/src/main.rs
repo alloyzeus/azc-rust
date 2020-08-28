@@ -1,5 +1,7 @@
 //
 
+mod adjunct;
+mod adjunct_serde;
 mod entity;
 mod entity_serde;
 mod source_file;
@@ -18,6 +20,11 @@ fn main() {
                   description: "Test yo!"
               - name: Application
                 kind: entity
+              - name: Terminal
+                kind: adjunct
+                parameters:
+                  entities:
+                    - Application
             "#,
     );
     if source_file_result.is_ok() {

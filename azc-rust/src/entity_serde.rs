@@ -14,7 +14,6 @@ pub struct EntitySerde {
 
 impl Into<entity::Entity> for EntitySerde {
     fn into(self) -> entity::Entity {
-        println!("self {:?}", self.service);
         entity::Entity {
             description: self.description,
             service: if self.service.is_some() {

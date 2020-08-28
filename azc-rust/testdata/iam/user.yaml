@@ -5,6 +5,7 @@ symbols:
     abstract: User
     kind: entity
     parameters:
+      creation: "TODO: the rule of the creation (affects service)"
       id:
         space: 48
         generator:
