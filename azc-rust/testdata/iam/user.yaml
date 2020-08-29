@@ -34,11 +34,13 @@ symbols:
       mixins:
         - name: Ownable
           parameters:
-            arity: [1, 4]
+            owner_arity: [1, 4]
       attributes:
         access_keys:
-          kind: set of AccessKey by id
+          kind: set
           parameters:
+            kind: AccessKey
+            fields: [id]
             arity: [1, 4]
 
   - identifier: Terminal
