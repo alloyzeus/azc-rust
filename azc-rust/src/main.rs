@@ -2,6 +2,8 @@
 
 mod adjunct;
 mod adjunct_serde;
+mod arity;
+mod arity_serde;
 mod entity;
 mod entity_serde;
 mod mixin;

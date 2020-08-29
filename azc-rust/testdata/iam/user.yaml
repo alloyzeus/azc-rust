@@ -57,6 +57,9 @@ symbols:
     kind: adjunct
     parameters:
       is_entity: true
+      arity:
+        min: 0
+        max: -1
       entities:
         - Terminal
       mixins:
