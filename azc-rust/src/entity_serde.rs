@@ -16,8 +16,8 @@ impl Into<entity::Entity> for EntitySerde {
     fn into(self) -> entity::Entity {
         entity::Entity {
             description: self.description,
-            service: if self.service.is_some() {
-                Some(self.service.unwrap().into())
+            service: if let Some(service) = self.service {
+                Some(service.into())
             } else {
                 None
             },

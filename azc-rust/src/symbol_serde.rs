@@ -8,6 +8,7 @@ pub struct SymbolSerde {
     identifier: String,
     kind: String,
 
+    //TODO: required
     #[serde(default)]
     parameters: serde_yaml::Value,
 }
@@ -24,8 +25,8 @@ impl Into<symbol::Symbol> for SymbolSerde {
                 symbol::Symbol {
                     identifier: self.identifier,
                     kind: symbol_kind::SymbolKind::Entity,
-                    parameters: if params.is_some() {
-                        Some(Box::new(entity::Entity::from(params.unwrap().into())))
+                    parameters: if let Some(params) = params {
+                        Some(Box::new(entity::Entity::from(params.into())))
                     } else {
                         None
                     },
@@ -40,8 +41,8 @@ impl Into<symbol::Symbol> for SymbolSerde {
                 symbol::Symbol {
                     identifier: self.identifier,
                     kind: symbol_kind::SymbolKind::Adjunct,
-                    parameters: if params.is_some() {
-                        Some(Box::new(adjunct::Adjunct::from(params.unwrap().into())))
+                    parameters: if let Some(params) = params {
+                        Some(Box::new(adjunct::Adjunct::from(params.into())))
                     } else {
                         None
                     },
