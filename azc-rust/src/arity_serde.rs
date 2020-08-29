@@ -11,10 +11,7 @@ pub struct ArityConstraintSerde {
 
 impl Default for ArityConstraintSerde {
     fn default() -> ArityConstraintSerde {
-        ArityConstraintSerde{
-            min: -1,
-            max: -1,
-        }
+        ArityConstraintSerde { min: -1, max: -1 }
     }
 }
 

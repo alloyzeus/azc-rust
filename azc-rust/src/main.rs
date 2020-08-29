@@ -26,7 +26,7 @@ fn main() {
     }
 
     if let Ok(src) = source_file_result {
-        println!("digraph G {{");
+        println!("digraph iam {{");
         for symbol in &src.symbols {
             if let Some(params) = &symbol.parameters {
                 if let Some(ent) = params.downcast_ref::<entity::Entity>() {
@@ -36,6 +36,7 @@ fn main() {
                 }
             }
         }
+        println!();
         for symbol in src.symbols {
             if let Some(params) = symbol.parameters {
                 if let Some(ent) = params.downcast_ref::<entity::Entity>() {
@@ -56,18 +57,18 @@ trait DotObject {
 
 impl DotObject for adjunct::Adjunct {
     fn write_dot_identifier(&self, identifier: String) {
-        println!("{}", identifier);
+        println!("  {} [shape=ellipse]", identifier);
     }
     fn write_dot_relationships(&self, identifier: String) {
         for ent in &self.entities {
-            println!("{} -> {}", identifier, ent);
+            println!("  {} -> {}", identifier, ent.name);
         }
     }
 }
 
 impl DotObject for entity::Entity {
     fn write_dot_identifier(&self, identifier: String) {
-        println!("{}", identifier);
+        println!("  {} [shape=rect]", identifier);
     }
     fn write_dot_relationships(&self, _identifier: String) {
         // Do nothing
