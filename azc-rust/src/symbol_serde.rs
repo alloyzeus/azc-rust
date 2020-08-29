@@ -1,6 +1,6 @@
 //
 
-use crate::{adjunct, adjunct_serde, entity, entity_serde, symbol};
+use crate::{adjunct, adjunct_serde, entity, entity_serde, symbol, symbol_kind};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -23,7 +23,7 @@ impl Into<symbol::Symbol> for SymbolSerde {
                 };
                 symbol::Symbol {
                     identifier: self.identifier,
-                    kind: self.kind,
+                    kind: symbol_kind::SymbolKind::Entity,
                     parameters: if params.is_some() {
                         Some(Box::new(entity::Entity::from(params.unwrap().into())))
                     } else {
@@ -39,7 +39,7 @@ impl Into<symbol::Symbol> for SymbolSerde {
                 };
                 symbol::Symbol {
                     identifier: self.identifier,
-                    kind: self.kind,
+                    kind: symbol_kind::SymbolKind::Adjunct,
                     parameters: if params.is_some() {
                         Some(Box::new(adjunct::Adjunct::from(params.unwrap().into())))
                     } else {
