@@ -12,11 +12,6 @@ pub struct SourceFile {
     pub symbols: Vec<symbol::Symbol>,
 }
 
-pub fn load_from_string(data: &str) -> result::Result<SourceFile> {
-    let p: source_file_serde::SourceFileSerde = serde_yaml::from_str(data)?;
-    Ok(p.into())
-}
-
 pub fn load_from_file<P: AsRef<Path>>(path: P) -> result::Result<SourceFile> {
     // Open the file in read-only mode with buffer.
     let file = File::open(path)?;
