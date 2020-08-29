@@ -1,6 +1,6 @@
 //
 
-use crate::entity;
+use crate::{entity, mixin, mixin_serde};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -10,6 +10,8 @@ pub struct EntitySerde {
 
     #[serde(default)]
     service: Option<EntityServiceSerde>,
+
+    mixins: Vec<mixin_serde::MixinSerde>,
 }
 
 impl Into<entity::Entity> for EntitySerde {
@@ -21,6 +23,11 @@ impl Into<entity::Entity> for EntitySerde {
             } else {
                 None
             },
+            mixins: self
+                .mixins
+                .into_iter()
+                .map(|x| mixin::Mixin::from(x.into()))
+                .collect(),
         }
     }
 }

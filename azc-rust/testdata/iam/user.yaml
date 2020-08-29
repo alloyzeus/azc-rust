@@ -30,18 +30,26 @@ symbols:
 
   - identifier: Application
     kind: entity
+    parameters:
+      mixins:
+        - name: Ownable
+          parameters:
+            arity: [1, 4]
+      attributes:
+        access_keys:
+          kind: set of AccessKey by id
+          parameters:
+            arity: [1, 4]
 
   - identifier: Terminal
     kind: adjunct
     parameters:
       is_entity: true
+      # At least one
       entities:
         - Application
       mixins:
         - name: Deletable
-        - name: Ownable
-          parameters:
-            arity: [1, 4]
 
   - identifier: Authorization
     kind: adjunct
