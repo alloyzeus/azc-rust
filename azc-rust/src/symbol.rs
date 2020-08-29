@@ -6,8 +6,9 @@ use crate::symbol_kind;
 pub struct Symbol {
     pub identifier: String,
     pub kind: symbol_kind::SymbolKind,
-    //TODO: should be SymbolParameters
-    pub parameters: Option<Box<dyn std::any::Any>>,
+    pub parameters: Option<Box<dyn SymbolParameters>>,
 }
 
-pub trait SymbolParameters: 'static + std::fmt::Debug {}
+pub trait SymbolParameters: mopa::Any + std::fmt::Debug {}
+
+mopafy!(SymbolParameters);

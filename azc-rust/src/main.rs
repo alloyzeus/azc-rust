@@ -11,6 +11,9 @@ mod symbol;
 mod symbol_kind;
 mod symbol_serde;
 
+#[macro_use]
+extern crate mopa;
+
 fn main() {
     let source_file_result = source_file::load_from_file("testdata/iam/user.yaml");
     match &source_file_result {
