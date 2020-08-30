@@ -15,11 +15,11 @@ impl Default for ArityConstraintSerde {
     }
 }
 
-impl Into<arity::ArityConstraint> for ArityConstraintSerde {
-    fn into(self) -> arity::ArityConstraint {
+impl From<ArityConstraintSerde> for arity::ArityConstraint {
+    fn from(x: ArityConstraintSerde) -> arity::ArityConstraint {
         arity::ArityConstraint {
-            min: self.min,
-            max: self.max,
+            min: x.min,
+            max: x.max,
         }
     }
 }

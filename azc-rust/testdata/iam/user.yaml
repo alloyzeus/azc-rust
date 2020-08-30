@@ -15,7 +15,7 @@ symbols:
               text:
                 prefix: "ix-"
       mixins:
-        - name: Deletable
+        - kind: Deletable
           parameters:
             event_emission:
               enabled: true
@@ -32,7 +32,7 @@ symbols:
     kind: entity
     parameters:
       mixins:
-        - name: Ownable
+        - kind: Ownable
           parameters:
             owner_arity: [1, 4]
       attributes:
@@ -51,7 +51,7 @@ symbols:
       entities:
         - name: Application
       mixins:
-        - name: Deletable
+        - kind: Deletable
 
   - identifier: Authorization
     kind: adjunct
@@ -63,8 +63,8 @@ symbols:
       entities:
         - name: Terminal
       mixins:
-        - name: Deletable
-        - name: TimeBound
+        - kind: Deletable
+        - kind: TimeBound
           parameters:
             config_options:
               duration: enabled

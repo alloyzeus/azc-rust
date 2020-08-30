@@ -13,42 +13,42 @@ pub struct SymbolSerde {
     parameters: serde_yaml::Value,
 }
 
-impl Into<symbol::Symbol> for SymbolSerde {
-    fn into(self) -> symbol::Symbol {
-        match self.kind.as_str() {
+impl From<SymbolSerde> for symbol::Symbol {
+    fn from(x: SymbolSerde) -> symbol::Symbol {
+        match x.kind.as_str() {
             "entity" => {
-                let params: Option<entity_serde::EntitySerde> = if self.parameters.is_mapping() {
-                    serde_yaml::from_value(self.parameters).unwrap()
+                let params: Option<entity_serde::EntitySerde> = if x.parameters.is_mapping() {
+                    serde_yaml::from_value(x.parameters).unwrap_or(None)
                 } else {
                     None
                 };
                 symbol::Symbol {
-                    identifier: self.identifier,
+                    identifier: x.identifier,
                     kind: symbol_kind::SymbolKind::Entity,
-                    parameters: if let Some(params) = params {
-                        Some(Box::new(entity::Entity::from(params.into())))
+                    parameters: if let Some(p) = params {
+                        Some(Box::new(entity::Entity::from(p)))
                     } else {
                         None
                     },
                 }
             }
             "adjunct" => {
-                let params: Option<adjunct_serde::AdjunctSerde> = if self.parameters.is_mapping() {
-                    serde_yaml::from_value(self.parameters).unwrap()
+                let params: Option<adjunct_serde::AdjunctSerde> = if x.parameters.is_mapping() {
+                    serde_yaml::from_value(x.parameters).unwrap_or(None)
                 } else {
                     None
                 };
                 symbol::Symbol {
-                    identifier: self.identifier,
+                    identifier: x.identifier,
                     kind: symbol_kind::SymbolKind::Adjunct,
-                    parameters: if let Some(params) = params {
-                        Some(Box::new(adjunct::Adjunct::from(params.into())))
+                    parameters: if let Some(p) = params {
+                        Some(Box::new(adjunct::Adjunct::from(p)))
                     } else {
                         None
                     },
                 }
             }
-            _ => panic!(format!("unrecognized symbol kind: {}", self.kind)),
+            _ => panic!(format!("unrecognized symbol kind: {}", x.kind)),
         }
     }
 }

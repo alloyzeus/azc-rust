@@ -1,12 +1,12 @@
 //
 
-use crate::{entity, mixin, mixin_serde};
+use crate::{entity, mixin_serde};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct EntitySerde {
     #[serde(default)]
-    description: String,
+    documentation: String,
 
     #[serde(default)]
     service: Option<EntityServiceSerde>,
@@ -14,35 +14,30 @@ pub struct EntitySerde {
     mixins: Vec<mixin_serde::MixinSerde>,
 }
 
-impl Into<entity::Entity> for EntitySerde {
-    fn into(self) -> entity::Entity {
+impl From<EntitySerde> for entity::Entity {
+    fn from(x: EntitySerde) -> entity::Entity {
         entity::Entity {
-            description: self.description,
-            service: if let Some(service) = self.service {
+            documentation: x.documentation,
+            service: if let Some(service) = x.service {
                 Some(service.into())
             } else {
                 None
             },
-            mixins: self
-                .mixins
-                .into_iter()
-                .map(|x| mixin::Mixin::from(x.into()))
-                .collect(),
+            mixins: x.mixins.into_iter().map(|x| x.into()).collect(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct EntityServiceSerde {
-    //TODO: remove this
     #[serde(default)]
-    description: String,
+    documentation: String,
 }
 
-impl Into<entity::EntityService> for EntityServiceSerde {
-    fn into(self) -> entity::EntityService {
+impl From<EntityServiceSerde> for entity::EntityService {
+    fn from(x: EntityServiceSerde) -> entity::EntityService {
         entity::EntityService {
-            description: self.description,
+            documentation: x.documentation,
         }
     }
 }

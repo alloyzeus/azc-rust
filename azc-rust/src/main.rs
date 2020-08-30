@@ -8,6 +8,7 @@ mod entity;
 mod entity_serde;
 mod mixin;
 mod mixin_serde;
+mod mixins;
 mod result;
 mod source_file;
 mod source_file_serde;

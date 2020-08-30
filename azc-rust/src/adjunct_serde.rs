@@ -14,16 +14,12 @@ pub struct AdjunctSerde {
     arity: arity_serde::ArityConstraintSerde,
 }
 
-impl Into<adjunct::Adjunct> for AdjunctSerde {
-    fn into(self) -> adjunct::Adjunct {
+impl From<AdjunctSerde> for adjunct::Adjunct {
+    fn from(x: AdjunctSerde) -> adjunct::Adjunct {
         adjunct::Adjunct {
-            is_entity: self.is_entity,
-            entities: self
-                .entities
-                .into_iter()
-                .map(|x| adjunct::AdjunctEntity::from(x.into()))
-                .collect(),
-            arity: self.arity.into(),
+            is_entity: x.is_entity,
+            entities: x.entities.into_iter().map(|x| x.into()).collect(),
+            arity: x.arity.into(),
         }
     }
 }
@@ -33,8 +29,8 @@ pub struct AdjuctEntitySerde {
     name: String,
 }
 
-impl Into<adjunct::AdjunctEntity> for AdjuctEntitySerde {
-    fn into(self) -> adjunct::AdjunctEntity {
-        adjunct::AdjunctEntity { name: self.name }
+impl From<AdjuctEntitySerde> for adjunct::AdjunctEntity {
+    fn from(x: AdjuctEntitySerde) -> adjunct::AdjunctEntity {
+        adjunct::AdjunctEntity { name: x.name }
     }
 }
