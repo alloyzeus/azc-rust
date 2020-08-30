@@ -1,6 +1,6 @@
 //
 
-use crate::{result, source_file_serde, symbol};
+use crate::{base::result, source_file_serde, symbol};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;

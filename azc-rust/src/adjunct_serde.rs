@@ -1,6 +1,6 @@
 //
 
-use crate::{adjunct, arity_serde};
+use crate::{adjunct, base::arity_serde};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

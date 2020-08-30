@@ -1,6 +1,6 @@
 //
 
-use crate::{arity_serde, mixins::ownership};
+use crate::{base::arity_serde, mixins::ownership};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

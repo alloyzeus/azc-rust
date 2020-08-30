@@ -1,6 +1,6 @@
 //
 
-use crate::{arity, symbol};
+use crate::{base::arity, symbol};
 
 #[derive(Debug)]
 pub struct Adjunct {

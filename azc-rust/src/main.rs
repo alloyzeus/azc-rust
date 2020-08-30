@@ -2,14 +2,12 @@
 
 mod adjunct;
 mod adjunct_serde;
-mod arity;
-mod arity_serde;
+mod base;
 mod entity;
 mod entity_serde;
 mod mixin;
 mod mixin_serde;
 mod mixins;
-mod result;
 mod source_file;
 mod source_file_serde;
 mod symbol;
