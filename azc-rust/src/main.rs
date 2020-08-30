@@ -18,16 +18,24 @@ mod symbol_serde;
 
 #[macro_use]
 extern crate mopa;
+use std::{env, process};
 
 fn main() {
-    let source_file_result = source_file::load_from_file("testdata/iam/user.yaml");
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        eprintln!("Arguments required!");
+        process::exit(-1)
+    }
+
+    let source_file_result = source_file::load_from_file(args[1].to_owned());
     match &source_file_result {
         Ok(src) => println!("{:?}", src),
         Err(err) => println!("Error! {:?}", err),
     }
 
     if let Ok(src) = source_file_result {
-        println!("digraph iam {{");
+        println!("digraph {} {{", src.module);
         for symbol in &src.symbols {
             if let Some(params) = &symbol.parameters {
                 if let Some(ent) = params.downcast_ref::<entity::Entity>() {
