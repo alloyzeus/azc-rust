@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct AdjunctSerde {
     #[serde(default)]
-    is_entity: bool,
+    kind: String,
 
-    entities: Vec<AdjuctEntitySerde>,
+    hosts: Vec<AdjuctEntitySerde>,
 
     #[serde(default)]
     arity: arity_serde::ArityConstraintSerde,
@@ -16,10 +16,17 @@ pub struct AdjunctSerde {
 
 impl From<AdjunctSerde> for adjunct::Adjunct {
     fn from(x: AdjunctSerde) -> adjunct::Adjunct {
-        adjunct::Adjunct {
-            is_entity: x.is_entity,
-            entities: x.entities.into_iter().map(|x| x.into()).collect(),
-            arity: x.arity.into(),
+        match x.kind.as_str() {
+            "entity" => adjunct::Adjunct {
+                kind: adjunct::AdjunctKind::Entity,
+                hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                arity: x.arity.into(),
+            },
+            _ => adjunct::Adjunct {
+                kind: adjunct::AdjunctKind::ValueObject,
+                hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                arity: x.arity.into(),
+            },
         }
     }
 }
@@ -29,8 +36,8 @@ pub struct AdjuctEntitySerde {
     name: String,
 }
 
-impl From<AdjuctEntitySerde> for adjunct::AdjunctEntity {
-    fn from(x: AdjuctEntitySerde) -> adjunct::AdjunctEntity {
-        adjunct::AdjunctEntity { name: x.name }
+impl From<AdjuctEntitySerde> for adjunct::AdjuctHost {
+    fn from(x: AdjuctEntitySerde) -> adjunct::AdjuctHost {
+        adjunct::AdjuctHost { name: x.name }
     }
 }

@@ -4,9 +4,9 @@ use crate::{arity, symbol};
 
 #[derive(Debug)]
 pub struct Adjunct {
-    pub is_entity: bool,
+    pub kind: AdjunctKind,
 
-    pub entities: Vec<AdjunctEntity>,
+    pub hosts: Vec<AdjuctHost>,
 
     pub arity: arity::ArityConstraint,
 }
@@ -14,6 +14,12 @@ pub struct Adjunct {
 impl symbol::SymbolParameters for Adjunct {}
 
 #[derive(Debug)]
-pub struct AdjunctEntity {
+pub struct AdjuctHost {
     pub name: String,
+}
+
+#[derive(Debug)]
+pub enum AdjunctKind {
+    ValueObject,
+    Entity,
 }

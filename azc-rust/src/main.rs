@@ -69,7 +69,7 @@ impl DotObject for adjunct::Adjunct {
         println!("  {} [shape=ellipse]", identifier);
     }
     fn write_dot_relationships(&self, identifier: String) {
-        for ent in &self.entities {
+        for ent in &self.hosts {
             println!("  {} -> {}", identifier, ent.name);
         }
     }

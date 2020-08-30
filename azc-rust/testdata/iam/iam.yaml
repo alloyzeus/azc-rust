@@ -46,26 +46,31 @@ symbols:
   - identifier: Terminal
     kind: adjunct
     parameters:
-      is_entity: true
+      kind: entity
       # At least one
-      entities:
+      hosts:
         - name: Application
-      mixins:
-        - kind: Deletable
+      parameters:
+        mixins:
+          - kind: Deletable
 
   - identifier: Authorization
     kind: adjunct
     parameters:
-      is_entity: true
+      kind: entity
+      hosts:
+        - name: Terminal
       arity:
         min: 0
         max: -1
-      entities:
-        - name: Terminal
-      mixins:
-        - kind: Deletable
-        - kind: TimeBound
-          parameters:
-            config_options:
-              duration: enabled
+      parameters:
+        mixins:
+          - kind: Deletable
+          - kind: TimeBound
+            parameters:
+              duration:
+                overridable: true
+                value:
+                  quantity: 1440
+                  unit: hour
         
