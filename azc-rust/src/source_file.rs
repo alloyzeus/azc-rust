@@ -1,9 +1,8 @@
 //
 
-use crate::{base::result, source_file_serde, symbol};
-use std::fs::File;
-use std::io::BufReader;
-use std::path::Path;
+use std::{convert::TryFrom, fs::File, io::BufReader, path::Path};
+
+use crate::{base::azml, base::result, source_file_serde, symbol};
 
 #[derive(Debug)]
 pub struct SourceFile {
@@ -17,6 +16,7 @@ pub fn load_from_file<P: AsRef<Path>>(path: P) -> result::Result<SourceFile> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
-    let u: source_file_serde::SourceFileSerde = serde_yaml::from_reader(reader)?;
-    Ok(u.into())
+    let sf: source_file_serde::SourceFileSerde = azml::from_reader(reader)?;
+    let sf = SourceFile::try_from(sf)?;
+    Ok(sf)
 }

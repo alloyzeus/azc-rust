@@ -1,7 +1,9 @@
 //
 
-use crate::{source_file, symbol_serde};
 use serde::{Deserialize, Serialize};
+use std::convert;
+
+use crate::{base::error, source_file, symbol, symbol_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct SourceFileSerde {
@@ -11,11 +13,18 @@ pub struct SourceFileSerde {
     symbols: Vec<symbol_serde::SymbolSerde>,
 }
 
-impl From<SourceFileSerde> for source_file::SourceFile {
-    fn from(x: SourceFileSerde) -> source_file::SourceFile {
-        source_file::SourceFile {
+impl convert::TryFrom<SourceFileSerde> for source_file::SourceFile {
+    type Error = error::Error;
+
+    fn try_from(x: SourceFileSerde) -> Result<Self, Self::Error> {
+        let symbols = x
+            .symbols
+            .into_iter()
+            .map(|x| symbol::Symbol::try_from(x))
+            .collect::<Result<Vec<symbol::Symbol>, _>>()?;
+        Ok(source_file::SourceFile {
             module: x.module,
-            symbols: x.symbols.into_iter().map(|x| x.into()).collect(),
-        }
+            symbols: symbols,
+        })
     }
 }

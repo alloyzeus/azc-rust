@@ -1,7 +1,8 @@
 //
 
-use crate::{mixin, mixins::ownership_serde};
 use serde::{Deserialize, Serialize};
+
+use crate::{base::azml, mixin, mixins::ownership_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct MixinSerde {
@@ -9,7 +10,7 @@ pub struct MixinSerde {
 
     //TODO: required
     #[serde(default)]
-    parameters: serde_yaml::Value,
+    parameters: azml::Value,
 }
 
 impl From<MixinSerde> for mixin::Mixin {
@@ -17,7 +18,7 @@ impl From<MixinSerde> for mixin::Mixin {
         match x.kind.as_str() {
             "Ownable" => {
                 let params: Option<ownership_serde::OwnableSerde> = if x.parameters.is_mapping() {
-                    serde_yaml::from_value(x.parameters).unwrap_or(None)
+                    azml::from_value(x.parameters).unwrap_or(None)
                 } else {
                     None
                 };

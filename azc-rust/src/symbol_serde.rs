@@ -1,7 +1,9 @@
 //
 
-use crate::{adjunct, adjunct_serde, entity, entity_serde, symbol, symbol_kind};
 use serde::{Deserialize, Serialize};
+use std::convert;
+
+use crate::{adjunct, adjunct_serde, base::azml, entity, entity_serde, symbol, symbol_kind};
 
 #[derive(Serialize, Deserialize)]
 pub struct SymbolSerde {
@@ -10,19 +12,17 @@ pub struct SymbolSerde {
 
     //TODO: required
     #[serde(default)]
-    parameters: serde_yaml::Value,
+    parameters: azml::Value,
 }
 
-impl From<SymbolSerde> for symbol::Symbol {
-    fn from(x: SymbolSerde) -> symbol::Symbol {
+impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
+    type Error = azml::Error;
+
+    fn try_from(x: SymbolSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<entity_serde::EntitySerde> = if x.parameters.is_mapping() {
-                    serde_yaml::from_value(x.parameters).unwrap_or(None)
-                } else {
-                    None
-                };
-                symbol::Symbol {
+                let params: Option<entity_serde::EntitySerde> = azml::from_value(x.parameters)?;
+                Ok(symbol::Symbol {
                     identifier: x.identifier,
                     kind: symbol_kind::SymbolKind::Entity,
                     parameters: if let Some(p) = params {
@@ -30,15 +30,15 @@ impl From<SymbolSerde> for symbol::Symbol {
                     } else {
                         None
                     },
-                }
+                })
             }
             "adjunct" => {
                 let params: Option<adjunct_serde::AdjunctSerde> = if x.parameters.is_mapping() {
-                    serde_yaml::from_value(x.parameters).unwrap_or(None)
+                    azml::from_value(x.parameters).unwrap_or(None)
                 } else {
                     None
                 };
-                symbol::Symbol {
+                Ok(symbol::Symbol {
                     identifier: x.identifier,
                     kind: symbol_kind::SymbolKind::Adjunct,
                     parameters: if let Some(p) = params {
@@ -46,9 +46,12 @@ impl From<SymbolSerde> for symbol::Symbol {
                     } else {
                         None
                     },
-                }
+                })
             }
-            _ => panic!(format!("unrecognized symbol kind: {}", x.kind)),
+            _ => Err(azml::Error::Msg(format!(
+                r#"Unrecognized symbol kind `{}`"#,
+                x.kind
+            ))),
         }
     }
 }

@@ -4,7 +4,7 @@ use std::convert::TryInto;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{adjunct, base::arity_serde};
+use crate::{adjunct, base::arity_serde, base::azml};
 
 #[derive(Serialize, Deserialize)]
 pub struct AdjunctSerde {
@@ -18,7 +18,7 @@ pub struct AdjunctSerde {
 
     //TODO: required
     #[serde(default)]
-    parameters: serde_yaml::Value,
+    parameters: azml::Value,
 }
 
 impl From<AdjunctSerde> for adjunct::Adjunct {
@@ -26,7 +26,7 @@ impl From<AdjunctSerde> for adjunct::Adjunct {
         match x.kind.as_str() {
             "entity" => {
                 let params: Option<AdjunctEntitySerde> = if x.parameters.is_mapping() {
-                    serde_yaml::from_value(x.parameters).unwrap_or(None)
+                    azml::from_value(x.parameters).unwrap_or(None)
                 } else {
                     None
                 };
