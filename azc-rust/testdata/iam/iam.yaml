@@ -20,6 +20,7 @@ symbols:
             event_emission:
               enabled: true
       service:
+        enabled: true
         api:
           protocols:
             #?RFC: versioning?
@@ -64,6 +65,10 @@ symbols:
         min: 0
         max: -1
       parameters:
+        service:
+          enabled: true
+          description: |
+            Hello.
         mixins:
           - kind: Deletable
           - kind: TimeBound

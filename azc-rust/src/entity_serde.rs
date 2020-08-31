@@ -32,12 +32,16 @@ impl From<EntitySerde> for entity::Entity {
 struct EntityServiceSerde {
     #[serde(default)]
     documentation: String,
+
+    #[serde(default)]
+    enabled: bool,
 }
 
 impl From<EntityServiceSerde> for entity::EntityService {
     fn from(x: EntityServiceSerde) -> entity::EntityService {
         entity::EntityService {
             documentation: x.documentation,
+            enabled: x.enabled,
         }
     }
 }

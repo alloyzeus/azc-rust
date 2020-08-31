@@ -14,4 +14,5 @@ impl symbol::SymbolParameters for Entity {}
 #[derive(Debug)]
 pub struct EntityService {
     pub documentation: String,
+    pub enabled: bool,
 }
