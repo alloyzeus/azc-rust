@@ -1,7 +1,9 @@
 //
 
-use crate::{entity, mixin_serde};
 use serde::{Deserialize, Serialize};
+use std::convert;
+
+use crate::{base::azml, entity, mixin, mixin_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct EntitySerde {
@@ -14,17 +16,23 @@ pub struct EntitySerde {
     mixins: Vec<mixin_serde::MixinSerde>,
 }
 
-impl From<EntitySerde> for entity::Entity {
-    fn from(x: EntitySerde) -> entity::Entity {
-        entity::Entity {
+impl convert::TryFrom<EntitySerde> for entity::Entity {
+    type Error = azml::Error;
+
+    fn try_from(x: EntitySerde) -> Result<Self, Self::Error> {
+        Ok(entity::Entity {
             documentation: x.documentation,
             service: if let Some(service) = x.service {
                 Some(service.into())
             } else {
                 None
             },
-            mixins: x.mixins.into_iter().map(|x| x.into()).collect(),
-        }
+            mixins: x
+                .mixins
+                .into_iter()
+                .map(|x| mixin::Mixin::try_from(x))
+                .collect::<Result<Vec<mixin::Mixin>, _>>()?,
+        })
     }
 }
 

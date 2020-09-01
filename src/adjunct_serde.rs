@@ -1,6 +1,6 @@
 //
 
-use std::convert::TryInto;
+use std::{convert, convert::TryInto};
 
 use serde::{Deserialize, Serialize};
 
@@ -21,16 +21,14 @@ pub struct AdjunctSerde {
     parameters: azml::Value,
 }
 
-impl From<AdjunctSerde> for adjunct::Adjunct {
-    fn from(x: AdjunctSerde) -> adjunct::Adjunct {
+impl convert::TryFrom<AdjunctSerde> for adjunct::Adjunct {
+    type Error = azml::Error;
+
+    fn try_from(x: AdjunctSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<AdjunctEntitySerde> = if x.parameters.is_mapping() {
-                    azml::from_value(x.parameters).unwrap_or(None)
-                } else {
-                    None
-                };
-                adjunct::Adjunct {
+                let params: Option<AdjunctEntitySerde> = azml::from_value(x.parameters)?;
+                Ok(adjunct::Adjunct {
                     kind: adjunct::AdjunctKind::Entity,
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
@@ -39,16 +37,16 @@ impl From<AdjunctSerde> for adjunct::Adjunct {
                     } else {
                         None
                     },
-                }
+                })
             }
             _ => {
                 //TODO: parameters
-                adjunct::Adjunct {
+                Ok(adjunct::Adjunct {
                     kind: adjunct::AdjunctKind::ValueObject,
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
                     parameters: None,
-                }
+                })
             }
         }
     }
@@ -67,6 +65,7 @@ impl From<AdjunctHostSerde> for adjunct::AdjunctHost {
 
 #[derive(Serialize, Deserialize)]
 pub struct AdjunctEntitySerde {
+    #[serde(default)]
     ordering: String,
 }
 

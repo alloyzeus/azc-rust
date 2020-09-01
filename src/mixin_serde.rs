@@ -1,6 +1,7 @@
 //
 
 use serde::{Deserialize, Serialize};
+use std::convert;
 
 use crate::{base::azml, mixin, mixins::ownership_serde};
 
@@ -13,28 +14,27 @@ pub struct MixinSerde {
     parameters: azml::Value,
 }
 
-impl From<MixinSerde> for mixin::Mixin {
-    fn from(x: MixinSerde) -> mixin::Mixin {
+impl convert::TryFrom<MixinSerde> for mixin::Mixin {
+    type Error = azml::Error;
+
+    fn try_from(x: MixinSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "Ownable" => {
-                let params: Option<ownership_serde::OwnableSerde> = if x.parameters.is_mapping() {
-                    azml::from_value(x.parameters).unwrap_or(None)
-                } else {
-                    None
-                };
-                mixin::Mixin {
+                let params: Option<ownership_serde::OwnableSerde> = azml::from_value(x.parameters)?;
+                Ok(mixin::Mixin {
                     kind: x.kind,
                     parameters: if let Some(p) = params {
                         Some(Box::new(p))
                     } else {
                         None
                     },
-                }
+                })
             }
-            _ => mixin::Mixin {
-                kind: x.kind,
-                parameters: None,
-            },
+            _ => Ok(mixin::Mixin{kind: x.kind, parameters: None})
+            // _ => Err(azml::Error::Msg(format!(
+            //     r#"Unrecognized mixin `{}`"#,
+            //     x.kind
+            // ))),
         }
     }
 }

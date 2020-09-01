@@ -39,6 +39,16 @@ symbols:
             grpc:
               enabled: true
 
+  - identifier: IdentifierPhoneNumber
+    kind: adjunct
+    parameters:
+      hosts:
+        - name: User
+      kind: value-object
+      parameters:
+        kind: PhoneNumber
+        unique: true
+
   - identifier: Application
     kind: entity
     parameters:
@@ -89,6 +99,14 @@ symbols:
         min: 0
         max: -1
       parameters:
+        attributes:
+          represented_user:
+            kind: ref
+            parameters:
+              kind: User
+          request:
+            # TODO: union or interface
+            kind: ref
         service:
           enabled: true
           description: |
@@ -103,8 +121,13 @@ symbols:
                   quantity: 1440
                   unit: hour
 
-  - identifier: AuthorizationPhoneNumber
+  # TODO: this is ephemeral. and we could just use prebuilt functionality,
+  # e.g., PhoneNumberVerification. We need to declare something here which
+  # brings PhoneNumberVerification for this use case.
+  - identifier: AuthorizationPhoneNumberRequest
     kind: entity
+    block:
+      name: PhoneNumberVerification
     parameters:
       id:
         space: 48
@@ -122,6 +145,10 @@ symbols:
               overridable: true
               value: 6
       mixins:
+        - kind: PhoneNumberIntegerCodeVerification
+          parameters:
+            code_length:
+              value: 6
         - kind: Deletable
         - kind: Expirable
           parameters:

@@ -56,7 +56,7 @@ impl convert::TryFrom<String> for AdjunctEntityOrdering {
 
     fn try_from(s: String) -> result::Result<Self, Self::Error> {
         match s.as_ref() {
-            "unordered" => Ok(AdjunctEntityOrdering::Unordered),
+            "unordered" | "" => Ok(AdjunctEntityOrdering::Unordered),
             "ordered" => Ok(AdjunctEntityOrdering::Ordered),
             _ => Err("Unrecognized"),
         }
