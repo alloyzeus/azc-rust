@@ -2,14 +2,23 @@ module: iam
 symbols:
 
   - identifier: User
+    # This defines what this entity's role in the system. In a system, a role
+    # can have only one concrete. Not to be confused with 'role' in access
+    # control.
     abstract: User
     kind: entity
     parameters:
-      creation: "TODO: the rule of the creation (affects service)"
       id:
-        space: 48
+        # Options: integer(space), uuid(version), string
+        type: integer
+        parameters:
+          space: 48
         generator:
-          name: OfflineRandomIntegerIDGenerator
+          # Other options: ShardedRandomIntegerGenerator
+          # The option for generator is defined by the registered generators
+          # to the compiler.
+          # Root entities can only use random generators.
+          name: LocalRandomIntegerIDGenerator
           parameters:
             encodings:
               text:
@@ -20,6 +29,7 @@ symbols:
             event_emission:
               enabled: true
       service:
+        creation: "TODO: the rule of the creation (affects service)"
         enabled: true
         api:
           protocols:
@@ -35,14 +45,28 @@ symbols:
       mixins:
         - kind: Ownable
           parameters:
-            owner_arity: [1, 4]
+            owner_arity:
+              # overridable means that the configuration could be overriden
+              # through, e.g., environment variables or config server.
+              # RFC: should we, instead making these value here as value
+              # available in config server?
+              overridable: true
+              value:
+                min: 1
+                max: 4
       attributes:
         access_keys:
+          # A set of AccessKey with uniqueness is defined by the field id
+          # by default, we use object's defined key, or we will use the
+          # equality trait (value objects are required to provide equality
+          # operator)
           kind: set
           parameters:
             kind: AccessKey
-            fields: [id]
-            arity: [1, 4]
+            key_fields: [id]
+            arity:
+              min: 0
+              max: 4
 
   - identifier: Terminal
     kind: adjunct
@@ -71,11 +95,46 @@ symbols:
             Hello.
         mixins:
           - kind: Deletable
-          - kind: TimeBound
+          - kind: Expirable
             parameters:
               duration:
                 overridable: true
                 value:
                   quantity: 1440
                   unit: hour
-        
+
+  - identifier: AuthorizationPhoneNumber
+    kind: entity
+    parameters:
+      id:
+        space: 48
+      attributes:
+        phone_number:
+          kind: PhoneNumber
+          unique: true
+          # primary implies final
+          primary: true
+        verification_code:
+          final: true
+          kind: IntegerVerificationCode
+          parameters:
+            length:
+              overridable: true
+              value: 6
+      mixins:
+        - kind: Deletable
+        - kind: Expirable
+          parameters:
+            duration:
+              overridable: true
+              value:
+                quantity: 5
+                unit: minute
+      service:
+        creation:
+          authorization:
+            - kind: Application
+              condition:
+                eq:
+                  a: type
+                  b: user-agent
