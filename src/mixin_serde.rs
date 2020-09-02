@@ -9,8 +9,6 @@ use crate::{base::azml, mixin, mixins::ownership_serde};
 pub struct MixinSerde {
     kind: String,
 
-    //TODO: required
-    #[serde(default)]
     parameters: azml::Value,
 }
 

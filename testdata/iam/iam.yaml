@@ -79,6 +79,8 @@ symbols:
               max: 4
 
   - identifier: Terminal
+    description: |
+      A terminal is an authorized instance of application.
     kind: adjunct
     parameters:
       kind: entity
@@ -88,17 +90,7 @@ symbols:
       parameters:
         mixins:
           - kind: Deletable
-
-  - identifier: Authorization
-    kind: adjunct
-    parameters:
-      kind: entity
-      hosts:
-        - name: Terminal
-      arity:
-        min: 0
-        max: -1
-      parameters:
+            parameters:
         attributes:
           represented_user:
             kind: ref
@@ -106,13 +98,28 @@ symbols:
               kind: User
           request:
             # TODO: union or interface
+            # we need to refer to SessionByPhoneNumberRequests and
+            # other methods of authentication.
             kind: ref
+
+  - identifier: Session
+    kind: adjunct
+    parameters:
+      kind: entity
+      hosts:
+        - name: Terminal
+          unique: true
+      arity:
+        min: 0
+        max: -1
+      parameters:
         service:
           enabled: true
           description: |
             Hello.
         mixins:
           - kind: Deletable
+            parameters:
           - kind: Expirable
             parameters:
               duration:
@@ -124,33 +131,29 @@ symbols:
   # TODO: this is ephemeral. and we could just use prebuilt functionality,
   # e.g., PhoneNumberVerification. We need to declare something here which
   # brings PhoneNumberVerification for this use case.
-  - identifier: AuthorizationPhoneNumberRequest
+  - identifier: SessionByPhoneNumberRequest
     kind: entity
     block:
       name: PhoneNumberVerification
     parameters:
       id:
         space: 48
-      attributes:
-        phone_number:
-          kind: PhoneNumber
-          unique: true
-          # primary implies final
-          primary: true
-        verification_code:
-          final: true
-          kind: IntegerVerificationCode
-          parameters:
-            length:
-              overridable: true
-              value: 6
       mixins:
         - kind: PhoneNumberIntegerCodeVerification
           parameters:
             code_length:
               value: 6
-        - kind: Deletable
-        - kind: Expirable
+            event_emission:
+              confirmed:
+                authorization:
+                  - kind: intraprocess
+                    allow: always
+                allowed_isolations:
+                  # Allow only listeners from the same process
+                  - process
+        - kind: Deletion
+          parameters:
+        - kind: Expiration
           parameters:
             duration:
               overridable: true
@@ -161,7 +164,10 @@ symbols:
         creation:
           authorization:
             - kind: Application
+              allow: on-condition
               condition:
                 eq:
                   a: type
                   b: user-agent
+          allowed_isolations:
+            - all
