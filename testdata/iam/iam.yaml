@@ -26,7 +26,7 @@ symbols:
       mixins:
         - kind: Deletable
           parameters:
-            event_emission:
+            event_hooks:
               enabled: true
       service:
         creation: "TODO: the rule of the creation (affects service)"
@@ -98,7 +98,7 @@ symbols:
               kind: User
           request:
             # TODO: union or interface
-            # we need to refer to SessionByPhoneNumberRequests and
+            # we need to refer to TerminalRegistrationByPhoneNumber and
             # other methods of authentication.
             kind: ref
 
@@ -128,14 +128,23 @@ symbols:
                   quantity: 1440
                   unit: hour
 
-  # TODO: this is ephemeral. and we could just use prebuilt functionality,
-  # e.g., PhoneNumberVerification. We need to declare something here which
-  # brings PhoneNumberVerification for this use case.
-  - identifier: SessionByPhoneNumberRequest
+  # TODO: concept of something, which is an accessory to a process of creating
+  # an instance of entity. This thing's purpose is only to be an accessory.
+  # This thing might or might not contain part which will be included in the
+  # product entity.
+  # Idea for the term: material, artifact, mold, aid, assist,
+  # scaffold, proto.
+  # TODO: we could just use prebuilt functionality,
+  # e.g., PhoneNumberVerification, but we still need to declare something here
+  # which brings the functionality here.
+  - identifier: TerminalRegistrationByPhoneNumber
     kind: entity
     block:
       name: PhoneNumberVerification
     parameters:
+      material:
+        product:
+          kind: Terminal
       id:
         space: 48
       mixins:
@@ -143,7 +152,7 @@ symbols:
           parameters:
             code_length:
               value: 6
-            event_emission:
+            event_hooks:
               confirmed:
                 authorization:
                   - kind: intraprocess
@@ -151,6 +160,7 @@ symbols:
                 allowed_isolations:
                   # Allow only listeners from the same process
                   - process
+                function:
         - kind: Deletion
           parameters:
         - kind: Expiration
