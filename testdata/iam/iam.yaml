@@ -24,7 +24,7 @@ symbols:
               text:
                 prefix: "ix-"
       mixins:
-        - kind: Deletable
+        - kind: Deletion
           parameters:
             event_hooks:
               enabled: true
@@ -53,7 +53,7 @@ symbols:
     kind: entity
     parameters:
       mixins:
-        - kind: Ownable
+        - kind: Ownership
           parameters:
             owner_arity:
               # overridable means that the configuration could be overriden
@@ -89,7 +89,7 @@ symbols:
         - name: Application
       parameters:
         mixins:
-          - kind: Deletable
+          - kind: Deletion
             parameters:
         attributes:
           represented_user:
@@ -101,6 +101,12 @@ symbols:
             # we need to refer to TerminalRegistrationByPhoneNumber and
             # other methods of authentication.
             kind: ref
+        service:
+          methods:
+            creation:
+              authorization:
+                - kind: intraprocess
+                  allow: always
 
   - identifier: Session
     kind: adjunct
@@ -118,9 +124,9 @@ symbols:
           description: |
             Hello.
         mixins:
-          - kind: Deletable
+          - kind: Deletion
             parameters:
-          - kind: Expirable
+          - kind: Expiration
             parameters:
               duration:
                 overridable: true
@@ -128,11 +134,12 @@ symbols:
                   quantity: 1440
                   unit: hour
 
-  # TODO: concept of something, which is an accessory to a process of creating
-  # an instance of entity. This thing's purpose is only to be an accessory.
-  # This thing might or might not contain part which will be included in the
-  # product entity.
-  # Idea for the term: material, artifact, mold, aid, assist,
+  # TODO: concept of something, which is required to create an instance of
+  # an entity. One instance of this something can only be used for exactly one
+  # process.
+  # This something might or might not contain part which will be included in
+  # the product entity.
+  # Idea for the term: substrate, material, artifact, mold, aid, assist,
   # scaffold, proto.
   # TODO: we could just use prebuilt functionality,
   # e.g., PhoneNumberVerification, but we still need to declare something here
@@ -142,7 +149,7 @@ symbols:
     block:
       name: PhoneNumberVerification
     parameters:
-      material:
+      substrate:
         product:
           kind: Terminal
       id:

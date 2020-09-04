@@ -17,8 +17,8 @@ impl convert::TryFrom<MixinSerde> for mixin::Mixin {
 
     fn try_from(x: MixinSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
-            "Ownable" => {
-                let params: Option<ownership_serde::OwnableSerde> = azml::from_value(x.parameters)?;
+            "Ownership" => {
+                let params: Option<ownership_serde::OwnershipSerde> = azml::from_value(x.parameters)?;
                 Ok(mixin::Mixin {
                     kind: x.kind,
                     parameters: if let Some(p) = params {

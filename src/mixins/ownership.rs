@@ -2,6 +2,6 @@
 
 use crate::{base::arity, mixin};
 
-pub struct Ownable {
+pub struct Ownership {
     pub owner_arity: mixin::MixinField<arity::ArityConstraint>,
 }
