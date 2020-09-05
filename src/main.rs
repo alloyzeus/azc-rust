@@ -4,7 +4,6 @@ mod adjunct;
 mod adjunct_serde;
 mod base;
 mod entity;
-mod entity_serde;
 mod mixin;
 mod mixin_serde;
 mod mixins;
@@ -17,6 +16,8 @@ mod symbol_serde;
 #[macro_use]
 extern crate mopa;
 use std::{env, process};
+
+use crate::entity::entity::Entity;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -36,7 +37,7 @@ fn main() {
         println!("digraph {} {{", src.module);
         for symbol in &src.symbols {
             if let Some(params) = &symbol.parameters {
-                if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+                if let Some(ent) = params.downcast_ref::<Entity>() {
                     ent.write_dot_identifier(symbol.identifier.clone());
                 } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
                     adj.write_dot_identifier(symbol.identifier.clone());
@@ -46,7 +47,7 @@ fn main() {
         println!();
         for symbol in src.symbols {
             if let Some(params) = symbol.parameters {
-                if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+                if let Some(ent) = params.downcast_ref::<Entity>() {
                     ent.write_dot_relationships(symbol.identifier);
                 } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
                     adj.write_dot_relationships(symbol.identifier);
@@ -73,7 +74,7 @@ impl DotNode for adjunct::Adjunct {
     }
 }
 
-impl DotNode for entity::Entity {
+impl DotNode for Entity {
     fn write_dot_identifier(&self, identifier: String) {
         println!("  {} [shape=rect]", identifier);
     }

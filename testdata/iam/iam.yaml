@@ -10,7 +10,7 @@ symbols:
     parameters:
       id:
         # Options: integer(space), uuid(version), string
-        type: integer
+        kind: integer
         parameters:
           space: 48
         generator:
@@ -59,6 +59,12 @@ symbols:
   - identifier: Application
     kind: entity
     parameters:
+      # TODO: encode application type into the ID. we will then use
+      # the same method to encode the type into Terminal ID.
+      id:
+        kind: integer
+        parameters:
+          space: 24
       mixins:
         - kind: Ownership
           parameters:
@@ -167,7 +173,9 @@ symbols:
         product:
           kind: Terminal
       id:
-        space: 48
+        kind: integer
+        parameters:
+          space: 48
       mixins:
         - kind: Deletion
           expose_services: true

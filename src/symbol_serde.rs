@@ -3,7 +3,9 @@
 use serde::{Deserialize, Serialize};
 use std::convert;
 
-use crate::{adjunct, adjunct_serde, base::azml, entity, entity_serde, symbol, symbol_kind};
+use crate::{
+    adjunct, adjunct_serde, base::azml, entity::entity, entity::entity_serde, symbol, symbol_kind,
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct SymbolSerde {
