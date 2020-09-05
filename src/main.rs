@@ -15,7 +15,7 @@ mod symbol_serde;
 
 #[macro_use]
 extern crate mopa;
-use std::{env, process};
+use std::{env, io, io::Write, process};
 
 use crate::entity::entity::Entity;
 
@@ -34,51 +34,90 @@ fn main() {
     }
 
     if let Ok(src) = source_file_result {
-        println!("digraph {} {{", src.module);
-        for symbol in &src.symbols {
-            if let Some(params) = &symbol.parameters {
-                if let Some(ent) = params.downcast_ref::<Entity>() {
-                    ent.write_dot_identifier(symbol.identifier.clone());
-                } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                    adj.write_dot_identifier(symbol.identifier.clone());
-                }
-            }
-        }
-        println!();
-        for symbol in src.symbols {
-            if let Some(params) = symbol.parameters {
-                if let Some(ent) = params.downcast_ref::<Entity>() {
-                    ent.write_dot_relationships(symbol.identifier);
-                } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                    adj.write_dot_relationships(symbol.identifier);
-                }
-            }
-        }
-        println!("}}");
+        let mut buf = io::BufWriter::new(Vec::new());
+        write_dot(&mut buf, src).unwrap();
+        io::stdout().write_all(buf.buffer()).unwrap();
     }
+}
+
+fn write_dot(
+    w: &mut impl io::Write,
+    src: source_file::SourceFile,
+) -> Result<(), base::error::Error> {
+    w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
+    for symbol in &src.symbols {
+        if let Some(params) = &symbol.parameters {
+            if let Some(ent) = params.downcast_ref::<Entity>() {
+                ent.write_dot_identifier(w, symbol.identifier.clone())?;
+            } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
+                adj.write_dot_identifier(w, symbol.identifier.clone())?;
+            }
+        }
+    }
+    w.write_all(b"\n")?;
+    for symbol in src.symbols {
+        if let Some(params) = symbol.parameters {
+            if let Some(ent) = params.downcast_ref::<Entity>() {
+                ent.write_dot_relationships(w, symbol.identifier)?;
+            } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
+                adj.write_dot_relationships(w, symbol.identifier)?;
+            }
+        }
+    }
+    w.write_all(b"}\n")?;
+
+    Ok(())
 }
 
 trait DotNode {
-    fn write_dot_identifier(&self, identifier: String);
-    fn write_dot_relationships(&self, identifier: String);
+    fn write_dot_identifier(
+        &self,
+        w: &mut impl io::Write,
+        identifier: String,
+    ) -> Result<(), io::Error>;
+    fn write_dot_relationships(
+        &self,
+        w: &mut impl io::Write,
+        identifier: String,
+    ) -> Result<(), io::Error>;
 }
 
 impl DotNode for adjunct::Adjunct {
-    fn write_dot_identifier(&self, identifier: String) {
-        println!("  {} [shape=ellipse]", identifier);
+    fn write_dot_identifier(
+        &self,
+        w: &mut impl io::Write,
+        identifier: String,
+    ) -> Result<(), io::Error> {
+        w.write(format!("  {} [shape=ellipse]\n", identifier).as_bytes())?;
+        Ok(())
     }
-    fn write_dot_relationships(&self, identifier: String) {
+    fn write_dot_relationships(
+        &self,
+        w: &mut impl io::Write,
+        identifier: String,
+    ) -> Result<(), io::Error> {
         for ent in &self.hosts {
-            println!("  {} -> {}", identifier, ent.name);
+            w.write(format!("  {} -> {}\n", identifier, ent.name).as_bytes())?;
         }
+        Ok(())
     }
 }
 
 impl DotNode for Entity {
-    fn write_dot_identifier(&self, identifier: String) {
-        println!("  {} [shape=rect]", identifier);
+    fn write_dot_identifier(
+        &self,
+        w: &mut impl io::Write,
+        identifier: String,
+    ) -> Result<(), io::Error> {
+        w.write(format!("  {} [shape=rect]\n", identifier).as_bytes())?;
+        Ok(())
     }
-    fn write_dot_relationships(&self, _identifier: String) {
+    fn write_dot_relationships(
+        &self,
+        _w: &mut impl io::Write,
+        _identifier: String,
+    ) -> Result<(), io::Error> {
         // Do nothing
+        Ok(())
     }
 }
