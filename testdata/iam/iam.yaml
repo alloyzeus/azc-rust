@@ -153,28 +153,24 @@ symbols:
   # which brings the functionality here.
   - identifier: TerminalRegistrationByPhoneNumber
     kind: entity
-    block:
-      name: PhoneNumberVerification
     parameters:
+      # The idea is that this entity is built upon a component. We are
+      # encapsulating the component as an entity in this domain. A component
+      # deals only with the value it contained.
+      # TODO: same or similar concept to mixins? an entity can have only one
+      # component? is this similar to Go's struct embedding?
+      component:
+        name: PhoneNumberVerificationWithIntegerCode
+        parameters:
+          code_length: 6
       substrate:
         product:
           kind: Terminal
       id:
         space: 48
       mixins:
-        - kind: PhoneNumberIntegerCodeVerification
-          parameters:
-            code_length:
-              value: 6
-            event_hooks:
-              confirmed:
-                authorization:
-                  - kind: intraprocess
-                    allow: always
-                allowed_isolations:
-                  # Allow only listeners from the same process
-                  - process
         - kind: Deletion
+          expose_services: true
           parameters:
         - kind: Expiration
           parameters:
@@ -184,18 +180,23 @@ symbols:
                 quantity: 5
                 unit: minute
       service:
+        # Creation is a special service method.
+        creation:
+          authorization:
+            - kind: Application
+              allow: on-condition
+              condition:
+                eq:
+                  a: type
+                  b: user-agent
+          allowed_isolations:
+            - all
+          method:
+            create:
+        # Instance methods
         methods:
-          create:
-            authorization:
-              - kind: Application
-                allow: on-condition
-                condition:
-                  eq:
-                    a: type
-                    b: user-agent
-            allowed_isolations:
-              - all
           confirm:
+            mutate: true
             authorization:
               - kind: intraprocess
                 allow: always
@@ -207,7 +208,7 @@ symbols:
             output_parameters:
               session: Session
             process: |
-              self.confirm_verification(id, code) {
+              self.confirm_verification(code) {
                 error(err) => return err
                 ok(phone_number) => IdentifierPhoneNumber.service.get_user_or_create(phone_number) {
                   error(err) => return err
