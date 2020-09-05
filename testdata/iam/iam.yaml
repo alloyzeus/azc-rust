@@ -29,8 +29,15 @@ symbols:
             event_hooks:
               enabled: true
       service:
-        creation: "TODO: the rule of the creation (affects service)"
         enabled: true
+        methods:
+          # Creation of an entity
+          creation:
+            # The authorization definition for the creation method.
+            authorization:
+              # Here, we allow creation from the same service process
+              - kind: intraprocess
+                allow: always
         api:
           protocols:
             #?RFC: versioning?
@@ -167,7 +174,6 @@ symbols:
                 allowed_isolations:
                   # Allow only listeners from the same process
                   - process
-                function:
         - kind: Deletion
           parameters:
         - kind: Expiration
@@ -178,13 +184,36 @@ symbols:
                 quantity: 5
                 unit: minute
       service:
-        creation:
-          authorization:
-            - kind: Application
-              allow: on-condition
-              condition:
-                eq:
-                  a: type
-                  b: user-agent
-          allowed_isolations:
-            - all
+        methods:
+          create:
+            authorization:
+              - kind: Application
+                allow: on-condition
+                condition:
+                  eq:
+                    a: type
+                    b: user-agent
+            allowed_isolations:
+              - all
+          confirm:
+            authorization:
+              - kind: intraprocess
+                allow: always
+            input_parameters:
+              self:
+                type: '&Self'
+              code:
+                type: PhoneNumberIntegerCodeVerification.Code
+            output_parameters:
+              session: Session
+            process: |
+              self.confirm_verification(id, code) {
+                error(err) => return err
+                ok(phone_number) => IdentifierPhoneNumber.service.get_user_or_create(phone_number) {
+                  error(err) => return err
+                  ok(uid) => Terminal.create(self.application, uid) => {
+                    error(err) => return err
+                    ok(term) => Session.create(term)
+                  }
+                }
+              }
