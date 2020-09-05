@@ -29,11 +29,10 @@ impl convert::TryFrom<AdjunctSerde> for adjunct::Adjunct {
             "entity" => {
                 let params: Option<AdjunctEntitySerde> = azml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
-                    kind: adjunct::AdjunctKind::Entity,
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
                     parameters: if let Some(p) = params {
-                        Some(Box::new(adjunct::AdjunctEntityDefinition::from(p)))
+                        Some(Box::new(adjunct::AdjunctEntity::from(p)))
                     } else {
                         None
                     },
@@ -42,7 +41,6 @@ impl convert::TryFrom<AdjunctSerde> for adjunct::Adjunct {
             _ => {
                 //TODO: parameters
                 Ok(adjunct::Adjunct {
-                    kind: adjunct::AdjunctKind::ValueObject,
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
                     parameters: None,
@@ -69,9 +67,9 @@ pub struct AdjunctEntitySerde {
     ordering: String,
 }
 
-impl From<AdjunctEntitySerde> for adjunct::AdjunctEntityDefinition {
-    fn from(x: AdjunctEntitySerde) -> adjunct::AdjunctEntityDefinition {
-        adjunct::AdjunctEntityDefinition {
+impl From<AdjunctEntitySerde> for adjunct::AdjunctEntity {
+    fn from(x: AdjunctEntitySerde) -> adjunct::AdjunctEntity {
+        adjunct::AdjunctEntity {
             ordering: x.ordering.try_into().unwrap_or_default(),
         }
     }

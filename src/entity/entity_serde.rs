@@ -10,7 +10,7 @@ pub struct EntitySerde {
     #[serde(default)]
     documentation: String,
 
-    id: entity_id_serde::EntityIdDefinitionSerde,
+    id: entity_id_serde::EntityIdSerde,
 
     #[serde(default)]
     service: Option<EntityServiceSerde>,

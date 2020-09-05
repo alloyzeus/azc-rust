@@ -10,7 +10,6 @@ mod mixins;
 mod source_file;
 mod source_file_serde;
 mod symbol;
-mod symbol_kind;
 mod symbol_serde;
 
 #[macro_use]

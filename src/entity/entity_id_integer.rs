@@ -23,4 +23,4 @@ pub struct EntityIdInteger {
     pub space: i8,
 }
 
-impl entity_id::EntityIdParameters for EntityIdInteger {}
+impl entity_id::EntityIdDefinition for EntityIdInteger {}

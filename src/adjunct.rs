@@ -5,20 +5,18 @@ use std::{convert, result};
 
 #[derive(Debug)]
 pub struct Adjunct {
-    pub kind: AdjunctKind,
-
     pub hosts: Vec<AdjunctHost>,
 
     pub arity: arity::ArityConstraint,
 
-    pub parameters: Option<Box<dyn AdjuctContent>>,
+    pub parameters: Option<Box<dyn AdjuctDefinition>>,
 }
 
-pub trait AdjuctContent: mopa::Any + std::fmt::Debug {}
+pub trait AdjuctDefinition: mopa::Any + std::fmt::Debug {}
 
-mopafy!(AdjuctContent);
+mopafy!(AdjuctDefinition);
 
-impl symbol::SymbolParameters for Adjunct {}
+impl symbol::SymbolDefinition for Adjunct {}
 
 #[derive(Debug)]
 pub struct AdjunctHost {
@@ -26,18 +24,11 @@ pub struct AdjunctHost {
 }
 
 #[derive(Debug)]
-pub enum AdjunctKind {
-    ValueObject,
-    // Represented by AdjuctEntityDefinition
-    Entity,
-}
-
-#[derive(Debug)]
-pub struct AdjunctEntityDefinition {
+pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
 }
 
-impl AdjuctContent for AdjunctEntityDefinition {}
+impl AdjuctDefinition for AdjunctEntity {}
 
 #[derive(Debug)]
 pub enum AdjunctEntityOrdering {

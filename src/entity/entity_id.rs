@@ -1,11 +1,10 @@
 //
 
 #[derive(Debug)]
-pub struct EntityIdDefinition {
-    pub kind: String,
-    pub parameters: Option<Box<dyn EntityIdParameters>>,
+pub struct EntityId {
+    pub parameters: Option<Box<dyn EntityIdDefinition>>,
 }
 
-pub trait EntityIdParameters: mopa::Any + std::fmt::Debug {}
+pub trait EntityIdDefinition: mopa::Any + std::fmt::Debug {}
 
-mopafy!(EntityIdParameters);
+mopafy!(EntityIdDefinition);

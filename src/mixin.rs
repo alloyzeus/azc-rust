@@ -2,11 +2,13 @@
 
 #[derive(Debug)]
 pub struct Mixin {
-    pub kind: String,
-
     //TODO: non-optional
-    pub parameters: Option<Box<dyn std::any::Any>>,
+    pub parameters: Option<Box<dyn MixinDefinition>>,
 }
+
+pub trait MixinDefinition: mopa::Any + std::fmt::Debug {}
+
+mopafy!(MixinDefinition);
 
 #[derive(Debug)]
 pub struct MixinField<T> {

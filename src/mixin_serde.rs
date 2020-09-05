@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::{convert, convert::TryInto};
 
-use crate::{base::azml, mixin, mixins::ownership_serde};
+use crate::{base::azml, mixin, mixins::ownership, mixins::ownership_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct MixinSerde {
@@ -20,15 +20,14 @@ impl convert::TryFrom<MixinSerde> for mixin::Mixin {
             "Ownership" => {
                 let params: Option<ownership_serde::OwnershipSerde> = azml::from_value(x.parameters)?;
                 Ok(mixin::Mixin {
-                    kind: x.kind,
                     parameters: if let Some(p) = params {
-                        Some(Box::new(p))
+                        Some(Box::new(ownership::Ownership::try_from(p)?))
                     } else {
                         None
                     },
                 })
             }
-            _ => Ok(mixin::Mixin{kind: x.kind, parameters: None})
+            _ => Ok(mixin::Mixin{parameters: None})
             // _ => Err(azml::Error::Msg(format!(
             //     r#"Unrecognized mixin `{}`"#,
             //     x.kind
