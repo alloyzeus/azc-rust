@@ -57,12 +57,12 @@ fn main() {
     }
 }
 
-trait DotObject {
+trait DotNode {
     fn write_dot_identifier(&self, identifier: String);
     fn write_dot_relationships(&self, identifier: String);
 }
 
-impl DotObject for adjunct::Adjunct {
+impl DotNode for adjunct::Adjunct {
     fn write_dot_identifier(&self, identifier: String) {
         println!("  {} [shape=ellipse]", identifier);
     }
@@ -73,7 +73,7 @@ impl DotObject for adjunct::Adjunct {
     }
 }
 
-impl DotObject for entity::Entity {
+impl DotNode for entity::Entity {
     fn write_dot_identifier(&self, identifier: String) {
         println!("  {} [shape=rect]", identifier);
     }
