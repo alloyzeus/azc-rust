@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::convert;
 
-use crate::{adjunct, adjunct_serde, base::azml, entity::entity, entity::entity_serde, symbol};
+use crate::{adjunct, adjunct_serde, azyaml, entity::entity, entity::entity_serde, symbol};
 
 #[derive(Serialize, Deserialize)]
 pub struct SymbolSerde {
@@ -12,16 +12,16 @@ pub struct SymbolSerde {
 
     //TODO: required
     #[serde(default)]
-    parameters: azml::Value,
+    parameters: azyaml::Value,
 }
 
 impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
-    type Error = azml::Error;
+    type Error = azyaml::Error;
 
     fn try_from(x: SymbolSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<entity_serde::EntitySerde> = azml::from_value(x.parameters)?;
+                let params: Option<entity_serde::EntitySerde> = azyaml::from_value(x.parameters)?;
                 Ok(symbol::Symbol {
                     identifier: x.identifier,
                     parameters: if let Some(p) = params {
@@ -32,7 +32,7 @@ impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
                 })
             }
             "adjunct" => {
-                let params: Option<adjunct_serde::AdjunctSerde> = azml::from_value(x.parameters)?;
+                let params: Option<adjunct_serde::AdjunctSerde> = azyaml::from_value(x.parameters)?;
                 Ok(symbol::Symbol {
                     identifier: x.identifier,
                     parameters: if let Some(p) = params {
@@ -42,7 +42,7 @@ impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
                     },
                 })
             }
-            _ => Err(azml::Error::Msg(format!(
+            _ => Err(azyaml::Error::Msg(format!(
                 r#"Unrecognized symbol kind `{}`"#,
                 x.kind
             ))),

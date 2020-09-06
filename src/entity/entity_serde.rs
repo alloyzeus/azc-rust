@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::{convert, convert::TryInto};
 
-use crate::{base::azml, entity::entity, entity::entity_id_serde, mixin, mixin_serde};
+use crate::{azyaml, entity::entity, entity::entity_id_serde, mixin, mixin_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct EntitySerde {
@@ -19,7 +19,7 @@ pub struct EntitySerde {
 }
 
 impl convert::TryFrom<EntitySerde> for entity::Entity {
-    type Error = azml::Error;
+    type Error = azyaml::Error;
 
     fn try_from(x: EntitySerde) -> Result<Self, Self::Error> {
         Ok(entity::Entity {

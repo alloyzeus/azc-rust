@@ -3,22 +3,22 @@
 use serde::{Deserialize, Serialize};
 use std::{convert, convert::TryInto};
 
-use crate::{base::azml, mixin, mixins::ownership, mixins::ownership_serde};
+use crate::{azyaml, mixin, mixins::ownership, mixins::ownership_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct MixinSerde {
     kind: String,
 
-    parameters: azml::Value,
+    parameters: azyaml::Value,
 }
 
 impl convert::TryFrom<MixinSerde> for mixin::Mixin {
-    type Error = azml::Error;
+    type Error = azyaml::Error;
 
     fn try_from(x: MixinSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "Ownership" => {
-                let params: Option<ownership_serde::OwnershipSerde> = azml::from_value(x.parameters)?;
+                let params: Option<ownership_serde::OwnershipSerde> = azyaml::from_value(x.parameters)?;
                 Ok(mixin::Mixin {
                     parameters: if let Some(p) = params {
                         Some(Box::new(ownership::Ownership::try_from(p)?))
@@ -28,7 +28,7 @@ impl convert::TryFrom<MixinSerde> for mixin::Mixin {
                 })
             }
             _ => Ok(mixin::Mixin{parameters: None})
-            // _ => Err(azml::Error::Msg(format!(
+            // _ => Err(azyaml::Error::Msg(format!(
             //     r#"Unrecognized mixin `{}`"#,
             //     x.kind
             // ))),
@@ -47,10 +47,10 @@ pub struct MixinFieldSerde<T> {
 impl<T, U> convert::TryFrom<MixinFieldSerde<T>> for mixin::MixinField<U>
 where
     U: convert::TryFrom<T>,
-    <U as convert::TryFrom<T>>::Error: Into<azml::Error>,
+    <U as convert::TryFrom<T>>::Error: Into<azyaml::Error>,
     <U as convert::TryFrom<T>>::Error: std::fmt::Debug,
 {
-    type Error = azml::Error;
+    type Error = azyaml::Error;
 
     fn try_from(x: MixinFieldSerde<T>) -> Result<Self, Self::Error> {
         Ok(mixin::MixinField {

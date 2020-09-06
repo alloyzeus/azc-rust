@@ -2,6 +2,7 @@
 
 mod adjunct;
 mod adjunct_serde;
+mod azyaml;
 mod base;
 mod entity;
 mod mixin;

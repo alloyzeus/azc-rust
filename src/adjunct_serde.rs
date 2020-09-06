@@ -4,7 +4,7 @@ use std::{convert, convert::TryInto};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{adjunct, base::arity_serde, base::azml};
+use crate::{adjunct, azyaml, base::arity_serde};
 
 #[derive(Serialize, Deserialize)]
 pub struct AdjunctSerde {
@@ -18,16 +18,16 @@ pub struct AdjunctSerde {
 
     //TODO: required
     #[serde(default)]
-    parameters: azml::Value,
+    parameters: azyaml::Value,
 }
 
 impl convert::TryFrom<AdjunctSerde> for adjunct::Adjunct {
-    type Error = azml::Error;
+    type Error = azyaml::Error;
 
     fn try_from(x: AdjunctSerde) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<AdjunctEntitySerde> = azml::from_value(x.parameters)?;
+                let params: Option<AdjunctEntitySerde> = azyaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
