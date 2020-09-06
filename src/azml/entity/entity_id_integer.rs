@@ -1,6 +1,6 @@
 //
 
-use crate::entity::entity_id;
+use crate::azml::entity::entity_id;
 
 #[derive(Debug)]
 pub struct EntityIdInteger {

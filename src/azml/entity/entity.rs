@@ -1,6 +1,6 @@
 //
 
-use crate::{entity::entity_id, mixin, symbol};
+use crate::azml::{entity::entity_id, mixin, symbol};
 
 #[derive(Debug)]
 pub struct Entity {

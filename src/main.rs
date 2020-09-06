@@ -1,23 +1,13 @@
 //
 
-mod adjunct;
-mod adjunct_serde;
-mod azyaml;
-mod base;
-mod entity;
-mod mixin;
-mod mixin_serde;
-mod mixins;
-mod source_file;
-mod source_file_serde;
-mod symbol;
-mod symbol_serde;
+mod azml;
+mod lib;
 
 #[macro_use]
 extern crate mopa;
 use std::{env, io, io::Write, process};
 
-use crate::entity::entity::Entity;
+use crate::azml::{adjunct, entity::entity, source_file};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -43,11 +33,11 @@ fn main() {
 fn write_dot(
     w: &mut impl io::Write,
     src: source_file::SourceFile,
-) -> Result<(), base::error::Error> {
+) -> Result<(), azml::error::Error> {
     w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
     for symbol in &src.symbols {
         if let Some(params) = &symbol.parameters {
-            if let Some(ent) = params.downcast_ref::<Entity>() {
+            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
                 ent.write_dot_identifier(w, symbol.identifier.clone())?;
             } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
                 adj.write_dot_identifier(w, symbol.identifier.clone())?;
@@ -57,7 +47,7 @@ fn write_dot(
     w.write_all(b"\n")?;
     for symbol in src.symbols {
         if let Some(params) = symbol.parameters {
-            if let Some(ent) = params.downcast_ref::<Entity>() {
+            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
                 ent.write_dot_relationships(w, symbol.identifier)?;
             } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
                 adj.write_dot_relationships(w, symbol.identifier)?;
@@ -103,7 +93,7 @@ impl DotNode for adjunct::Adjunct {
     }
 }
 
-impl DotNode for Entity {
+impl DotNode for entity::Entity {
     fn write_dot_identifier(
         &self,
         w: &mut impl io::Write,

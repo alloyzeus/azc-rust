@@ -1,27 +1,26 @@
 //
 
-use serde::{Deserialize, Serialize};
 use std::convert;
 
-use crate::{adjunct, adjunct_serde, azyaml, entity::entity, entity::entity_serde, symbol};
+use crate::azml::{adjunct, adjunct_yaml, entity::entity, entity::entity_yaml, symbol, yaml};
 
-#[derive(Serialize, Deserialize)]
-pub struct SymbolSerde {
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct SymbolYaml {
     identifier: String,
     kind: String,
 
     //TODO: required
     #[serde(default)]
-    parameters: azyaml::Value,
+    parameters: yaml::Value,
 }
 
-impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
-    type Error = azyaml::Error;
+impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
+    type Error = yaml::Error;
 
-    fn try_from(x: SymbolSerde) -> Result<Self, Self::Error> {
+    fn try_from(x: SymbolYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<entity_serde::EntitySerde> = azyaml::from_value(x.parameters)?;
+                let params: Option<entity_yaml::EntityYaml> = yaml::from_value(x.parameters)?;
                 Ok(symbol::Symbol {
                     identifier: x.identifier,
                     parameters: if let Some(p) = params {
@@ -32,7 +31,7 @@ impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
                 })
             }
             "adjunct" => {
-                let params: Option<adjunct_serde::AdjunctSerde> = azyaml::from_value(x.parameters)?;
+                let params: Option<adjunct_yaml::AdjunctYaml> = yaml::from_value(x.parameters)?;
                 Ok(symbol::Symbol {
                     identifier: x.identifier,
                     parameters: if let Some(p) = params {
@@ -42,7 +41,7 @@ impl convert::TryFrom<SymbolSerde> for symbol::Symbol {
                     },
                 })
             }
-            _ => Err(azyaml::Error::Msg(format!(
+            _ => Err(yaml::Error::Msg(format!(
                 r#"Unrecognized symbol kind `{}`"#,
                 x.kind
             ))),

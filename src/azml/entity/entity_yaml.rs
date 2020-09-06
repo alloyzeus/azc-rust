@@ -3,25 +3,25 @@
 use serde::{Deserialize, Serialize};
 use std::{convert, convert::TryInto};
 
-use crate::{azyaml, entity::entity, entity::entity_id_serde, mixin, mixin_serde};
+use crate::azml::{entity::entity, entity::entity_id_yaml, mixin, mixin_yaml, yaml};
 
-#[derive(Serialize, Deserialize)]
-pub struct EntitySerde {
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct EntityYaml {
     #[serde(default)]
     documentation: String,
 
-    id: entity_id_serde::EntityIdSerde,
+    id: entity_id_yaml::EntityIdYaml,
 
     #[serde(default)]
-    service: Option<EntityServiceSerde>,
+    service: Option<EntityServiceYaml>,
 
-    mixins: Vec<mixin_serde::MixinSerde>,
+    mixins: Vec<mixin_yaml::MixinYaml>,
 }
 
-impl convert::TryFrom<EntitySerde> for entity::Entity {
-    type Error = azyaml::Error;
+impl convert::TryFrom<EntityYaml> for entity::Entity {
+    type Error = yaml::Error;
 
-    fn try_from(x: EntitySerde) -> Result<Self, Self::Error> {
+    fn try_from(x: EntityYaml) -> Result<Self, Self::Error> {
         Ok(entity::Entity {
             documentation: x.documentation,
             id: x.id.try_into()?,
@@ -40,7 +40,7 @@ impl convert::TryFrom<EntitySerde> for entity::Entity {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct EntityServiceSerde {
+struct EntityServiceYaml {
     #[serde(default)]
     documentation: String,
 
@@ -48,8 +48,8 @@ struct EntityServiceSerde {
     enabled: bool,
 }
 
-impl From<EntityServiceSerde> for entity::EntityService {
-    fn from(x: EntityServiceSerde) -> entity::EntityService {
+impl From<EntityServiceYaml> for entity::EntityService {
+    fn from(x: EntityServiceYaml) -> entity::EntityService {
         entity::EntityService {
             documentation: x.documentation,
             enabled: x.enabled,

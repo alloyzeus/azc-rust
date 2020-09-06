@@ -1,6 +1,6 @@
 //
 
-use crate::{base::arity, symbol};
+use crate::azml::{arity, symbol};
 use std::{convert, result};
 
 #[derive(Debug)]

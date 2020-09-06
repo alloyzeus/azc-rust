@@ -1,6 +1,6 @@
 //
 
-use crate::{base::arity, mixin};
+use crate::azml::{arity, mixin};
 
 #[derive(Debug)]
 pub struct Ownership {

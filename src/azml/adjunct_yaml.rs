@@ -2,32 +2,30 @@
 
 use std::{convert, convert::TryInto};
 
-use serde::{Deserialize, Serialize};
+use crate::azml::{adjunct, arity_yaml, yaml};
 
-use crate::{adjunct, azyaml, base::arity_serde};
-
-#[derive(Serialize, Deserialize)]
-pub struct AdjunctSerde {
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct AdjunctYaml {
     #[serde(default)]
     kind: String,
 
-    hosts: Vec<AdjunctHostSerde>,
+    hosts: Vec<AdjunctHostYaml>,
 
     #[serde(default)]
-    arity: arity_serde::ArityConstraintSerde,
+    arity: arity_yaml::ArityConstraintYaml,
 
     //TODO: required
     #[serde(default)]
-    parameters: azyaml::Value,
+    parameters: yaml::Value,
 }
 
-impl convert::TryFrom<AdjunctSerde> for adjunct::Adjunct {
-    type Error = azyaml::Error;
+impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
+    type Error = yaml::Error;
 
-    fn try_from(x: AdjunctSerde) -> Result<Self, Self::Error> {
+    fn try_from(x: AdjunctYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<AdjunctEntitySerde> = azyaml::from_value(x.parameters)?;
+                let params: Option<AdjunctEntityYaml> = yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
@@ -50,25 +48,25 @@ impl convert::TryFrom<AdjunctSerde> for adjunct::Adjunct {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct AdjunctHostSerde {
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct AdjunctHostYaml {
     name: String,
 }
 
-impl From<AdjunctHostSerde> for adjunct::AdjunctHost {
-    fn from(x: AdjunctHostSerde) -> adjunct::AdjunctHost {
+impl From<AdjunctHostYaml> for adjunct::AdjunctHost {
+    fn from(x: AdjunctHostYaml) -> adjunct::AdjunctHost {
         adjunct::AdjunctHost { name: x.name }
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct AdjunctEntitySerde {
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct AdjunctEntityYaml {
     #[serde(default)]
     ordering: String,
 }
 
-impl From<AdjunctEntitySerde> for adjunct::AdjunctEntity {
-    fn from(x: AdjunctEntitySerde) -> adjunct::AdjunctEntity {
+impl From<AdjunctEntityYaml> for adjunct::AdjunctEntity {
+    fn from(x: AdjunctEntityYaml) -> adjunct::AdjunctEntity {
         adjunct::AdjunctEntity {
             ordering: x.ordering.try_into().unwrap_or_default(),
         }

@@ -1,22 +1,21 @@
 //
 
-use serde::{Deserialize, Serialize};
 use std::convert;
 
-use crate::{base::error, source_file, symbol, symbol_serde};
+use crate::azml::{error, source_file, symbol, symbol_yaml};
 
-#[derive(Serialize, Deserialize)]
-pub struct SourceFileSerde {
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct SourceFileYaml {
     module: String,
 
     #[serde(default)]
-    symbols: Vec<symbol_serde::SymbolSerde>,
+    symbols: Vec<symbol_yaml::SymbolYaml>,
 }
 
-impl convert::TryFrom<SourceFileSerde> for source_file::SourceFile {
+impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
     type Error = error::Error;
 
-    fn try_from(x: SourceFileSerde) -> Result<Self, Self::Error> {
+    fn try_from(x: SourceFileYaml) -> Result<Self, Self::Error> {
         let symbols = x
             .symbols
             .into_iter()
