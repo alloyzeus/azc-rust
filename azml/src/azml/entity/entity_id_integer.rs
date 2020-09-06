@@ -24,3 +24,7 @@ pub struct EntityIdInteger {
 }
 
 impl entity_id::EntityIdDefinition for EntityIdInteger {}
+
+pub trait EntityIdIntegerEncoding: mopa::Any + std::fmt::Debug {}
+
+mopafy!(EntityIdIntegerEncoding);

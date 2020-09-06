@@ -2,7 +2,11 @@
 
 use std::{env, io, io::Write, process};
 
-use azml::azml::{adjunct, entity::entity, error, source_file};
+use azml::azml::{
+    adjunct,
+    entity::{entity, entity_id_integer},
+    error, source_file,
+};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -20,12 +24,20 @@ fn main() {
 
     if let Ok(src) = source_file_result {
         let mut buf = io::BufWriter::new(Vec::new());
-        write_dot(&mut buf, src).unwrap();
+        write_dot(&mut buf, &src).unwrap();
         io::stdout().write_all(buf.buffer()).unwrap();
+
+        for symbol in &src.symbols {
+            if let Some(params) = &symbol.parameters {
+                if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+                    generate_entity_codes(ent, symbol.identifier.clone());
+                }
+            }
+        }
     }
 }
 
-fn write_dot(w: &mut impl io::Write, src: source_file::SourceFile) -> Result<(), error::Error> {
+fn write_dot(w: &mut impl io::Write, src: &source_file::SourceFile) -> Result<(), error::Error> {
     w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
     for symbol in &src.symbols {
         if let Some(params) = &symbol.parameters {
@@ -37,12 +49,12 @@ fn write_dot(w: &mut impl io::Write, src: source_file::SourceFile) -> Result<(),
         }
     }
     w.write_all(b"\n")?;
-    for symbol in src.symbols {
-        if let Some(params) = symbol.parameters {
+    for symbol in &src.symbols {
+        if let Some(params) = &symbol.parameters {
             if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                ent.write_dot_relationships(w, symbol.identifier)?;
+                ent.write_dot_relationships(w, symbol.identifier.clone())?;
             } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                adj.write_dot_relationships(w, symbol.identifier)?;
+                adj.write_dot_relationships(w, symbol.identifier.clone())?;
             }
         }
     }
@@ -101,5 +113,52 @@ impl DotNode for entity::Entity {
     ) -> Result<(), io::Error> {
         // Do nothing
         Ok(())
+    }
+}
+
+fn generate_entity_codes(ent: &entity::Entity, identifier: String) {
+    if let Some(id_def) = &ent.id.parameters {
+        if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
+            let id_size = if id_int.space < 16 {
+                16
+            } else if id_int.space < 32 {
+                32
+            } else if id_int.space < 64 {
+                64
+            } else {
+                -1 //TODO: error. we won't need this here. generators receive clean data.
+            };
+            let id_type_name = format!("{}ID", identifier);
+            let id_type_primitive = format!("int{}", id_size);
+            let service_name = format!("{}Service", identifier);
+            //TODO: use text-template engine
+            print!(
+                "// {} is used to identify an instance of {}.\n\
+                type {} {}\n\
+                const {}Zero = {}(0)\n\
+                func {}FromPrimitiveValue(v {}) {} {{ return {}(v) }}\n\
+                func (id {}) PrimitiveValue() {} {{ return {}(id) }}\n\
+                \n\
+                type {} interface {{ /* TODO */ }}\n\
+                \n\
+                type {}Server struct {{ /* TODO */ }}\n\
+                \n",
+                id_type_name,
+                identifier,
+                id_type_name,
+                id_type_primitive,
+                id_type_name,
+                id_type_name,
+                id_type_name,
+                id_type_primitive,
+                id_type_name,
+                id_type_name,
+                id_type_name,
+                id_type_primitive,
+                id_type_primitive,
+                service_name,
+                service_name,
+            );
+        }
     }
 }

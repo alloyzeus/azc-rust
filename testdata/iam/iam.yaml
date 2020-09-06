@@ -176,6 +176,10 @@ symbols:
         kind: integer
         parameters:
           space: 48
+          encodings:
+            text:
+              prefix: ""
+              alg: decimal
       mixins:
         - kind: Deletion
           expose_services: true
