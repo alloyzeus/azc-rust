@@ -1,13 +1,8 @@
 //
 
-mod azml;
-mod lib;
-
-#[macro_use]
-extern crate mopa;
 use std::{env, io, io::Write, process};
 
-use crate::azml::{adjunct, entity::entity, source_file};
+use azml::azml::{adjunct, entity::entity, error, source_file};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -30,10 +25,7 @@ fn main() {
     }
 }
 
-fn write_dot(
-    w: &mut impl io::Write,
-    src: source_file::SourceFile,
-) -> Result<(), azml::error::Error> {
+fn write_dot(w: &mut impl io::Write, src: source_file::SourceFile) -> Result<(), error::Error> {
     w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
     for symbol in &src.symbols {
         if let Some(params) = &symbol.parameters {

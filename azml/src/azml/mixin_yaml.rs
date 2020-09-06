@@ -3,7 +3,7 @@
 use std::{convert, convert::TryInto};
 
 use crate::{
-    azml::mixin, azml::yaml, lib::std::ownership::ownership, lib::std::ownership::ownership_yaml,
+    azml::{mixin, yaml}, azcore::ownership::{ownership, ownership_yaml},
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
