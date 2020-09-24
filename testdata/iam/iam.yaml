@@ -28,16 +28,26 @@ symbols:
           parameters:
             event_hooks:
               enabled: true
+            api:
+      # Declares the creation rules. This defines how and who can create
+      # an instance.
+      creation:
+        # The authorization definition for the creation method.
+        access:
+          # Here, we allow creation from the same service process
+          - kind: intraprocess-private
+            authorization: none
+            allow: always
+          - kind: intraprocess-public
+            authorization: none
+            allow: always
+          - kind: interprocess-private (same host, loopback)
+            allow: none
+          - kind: interprocess-public (through public transport, e.g., internet)
+            allow: none
       service:
         enabled: true
         methods:
-          # Creation of an entity
-          creation:
-            # The authorization definition for the creation method.
-            authorization:
-              # Here, we allow creation from the same service process
-              - kind: intraprocess
-                allow: always
         api:
           protocols:
             #?RFC: versioning?
@@ -65,6 +75,8 @@ symbols:
         kind: integer
         parameters:
           space: 24
+      creation:
+        documentation: ""
       mixins:
         - kind: Ownership
           parameters:
@@ -114,12 +126,12 @@ symbols:
             # we need to refer to TerminalRegistrationByPhoneNumber and
             # other methods of authentication.
             kind: ref
+        creation:
+          authorization:
+            - kind: intraprocess
+              allow: always
         service:
           methods:
-            creation:
-              authorization:
-                - kind: intraprocess
-                  allow: always
 
   - identifier: Session
     kind: adjunct
@@ -182,7 +194,6 @@ symbols:
               alg: decimal
       mixins:
         - kind: Deletion
-          expose_services: true
           parameters:
         - kind: Expiration
           parameters:
@@ -191,20 +202,20 @@ symbols:
               value:
                 quantity: 5
                 unit: minute
+      # Creation is a special service method.
+      creation:
+        authorization:
+          - kind: Application
+            allow: on-condition
+            condition:
+              eq:
+                a: type
+                b: user-agent
+        allowed_isolations:
+          - all
+        method:
+          create:
       service:
-        # Creation is a special service method.
-        creation:
-          authorization:
-            - kind: Application
-              allow: on-condition
-              condition:
-                eq:
-                  a: type
-                  b: user-agent
-          allowed_isolations:
-            - all
-          method:
-            create:
         # Instance methods
         methods:
           confirm:
@@ -220,13 +231,13 @@ symbols:
             output_parameters:
               session: Session
             process: |
-              self.confirm_verification(code) {
-                error(err) => return err
-                ok(phone_number) => IdentifierPhoneNumber.service.get_user_or_create(phone_number) {
-                  error(err) => return err
-                  ok(uid) => Terminal.create(self.application, uid) => {
-                    error(err) => return err
-                    ok(term) => Session.create(term)
+              self.confirm_verification(code):{
+                error(err) -> return err
+                ok(phone_number) -> IdentifierPhoneNumber.service.get_user_or_create(phone_number):{
+                  error(err) -> return err
+                  ok(uid) -> Terminal.create(self.application, uid):{
+                    error(err) -> return err
+                    ok(term) -> Session.create(term)
                   }
                 }
               }

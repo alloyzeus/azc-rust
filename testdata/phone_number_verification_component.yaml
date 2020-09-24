@@ -19,3 +19,5 @@ symbols:
         confirm:
           mutate: true
           input_parameters:
+            phone_number:
+              type: telephony.PhoneNumber

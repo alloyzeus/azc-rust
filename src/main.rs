@@ -1,5 +1,6 @@
 //
 
+use mhtemplate;
 use std::{env, io, io::Write, process};
 
 use azml::azml::{
@@ -128,37 +129,38 @@ fn generate_entity_codes(ent: &entity::Entity, identifier: String) {
             } else {
                 -1 //TODO: error. we won't need this here. generators receive clean data.
             };
+
             let id_type_name = format!("{}ID", identifier);
             let id_type_primitive = format!("int{}", id_size);
             let service_name = format!("{}Service", identifier);
-            //TODO: use text-template engine
-            print!(
-                "// {} is used to identify an instance of {}.\n\
-                type {} {}\n\
-                const {}Zero = {}(0)\n\
-                func {}FromPrimitiveValue(v {}) {} {{ return {}(v) }}\n\
-                func (id {}) PrimitiveValue() {} {{ return {}(id) }}\n\
+
+            let mut mht_ctx = mhtemplate::Context::new();
+            mht_ctx["IDENTIFIER"] = identifier;
+            mht_ctx["ID_TYPE_NAME"] = id_type_name;
+            mht_ctx["ID_TYPE_PRIMITIVE"] = id_type_primitive;
+            mht_ctx["SERVICE_NAME"] = service_name;
+
+            let mh_tpl = mhtemplate::TemplateFactory::new(
+                "// {{$ID_TYPE_NAME}} is used to identify an instance of {{$IDENTIFIER}}.\n\
+                type {{$ID_TYPE_NAME}} {{$ID_TYPE_PRIMITIVE}}\n\
                 \n\
-                type {} interface {{ /* TODO */ }}\n\
+                // {{$ID_TYPE_NAME}}Zero is the zero value for entity {{$IDENTIFIER}}.\n\
+                const {{$ID_TYPE_NAME}}Zero = {{$ID_TYPE_NAME}}(0)\n\
                 \n\
-                type {}Server struct {{ /* TODO */ }}\n\
-                \n",
-                id_type_name,
-                identifier,
-                id_type_name,
-                id_type_primitive,
-                id_type_name,
-                id_type_name,
-                id_type_name,
-                id_type_primitive,
-                id_type_name,
-                id_type_name,
-                id_type_name,
-                id_type_primitive,
-                id_type_primitive,
-                service_name,
-                service_name,
-            );
+                func {{$ID_TYPE_NAME}}FromPrimitiveValue(v {{$ID_TYPE_PRIMITIVE}}) {{$ID_TYPE_NAME}} { return {{$ID_TYPE_NAME}}(v) }\n\
+                func (id {{$ID_TYPE_NAME}}) PrimitiveValue() {{$ID_TYPE_PRIMITIVE}} { return {{$ID_TYPE_PRIMITIVE}}(id) }\n\
+                \n\
+                type {{$SERVICE_NAME}} interface {\n\
+                \t// TODO\n\
+                }\n\
+                \n\
+                type {{$SERVICE_NAME}}Server struct {\n\
+                \t// TODO\n\
+                }\n\
+                \n").parse().unwrap();
+
+            let rx = mh_tpl.evaluate(&mut mht_ctx).unwrap();
+            print!("{}", rx);
         }
     }
 }

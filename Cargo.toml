@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 azml = { path = "azml" }
+mhtemplate = "1.0.0"
