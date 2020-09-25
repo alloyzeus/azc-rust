@@ -220,19 +220,21 @@ symbols:
       attributes:
         phone_number:
           kind: telephony.PhoneNumber
+        verification_code:
+          kind: PhoneNumberVerificationCode
       service:
         # Instance methods
         methods:
           confirm:
+            # instance arity?
             mutate: true
             authorization:
-              - kind: intraprocess
-                allow: always
+              - kind: oso
+                parameters:
+                  policy: 'allow(ctx: Context, "confirm", _resource: Self) if ctx.is_intraprocess'
             input_parameters:
-              self:
-                type: '&Self'
-              code:
-                type: PhoneNumberIntegerCodeVerification.Code
+              Self:
+              Self.verification_code:
             output_parameters:
               session: Session
             process: |
@@ -246,3 +248,10 @@ symbols:
                   }
                 }
               }
+
+  - identifier: PhoneNumberVerificationCode
+    kind: value_object
+    parameters:
+      kind: primitive
+      parameters:
+        primitive_type: int8

@@ -56,12 +56,10 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     None => Err(yaml::Error::Msg("Missing parameters".to_owned())),
                 }
             }
-            _ => {
-                Err(yaml::Error::Msg(format!(
-                    r#"Unrecognized symbol kind `{}`"#,
-                    x.kind
-                )))
-            }
+            _ => Err(yaml::Error::Msg(format!(
+                r#"Unrecognized symbol kind `{}`"#,
+                x.kind
+            ))),
         }
     }
 }

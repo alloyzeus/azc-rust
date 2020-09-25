@@ -1,4 +1,4 @@
 
 .PHONY: fmt
 fmt:
-	@rustfmt **/*.rs
+	@cargo fmt --all

@@ -5,7 +5,9 @@ use std::convert;
 use crate::azml::{
     adjunct::{adjunct, adjunct_yaml},
     entity::{entity, entity_yaml},
-    symbol, yaml,
+    symbol,
+    value_object::{value_object, value_object_yaml},
+    yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -40,6 +42,18 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                     identifier: x.identifier,
                     parameters: if let Some(p) = params {
                         Some(Box::new(adjunct::Adjunct::try_from(p)?))
+                    } else {
+                        None
+                    },
+                })
+            }
+            "value_object" => {
+                let params: Option<value_object_yaml::ValueObjectYaml> =
+                    yaml::from_value(x.parameters)?;
+                Ok(symbol::Symbol {
+                    identifier: x.identifier,
+                    parameters: if let Some(p) = params {
+                        Some(Box::new(value_object::ValueObject::try_from(p)?))
                     } else {
                         None
                     },

@@ -2,8 +2,8 @@
 
 use std::{convert, convert::TryInto};
 
-use crate::azml::{arity, arity_yaml, error, mixin, mixin_yaml};
 use crate::azcore::ownership::ownership;
+use crate::azml::{arity, arity_yaml, error, mixin, mixin_yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct OwnershipYaml {
