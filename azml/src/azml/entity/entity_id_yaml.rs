@@ -3,7 +3,8 @@
 use std::convert;
 
 use crate::azml::{
-    entity::entity_id, entity::entity_id_integer, entity::entity_id_integer_yaml, yaml,
+    entity::{entity_id, entity_id_integer, entity_id_integer_yaml},
+    yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]

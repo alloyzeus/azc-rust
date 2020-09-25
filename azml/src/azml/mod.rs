@@ -1,7 +1,6 @@
 //
 
 pub mod adjunct;
-pub mod adjunct_yaml;
 pub mod arity;
 pub mod arity_yaml;
 pub mod entity;

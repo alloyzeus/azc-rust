@@ -215,6 +215,11 @@ symbols:
           - all
         methods:
           create:
+            input_parameters:
+              Self.phone_number:
+      attributes:
+        phone_number:
+          kind: telephony.PhoneNumber
       service:
         # Instance methods
         methods:

@@ -2,7 +2,7 @@
 
 use std::{convert, convert::TryInto};
 
-use crate::azml::{adjunct, arity_yaml, yaml};
+use crate::azml::{adjunct::adjunct, arity_yaml, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctYaml {

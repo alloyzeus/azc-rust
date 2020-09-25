@@ -2,7 +2,10 @@
 
 use std::{convert, convert::TryInto};
 
-use crate::azml::{entity::entity, entity::entity_id_yaml, mixin, mixin_yaml, yaml};
+use crate::azml::{
+    entity::{entity, entity_id_yaml},
+    mixin, mixin_yaml, yaml,
+};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct EntityYaml {
@@ -50,7 +53,9 @@ impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
     type Error = yaml::Error;
 
     fn try_from(x: EntityCreationYaml) -> Result<Self, Self::Error> {
-        Ok(entity::EntityCreation{documentation: x.documentation})
+        Ok(entity::EntityCreation {
+            documentation: x.documentation,
+        })
     }
 }
 

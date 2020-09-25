@@ -1,7 +1,8 @@
 //
 
-use crate::azml::{arity, symbol};
 use std::{convert, result};
+
+use crate::azml::{arity, symbol};
 
 #[derive(Debug)]
 pub struct Adjunct {

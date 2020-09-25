@@ -4,7 +4,7 @@ use mhtemplate;
 use std::{env, fs, io, io::Write, process};
 
 use azml::azml::{
-    adjunct,
+    adjunct::{adjunct},
     entity::{entity, entity_id_integer},
     error, source_file,
 };

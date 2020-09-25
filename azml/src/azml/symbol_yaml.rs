@@ -2,7 +2,11 @@
 
 use std::convert;
 
-use crate::azml::{adjunct, adjunct_yaml, entity::entity, entity::entity_yaml, symbol, yaml};
+use crate::azml::{
+    adjunct::{adjunct, adjunct_yaml},
+    entity::{entity, entity_yaml},
+    symbol, yaml,
+};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct SymbolYaml {
