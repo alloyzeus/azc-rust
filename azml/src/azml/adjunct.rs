@@ -9,7 +9,7 @@ pub struct Adjunct {
 
     pub arity: arity::ArityConstraint,
 
-    pub parameters: Option<Box<dyn AdjuctDefinition>>,
+    pub parameters: Box<dyn AdjuctDefinition>,
 }
 
 pub trait AdjuctDefinition: mopa::Any + std::fmt::Debug {}
@@ -53,3 +53,8 @@ impl convert::TryFrom<String> for AdjunctEntityOrdering {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct AdjunctValueObject {}
+
+impl AdjuctDefinition for AdjunctValueObject {}

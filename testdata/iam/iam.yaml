@@ -213,7 +213,7 @@ symbols:
                 b: user-agent
         allowed_isolations:
           - all
-        method:
+        methods:
           create:
       service:
         # Instance methods
