@@ -4,7 +4,7 @@ use mhtemplate;
 use std::{env, fs, io, io::Write, process};
 
 use azml::azml::{
-    adjunct::{adjunct},
+    adjunct::{adjunct, adjunct_entity},
     entity::{entity, entity_id_integer},
     error, source_file,
 };
@@ -35,7 +35,10 @@ fn main() {
                     continue;
                 }
                 if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                    if let Some(adj_ent) = adj.parameters.downcast_ref::<adjunct::AdjunctEntity>() {
+                    if let Some(adj_ent) = adj
+                        .parameters
+                        .downcast_ref::<adjunct_entity::AdjunctEntity>()
+                    {
                         generate_adjunct_entity_codes(
                             &src.module,
                             adj_ent,
@@ -319,7 +322,7 @@ fn generate_entity_codes(module_name: &String, ent: &entity::Entity, identifier:
 
 fn generate_adjunct_entity_codes(
     module_name: &String,
-    _adj_ent: &adjunct::AdjunctEntity,
+    _adj_ent: &adjunct_entity::AdjunctEntity,
     identifier: String,
     hosts: &Vec<adjunct::AdjunctHost>,
 ) {
