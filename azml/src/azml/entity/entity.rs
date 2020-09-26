@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::azml::{attribute, entity::entity_id, mixin, symbol};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Entity {
     pub documentation: String,
     pub id: entity_id::EntityId,
@@ -20,12 +20,12 @@ impl symbol::SymbolDefinition for Entity {}
 //
 // Creation is a special mixin which defines the rule for the creation
 // of any instance.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct EntityCreation {
     pub documentation: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct EntityService {
     pub documentation: String,
     pub enabled: bool,

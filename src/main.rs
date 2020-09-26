@@ -2,12 +2,7 @@
 
 use std::{env, io, io::Write, process};
 
-use azml::azml::{
-    adjunct::{adjunct, adjunct_entity},
-    entity::entity,
-    error, source_file,
-    value_object::value_object,
-};
+use azml::azml::{adjunct::adjunct, entity::entity, error, module, source_file};
 
 mod codegen;
 mod codegen_go;
@@ -36,38 +31,14 @@ fn main() {
             base_dir: "testdata/output/go".to_owned(),
         };
 
-        for symbol in &src.symbols {
-            let params = &symbol.parameters;
-            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                go_codegen
-                    .generate_entity_codes(&src.module, ent, &symbol.identifier)
-                    .unwrap();
-                continue;
-            }
-            if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                if let Some(adj_ent) = adj
-                    .parameters
-                    .downcast_ref::<adjunct_entity::AdjunctEntity>()
-                {
-                    go_codegen
-                        .generate_adjunct_entity_codes(
-                            &src.module,
-                            adj_ent,
-                            &symbol.identifier,
-                            &adj.hosts,
-                        )
-                        .unwrap();
-                    continue;
-                }
-                continue;
-            }
-            if let Some(vo) = params.downcast_ref::<value_object::ValueObject>() {
-                go_codegen
-                    .generate_value_object_codes(&src.module, vo, &symbol.identifier)
-                    .unwrap();
-                continue;
-            }
-        }
+        go_codegen
+            .generate_module_codes(
+                &src.module,
+                &module::ModuleDefinition {
+                    symbols: src.symbols.to_vec(),
+                },
+            )
+            .unwrap();
     }
 }
 

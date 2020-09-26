@@ -21,13 +21,12 @@ impl convert::TryFrom<EntityIdYaml> for entity_id::EntityId {
             "integer" => {
                 let params: Option<entity_id_integer_yaml::EntityIdIntegerYaml> =
                     yaml::from_value(x.parameters)?;
-                Ok(entity_id::EntityId {
-                    parameters: if let Some(p) = params {
-                        Some(Box::new(entity_id_integer::EntityIdInteger::try_from(p)?))
-                    } else {
-                        None
-                    },
-                })
+                match params {
+                    Some(p) => Ok(entity_id::EntityId {
+                        parameters: Box::new(entity_id_integer::EntityIdInteger::try_from(p)?),
+                    }),
+                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
+                }
             }
             _ => Err(yaml::Error::Msg(format!(
                 r#"Unrecognized symbol kind `{}`"#,

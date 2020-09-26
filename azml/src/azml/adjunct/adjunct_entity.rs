@@ -4,14 +4,14 @@ use std::{convert, result};
 
 use crate::azml::adjunct::adjunct;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
 }
 
 impl adjunct::AdjuctDefinition for AdjunctEntity {}
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum AdjunctEntityOrdering {
     Unordered,
     Ordered,

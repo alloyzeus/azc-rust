@@ -2,7 +2,7 @@
 
 use crate::azml::{data_type, symbol};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ValueObject {
     pub documentation: String,
 
@@ -14,7 +14,7 @@ pub struct ValueObject {
 
 impl symbol::SymbolDefinition for ValueObject {}
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ValueObjectStruct {
     pub documentation: String,
 }

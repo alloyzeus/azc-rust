@@ -10,6 +10,7 @@ pub mod entity;
 pub mod error;
 pub mod mixin;
 pub mod mixin_yaml;
+pub mod module;
 pub mod result;
 pub mod source_file;
 pub mod source_file_yaml;

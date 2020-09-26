@@ -2,7 +2,7 @@
 
 use crate::azml::{arity, mixin};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Ownership {
     pub owner_arity: mixin::MixinField<arity::ArityConstraint>,
 }

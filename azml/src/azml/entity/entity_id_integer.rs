@@ -2,7 +2,7 @@
 
 use crate::azml::entity::entity_id;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct EntityIdInteger {
     // The number of bits. Note that the actual types used are rounded up
     // to the power of 2. to ensure compatibility, we use signed integers,

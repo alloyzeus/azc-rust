@@ -1,6 +1,6 @@
 //
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ArityConstraint {
     pub min: i64,
     pub max: i64,

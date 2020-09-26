@@ -1,6 +1,6 @@
 //
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum DataType {
     Int8,
     Int16,
