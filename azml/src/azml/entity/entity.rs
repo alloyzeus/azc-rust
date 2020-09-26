@@ -1,6 +1,8 @@
 //
 
-use crate::azml::{entity::entity_id, mixin, symbol};
+use std::collections::HashMap;
+
+use crate::azml::{attribute, entity::entity_id, mixin, symbol};
 
 #[derive(Debug)]
 pub struct Entity {
@@ -9,6 +11,7 @@ pub struct Entity {
     pub creation: EntityCreation,
     pub mixins: Vec<mixin::Mixin>,
     pub service: Option<EntityService>,
+    pub attributes: HashMap<String, attribute::Attribute>,
 }
 
 impl symbol::SymbolDefinition for Entity {}

@@ -11,11 +11,11 @@ pub struct Adjunct {
     pub parameters: Box<dyn AdjuctDefinition>,
 }
 
+impl symbol::SymbolDefinition for Adjunct {}
+
 pub trait AdjuctDefinition: mopa::Any + std::fmt::Debug {}
 
 mopafy!(AdjuctDefinition);
-
-impl symbol::SymbolDefinition for Adjunct {}
 
 #[derive(Debug)]
 pub struct AdjunctHost {

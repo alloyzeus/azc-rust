@@ -27,37 +27,34 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
         match x.kind.as_str() {
             "entity" => {
                 let params: Option<entity_yaml::EntityYaml> = yaml::from_value(x.parameters)?;
-                Ok(symbol::Symbol {
-                    identifier: x.identifier,
-                    parameters: if let Some(p) = params {
-                        Some(Box::new(entity::Entity::try_from(p)?))
-                    } else {
-                        None
-                    },
-                })
+                match params {
+                    Some(p) => Ok(symbol::Symbol {
+                        identifier: x.identifier,
+                        parameters: Box::new(entity::Entity::try_from(p)?),
+                    }),
+                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
+                }
             }
             "adjunct" => {
                 let params: Option<adjunct_yaml::AdjunctYaml> = yaml::from_value(x.parameters)?;
-                Ok(symbol::Symbol {
-                    identifier: x.identifier,
-                    parameters: if let Some(p) = params {
-                        Some(Box::new(adjunct::Adjunct::try_from(p)?))
-                    } else {
-                        None
-                    },
-                })
+                match params {
+                    Some(p) => Ok(symbol::Symbol {
+                        identifier: x.identifier,
+                        parameters: Box::new(adjunct::Adjunct::try_from(p)?),
+                    }),
+                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
+                }
             }
             "value_object" => {
                 let params: Option<value_object_yaml::ValueObjectYaml> =
                     yaml::from_value(x.parameters)?;
-                Ok(symbol::Symbol {
-                    identifier: x.identifier,
-                    parameters: if let Some(p) = params {
-                        Some(Box::new(value_object::ValueObject::try_from(p)?))
-                    } else {
-                        None
-                    },
-                })
+                match params {
+                    Some(p) => Ok(symbol::Symbol {
+                        identifier: x.identifier,
+                        parameters: Box::new(value_object::ValueObject::try_from(p)?),
+                    }),
+                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
+                }
             }
             _ => Err(yaml::Error::Msg(format!(
                 r#"Unrecognized symbol kind `{}`"#,

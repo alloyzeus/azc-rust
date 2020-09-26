@@ -6,7 +6,8 @@ use std::{env, fs, io, io::Write, process};
 use azml::azml::{
     adjunct::{adjunct, adjunct_entity},
     entity::{entity, entity_id_integer},
-    error, source_file,
+    error, primitive, source_file,
+    value_object::value_object,
 };
 
 fn main() {
@@ -29,24 +30,27 @@ fn main() {
         io::stdout().write_all(buf.buffer()).unwrap();
 
         for symbol in &src.symbols {
-            if let Some(params) = &symbol.parameters {
-                if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                    generate_entity_codes(&src.module, ent, symbol.identifier.to_owned());
-                    continue;
+            let params = &symbol.parameters;
+            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+                generate_entity_codes(&src.module, ent, symbol.identifier.to_owned());
+                continue;
+            }
+            if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
+                if let Some(adj_ent) = adj
+                    .parameters
+                    .downcast_ref::<adjunct_entity::AdjunctEntity>()
+                {
+                    generate_adjunct_entity_codes(
+                        &src.module,
+                        adj_ent,
+                        symbol.identifier.to_owned(),
+                        &adj.hosts,
+                    )
                 }
-                if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                    if let Some(adj_ent) = adj
-                        .parameters
-                        .downcast_ref::<adjunct_entity::AdjunctEntity>()
-                    {
-                        generate_adjunct_entity_codes(
-                            &src.module,
-                            adj_ent,
-                            symbol.identifier.to_owned(),
-                            &adj.hosts,
-                        )
-                    }
-                }
+                continue;
+            }
+            if let Some(vo) = params.downcast_ref::<value_object::ValueObject>() {
+                generate_value_object_codes(&src.module, vo, &symbol.identifier);
             }
         }
     }
@@ -55,22 +59,20 @@ fn main() {
 fn write_dot(w: &mut impl io::Write, src: &source_file::SourceFile) -> Result<(), error::Error> {
     w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
     for symbol in &src.symbols {
-        if let Some(params) = &symbol.parameters {
-            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                ent.write_dot_identifier(w, symbol.identifier.clone())?;
-            } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                adj.write_dot_identifier(w, symbol.identifier.clone())?;
-            }
+        let params = &symbol.parameters;
+        if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+            ent.write_dot_identifier(w, symbol.identifier.clone())?;
+        } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
+            adj.write_dot_identifier(w, symbol.identifier.clone())?;
         }
     }
     w.write_all(b"\n")?;
     for symbol in &src.symbols {
-        if let Some(params) = &symbol.parameters {
-            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                ent.write_dot_relationships(w, symbol.identifier.clone())?;
-            } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                adj.write_dot_relationships(w, symbol.identifier.clone())?;
-            }
+        let params = &symbol.parameters;
+        if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+            ent.write_dot_relationships(w, symbol.identifier.clone())?;
+        } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
+            adj.write_dot_relationships(w, symbol.identifier.clone())?;
         }
     }
     w.write_all(b"}\n")?;
@@ -367,4 +369,53 @@ fn generate_adjunct_entity_codes(
         .open(format!("{}/{}/{}.go", base_dir, module_name, service_name,))
         .unwrap();
     service_file.write_all(service_code.as_bytes()).unwrap();
+}
+
+fn generate_value_object_codes(
+    module_name: &String,
+    vo: &value_object::ValueObject,
+    identifier: &String,
+) {
+    let base_dir = "testdata/output/go";
+
+    let mut mht_ctx = mhtemplate::Context::new();
+    mht_ctx["PACKAGE_NAME"] = module_name.to_lowercase();
+    mht_ctx["TYPE_NAME"] = identifier.to_owned();
+
+    let tpl: Box<dyn mhtemplate::Template>;
+
+    if let Some(vo_prim) = vo
+        .definition
+        .downcast_ref::<value_object::ValueObjectPrimitive>()
+    {
+        tpl = mhtemplate::TemplateFactory::new(
+            "package {{$PACKAGE_NAME}}\n\
+            \n\
+            // {{$TYPE_NAME}} is ....\n\
+            type {{$TYPE_NAME}} {{$PRIMITIVE_TYPE_NAME}}\n\
+            \n",
+        )
+        .parse()
+        .unwrap();
+
+        use primitive::PrimitiveType;
+        let prim_type = match vo_prim.type_name {
+            PrimitiveType::Int8 => "int8".to_string(),
+            PrimitiveType::Int16 => "int16".to_string(),
+            PrimitiveType::Int32 => "int32".to_string(),
+            PrimitiveType::Int64 => "int64".to_string(),
+            PrimitiveType::String => "string".to_string(),
+        };
+        mht_ctx["PRIMITIVE_TYPE_NAME"] = prim_type;
+
+        //TODO: move out
+        let service_code = tpl.evaluate(&mut mht_ctx).unwrap();
+        fs::create_dir_all(format!("{}/{}", base_dir, module_name,)).unwrap();
+        let mut service_file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(format!("{}/{}/{}.go", base_dir, module_name, identifier,))
+            .unwrap();
+        service_file.write_all(service_code.as_bytes()).unwrap();
+    }
 }

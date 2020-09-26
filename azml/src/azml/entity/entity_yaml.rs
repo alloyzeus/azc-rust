@@ -1,8 +1,12 @@
 //
 
-use std::convert::{self, TryInto};
+use std::{
+    collections::HashMap,
+    convert::{self, TryInto},
+};
 
 use crate::azml::{
+    attribute, attribute_yaml,
     entity::{entity, entity_id_yaml},
     mixin, mixin_yaml, yaml,
 };
@@ -19,6 +23,9 @@ pub struct EntityYaml {
 
     #[serde(default)]
     service: Option<EntityServiceYaml>,
+
+    #[serde(default)]
+    attributes: HashMap<String, attribute_yaml::AttributeYaml>,
 }
 
 impl convert::TryFrom<EntityYaml> for entity::Entity {
@@ -39,6 +46,11 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
             } else {
                 None
             },
+            attributes: x
+                .attributes
+                .iter()
+                .map(|(k, v)| (k.to_owned(), attribute::Attribute::try_from(v).unwrap()))
+                .collect::<HashMap<String, attribute::Attribute>>(),
         })
     }
 }
