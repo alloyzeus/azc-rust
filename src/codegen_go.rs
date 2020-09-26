@@ -16,8 +16,6 @@ pub struct GoCodeGenerator {
     pub base_dir: String,
 }
 
-impl GoCodeGenerator {}
-
 impl GoCodeGenerator {
     fn generate_entity_codes(
         &self,
