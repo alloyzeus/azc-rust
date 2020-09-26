@@ -254,6 +254,4 @@ symbols:
   - identifier: PhoneNumberVerificationCode
     kind: value_object
     parameters:
-      kind: primitive
-      parameters:
-        type_name: int8
+      data_type: int16

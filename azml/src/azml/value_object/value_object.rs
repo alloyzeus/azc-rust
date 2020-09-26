@@ -1,6 +1,6 @@
 //
 
-use crate::azml::{primitive, symbol};
+use crate::azml::{data_type, symbol};
 
 #[derive(Debug)]
 pub struct ValueObject {
@@ -19,7 +19,7 @@ mopafy!(ValueObjectDefinition);
 pub struct ValueObjectPrimitive {
     pub documentation: String,
 
-    pub type_name: primitive::PrimitiveType,
+    pub data_type: data_type::DataType,
 }
 
 impl ValueObjectDefinition for ValueObjectPrimitive {}

@@ -5,8 +5,9 @@ use std::{env, fs, io, io::Write, process};
 
 use azml::azml::{
     adjunct::{adjunct, adjunct_entity},
+    data_type,
     entity::{entity, entity_id_integer},
-    error, primitive, source_file,
+    error, source_file,
     value_object::value_object,
 };
 
@@ -398,13 +399,14 @@ fn generate_value_object_codes(
         .parse()
         .unwrap();
 
-        use primitive::PrimitiveType;
-        let prim_type = match vo_prim.type_name {
-            PrimitiveType::Int8 => "int8".to_string(),
-            PrimitiveType::Int16 => "int16".to_string(),
-            PrimitiveType::Int32 => "int32".to_string(),
-            PrimitiveType::Int64 => "int64".to_string(),
-            PrimitiveType::String => "string".to_string(),
+        use data_type::DataType;
+        let prim_type = match vo_prim.data_type {
+            DataType::Int8 => "int8".to_string(),
+            DataType::Int16 => "int16".to_string(),
+            DataType::Int32 => "int32".to_string(),
+            DataType::Int64 => "int64".to_string(),
+            DataType::String => "string".to_string(),
+            DataType::Struct => "struct".to_string(),
         };
         mht_ctx["PRIMITIVE_TYPE_NAME"] = prim_type;
 
