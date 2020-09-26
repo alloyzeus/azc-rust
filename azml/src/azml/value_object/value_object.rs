@@ -6,20 +6,15 @@ use crate::azml::{data_type, symbol};
 pub struct ValueObject {
     pub documentation: String,
 
-    pub definition: Box<dyn ValueObjectDefinition>,
+    pub data_type: data_type::DataType,
+
+    // Required only when data_type is Struct
+    pub struct_: Option<ValueObjectStruct>,
 }
 
 impl symbol::SymbolDefinition for ValueObject {}
 
-pub trait ValueObjectDefinition: mopa::Any + std::fmt::Debug {}
-
-mopafy!(ValueObjectDefinition);
-
 #[derive(Debug)]
-pub struct ValueObjectPrimitive {
+pub struct ValueObjectStruct {
     pub documentation: String,
-
-    pub data_type: data_type::DataType,
 }
-
-impl ValueObjectDefinition for ValueObjectPrimitive {}

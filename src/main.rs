@@ -385,39 +385,50 @@ fn generate_value_object_codes(
 
     let tpl: Box<dyn mhtemplate::Template>;
 
-    if let Some(vo_prim) = vo
-        .definition
-        .downcast_ref::<value_object::ValueObjectPrimitive>()
-    {
-        tpl = mhtemplate::TemplateFactory::new(
-            "package {{$PACKAGE_NAME}}\n\
-            \n\
-            // {{$TYPE_NAME}} is ....\n\
-            type {{$TYPE_NAME}} {{$PRIMITIVE_TYPE_NAME}}\n\
-            \n",
-        )
-        .parse()
-        .unwrap();
-
-        use data_type::DataType;
-        let prim_type = match vo_prim.data_type {
-            DataType::Int8 => "int8".to_string(),
-            DataType::Int16 => "int16".to_string(),
-            DataType::Int32 => "int32".to_string(),
-            DataType::Int64 => "int64".to_string(),
-            DataType::String => "string".to_string(),
-            DataType::Struct => "struct".to_string(),
-        };
-        mht_ctx["PRIMITIVE_TYPE_NAME"] = prim_type;
-
-        //TODO: move out
-        let service_code = tpl.evaluate(&mut mht_ctx).unwrap();
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,)).unwrap();
-        let mut service_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(format!("{}/{}/{}.go", base_dir, module_name, identifier,))
+    use data_type::DataType;
+    match vo.data_type {
+        DataType::Struct => {
+            tpl = mhtemplate::TemplateFactory::new(
+                "package {{$PACKAGE_NAME}}\n\
+                \n\
+                // {{$TYPE_NAME}} is ....\n\
+                type {{$TYPE_NAME}} struct {\n\
+                \t// TODO
+                }\n\
+                \n",
+            )
+            .parse()
             .unwrap();
-        service_file.write_all(service_code.as_bytes()).unwrap();
+        }
+        _ => {
+            tpl = mhtemplate::TemplateFactory::new(
+                "package {{$PACKAGE_NAME}}\n\
+                \n\
+                // {{$TYPE_NAME}} is ....\n\
+                type {{$TYPE_NAME}} {{$PRIMITIVE_TYPE_NAME}}\n\
+                \n",
+            )
+            .parse()
+            .unwrap();
+
+            let prim_type = match vo.data_type {
+                DataType::Int8 => "int8".to_owned(),
+                DataType::Int16 => "int16".to_owned(),
+                DataType::Int32 => "int32".to_owned(),
+                DataType::Int64 => "int64".to_owned(),
+                DataType::String => "string".to_owned(),
+                DataType::Struct => "struct".to_owned(),
+            };
+            mht_ctx["PRIMITIVE_TYPE_NAME"] = prim_type;
+        }
     }
+
+    let service_code = tpl.evaluate(&mut mht_ctx).unwrap();
+    fs::create_dir_all(format!("{}/{}", base_dir, module_name,)).unwrap();
+    let mut service_file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(format!("{}/{}/{}.go", base_dir, module_name, identifier,))
+        .unwrap();
+    service_file.write_all(service_code.as_bytes()).unwrap();
 }

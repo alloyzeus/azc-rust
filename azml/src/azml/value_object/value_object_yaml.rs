@@ -18,13 +18,22 @@ impl convert::TryFrom<ValueObjectYaml> for value_object::ValueObject {
     fn try_from(x: ValueObjectYaml) -> Result<Self, Self::Error> {
         let dtype = x.data_type.parse::<data_type::DataType>();
         match dtype {
-            Ok(e) => Ok(value_object::ValueObject {
-                documentation: x.documentation,
-                definition: Box::new(value_object::ValueObjectPrimitive {
-                    documentation: "".to_owned(),
-                    data_type: e,
-                }),
-            }),
+            Ok(e) => {
+                match e {
+                    data_type::DataType::Struct => Ok(value_object::ValueObject {
+                        documentation: x.documentation,
+                        data_type: e,
+                        struct_: Some(value_object::ValueObjectStruct {
+                            documentation: "".to_owned(),
+                        }), //TODO: fill this
+                    }),
+                    _ => Ok(value_object::ValueObject {
+                        documentation: x.documentation,
+                        data_type: e,
+                        struct_: None,
+                    }),
+                }
+            }
             Err(e) => Err(Self::Error::Msg(e.to_owned())),
         }
     }
