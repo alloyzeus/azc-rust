@@ -5,7 +5,7 @@ use std::{error, fs, io::Write};
 use crate::codegen;
 
 use azml::azml::{
-    adjunct::{adjunct, adjunct_entity},
+    adjunct::{adjunct, adjunct_entity, adjunct_value_object},
     data_type,
     entity::{entity, entity_id_integer},
     module,
@@ -108,6 +108,8 @@ impl GoCodeGenerator {
                     \n\
                     // {{$SERVICE_NAME}} provides a contract for methods related to entity {{$TYPE_NAME}}.\n\
                     type {{$SERVICE_NAME}} interface {\n\
+                    \tAZEntityServiceInterfaceBase\n\
+                    \n\
                     \tListen{{$TYPE_NAME}}Events({{$TYPE_NAME}}EventsListenInput) {{$TYPE_NAME}}EventsListenOutput\n\
                     \n\
                     \tCreate{{$TYPE_NAME}}({{$TYPE_NAME}}CreateInput) {{$TYPE_NAME}}CreateOutput\n\
@@ -151,6 +153,10 @@ impl GoCodeGenerator {
                 .create_new(true)
                 .open(format!("{}/{}/{}.go", base_dir, module_name, service_name,))?;
             id_file.write_all(service_code.as_bytes())?;
+
+            if !ent.attributes.is_empty() {
+                println!("TODO: attributes for entity {}", identifier);
+            }
 
             // filename: ./<module>/<identifier>_service_base.go
             let service_base_tpl = mhtemplate::TemplateFactory::new(
@@ -206,17 +212,17 @@ impl GoCodeGenerator {
             // filename: ./<module>/<identifier>server/<identifier>_service_server.go
             let server_tpl = mhtemplate::TemplateFactory::new(
                 "package {{$PACKAGE_NAME}}server\n\
-                    \n\
-                    // {{$SERVICE_NAME}}Server is the server implementation for {{$SERVICE_NAME}}\n\
-                    type {{$SERVICE_NAME}}Server struct {\n\
-                    \t// Embed shared service implementation.\n\
-                    \t{{$PACKAGE_NAME}}.{{$SERVICE_NAME}}Base\n\
-                    \n\
-                    \t//TODO: implement this.\n\
-                    }\n\
-                    \n\
-                    var _ {{$PACKAGE_NAME}}.{{$SERVICE_NAME}} = &{{$SERVICE_NAME}}Server{}\n\
-                    \n",
+                \n\
+                // {{$SERVICE_NAME}}Server is the server implementation for {{$SERVICE_NAME}}\n\
+                type {{$SERVICE_NAME}}Server struct {\n\
+                \t// Embed shared service implementation.\n\
+                \t{{$PACKAGE_NAME}}.{{$SERVICE_NAME}}Base\n\
+                \n\
+                \t//TODO: implement this.\n\
+                }\n\
+                \n\
+                var _ {{$PACKAGE_NAME}}.{{$SERVICE_NAME}} = &{{$SERVICE_NAME}}Server{}\n\
+                \n",
             )
             .parse()?;
 
@@ -331,6 +337,7 @@ impl GoCodeGenerator {
             \n\
             // {{$ATTRIBUTES_TYPE_NAME}} contains attributes for adjunct {{$TYPE_NAME}}.\n\
             type {{$ATTRIBUTES_TYPE_NAME}} struct {\n\
+            \tAZAdjunctEntityAttributesBase\n\
             \t//TODO: implement this.\n\
             }\n\
             \n",
@@ -348,7 +355,9 @@ impl GoCodeGenerator {
             "package {{$PACKAGE_NAME}}\n\
             \n\
             // {{$SERVICE_NAME}} is the contract for a service related to {{$TYPE_NAME}}.\n\
-            type {{$SERVICE_NAME}} struct {\n\
+            type {{$SERVICE_NAME}} interface {\n\
+            \tAZAdjunctEntityServiceInterfaceBase\n\
+            \n\
             \t//TODO: implement this.\n\
             }\n\
             \n",
@@ -450,6 +459,13 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                         &symbol.identifier,
                         &adj.hosts,
                     )?;
+                    continue;
+                }
+                if let Some(adj_vo) = adj
+                    .parameters
+                    .downcast_ref::<adjunct_value_object::AdjunctValueObject>()
+                {
+                    println!("TODO: Value-object entity adjunct {:?}", adj_vo);
                     continue;
                 }
                 continue;

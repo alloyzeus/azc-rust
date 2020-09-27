@@ -8,6 +8,8 @@ symbols:
     abstract: User
     kind: entity
     parameters:
+      lifecycle:
+        creation:
       id:
         # Options: integer(space), uuid(version), string
         kind: integer
@@ -63,7 +65,7 @@ symbols:
         - name: User
       kind: value-object
       parameters:
-        kind: PhoneNumber
+        kind: telephony.PhoneNumber
         unique: true
 
   - identifier: Application
