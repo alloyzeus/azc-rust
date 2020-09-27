@@ -29,6 +29,9 @@ fn main() {
         use codegen::CodeGenerator;
         let go_codegen = codegen_go::GoCodeGenerator {
             base_dir: "testdata/output/go".to_owned(),
+            go_module_name: "github.com/alloyzeus/go-experiment".to_owned(),
+            azcore_import: "github.com/alloyzeus/az-go/azcore".to_owned(),
+            azcore_name: "azcore".to_owned(),
         };
 
         go_codegen

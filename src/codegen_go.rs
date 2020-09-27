@@ -14,9 +14,20 @@ use azml::azml::{
 
 pub struct GoCodeGenerator {
     pub base_dir: String,
+    pub go_module_name: String,
+    pub azcore_import: String,
+    pub azcore_name: String,
 }
 
 impl GoCodeGenerator {
+    fn new_template_context(&self) -> mhtemplate::Context {
+        let mut mht_ctx = mhtemplate::Context::new();
+        mht_ctx["MODULE_NAME"] = self.go_module_name.to_owned();
+        mht_ctx["AZCORE_IMPORT"] = self.azcore_import.to_owned();
+        mht_ctx["AZCORE_NAME"] = self.azcore_name.to_owned();
+        mht_ctx
+    }
+
     fn generate_entity_codes(
         &self,
         module_name: &String,
@@ -24,6 +35,7 @@ impl GoCodeGenerator {
         identifier: &String,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
+        let pkg_path = format!("{}/{}", self.go_module_name, module_name);
         let id_def = &ent.id.parameters;
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
             let id_size = match id_int.space {
@@ -38,8 +50,9 @@ impl GoCodeGenerator {
             let ref_key_type_name = format!("{}RefKey", identifier);
             let service_name = format!("{}Service", identifier);
 
-            let mut mht_ctx = mhtemplate::Context::new();
+            let mut mht_ctx = self.new_template_context();
             mht_ctx["PACKAGE_NAME"] = module_name.to_lowercase();
+            mht_ctx["PACKAGE_PATH"] = pkg_path.to_owned();
             mht_ctx["TYPE_NAME"] = identifier.to_owned();
             mht_ctx["ID_TYPE_NAME"] = id_type_name.to_owned();
             mht_ctx["ID_TYPE_PRIMITIVE"] = id_type_primitive;
@@ -74,21 +87,21 @@ impl GoCodeGenerator {
                     "package {{$PACKAGE_NAME}}\n\
                     \n\
                     import (\n\
-                    \t\"github.com/alloyzeus/az-go/azcore\"\n\
+                    \t{{$AZCORE_NAME}} \"{{$AZCORE_IMPORT}}\"\n\
                     )\n\
                     \n\
                     // {{$REF_KEY_TYPE_NAME}} is used to identify an instance of {{$TYPE_NAME}} system-wide.\n\
                     type {{$REF_KEY_TYPE_NAME}} {{$ID_TYPE_NAME}}\n\
                     \n\
                     const _{{$REF_KEY_TYPE_NAME}}Zero = {{$REF_KEY_TYPE_NAME}}({{$ID_TYPE_NAME}}Zero)\n\
-                    var _ azcore.RefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
-                    var _ azcore.EntityRefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
+                    var _ {{$AZCORE_NAME}}.RefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
+                    var _ {{$AZCORE_NAME}}.EntityRefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
                     \n\
                     func {{$REF_KEY_TYPE_NAME}}Zero() {{$REF_KEY_TYPE_NAME}} { return _{{$REF_KEY_TYPE_NAME}}Zero }
                     \n\
-                    func (refKey {{$REF_KEY_TYPE_NAME}}) AZRefKey() azcore.RefKey { return refKey }\n\
+                    func (refKey {{$REF_KEY_TYPE_NAME}}) AZRefKey() {{$AZCORE_NAME}}.RefKey { return refKey }\n\
                     func (refKey {{$REF_KEY_TYPE_NAME}}) IsAZRefKeyZero() bool { return {{$ID_TYPE_NAME}}(refKey) == {{$ID_TYPE_NAME}}Zero }\n\
-                    func (refKey {{$REF_KEY_TYPE_NAME}}) EqualsAZRefKey(other azcore.RefKey) bool {\n\
+                    func (refKey {{$REF_KEY_TYPE_NAME}}) EqualsAZRefKey(other {{$AZCORE_NAME}}.RefKey) bool {\n\
                     \tif x, ok := other.({{$REF_KEY_TYPE_NAME}}); ok {\n\
                     \t\treturn x == refKey\n\
                     \t}\n\
@@ -185,6 +198,10 @@ impl GoCodeGenerator {
             let client_tpl = mhtemplate::TemplateFactory::new(
                     "package client\n\
                     \n\
+                    import (\n\
+                    \t\"{{$PACKAGE_PATH}}\"\n\
+                    )\n\
+                    \n\
                     // {{$SERVICE_NAME}}ClientBase is the base client implementation for {{$SERVICE_NAME}}\n\
                     type {{$SERVICE_NAME}}ClientBase struct {\n\
                     \t// Embed shared service implementation.\n\
@@ -212,6 +229,10 @@ impl GoCodeGenerator {
             // filename: ./<module>/<identifier>server/<identifier>_service_server.go
             let server_tpl = mhtemplate::TemplateFactory::new(
                 "package {{$PACKAGE_NAME}}server\n\
+                \n\
+                import (\n\
+                \t\"{{$PACKAGE_PATH}}\"\n\
+                )\n\
                 \n\
                 // {{$SERVICE_NAME}}Server is the server implementation for {{$SERVICE_NAME}}\n\
                 type {{$SERVICE_NAME}}Server struct {\n\
@@ -261,7 +282,7 @@ impl GoCodeGenerator {
         let attrs_type_name = format!("{}Attributes", type_name);
         let service_name = format!("{}Service", type_name);
 
-        let mut mht_ctx = mhtemplate::Context::new();
+        let mut mht_ctx = self.new_template_context();
         mht_ctx["PACKAGE_NAME"] = module_name.to_lowercase();
         mht_ctx["TYPE_NAME"] = type_name.to_owned();
         mht_ctx["ID_TYPE_NAME"] = id_type_name.to_owned();
@@ -298,7 +319,7 @@ impl GoCodeGenerator {
             "package {{$PACKAGE_NAME}}\n\
             \n\
             import (\n\
-            \t\"github.com/alloyzeus/az-go/azcore\"\n\
+            \t{{$AZCORE_NAME}} \"{{$AZCORE_IMPORT}}\"\n\
             )\n\
             \n\
             // {{$REF_KEY_TYPE_NAME}} is used to identify an instance of {{$TYPE_NAME}} system-wide.\n\
@@ -311,8 +332,8 @@ impl GoCodeGenerator {
             \t// TODO: hosts'\n\
             \tID: {{$ID_TYPE_NAME}}Zero,\n\
             }\n\
-            var _ azcore.RefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
-            var _ azcore.AdjunctEntityRefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
+            var _ {{$AZCORE_NAME}}.RefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
+            var _ {{$AZCORE_NAME}}.AdjunctEntityRefKey = _{{$REF_KEY_TYPE_NAME}}Zero\n\
             \n\
             func {{$REF_KEY_TYPE_NAME}}Zero() {{$REF_KEY_TYPE_NAME}} { return _{{$REF_KEY_TYPE_NAME}}Zero }\n\
             \n",
@@ -382,7 +403,7 @@ impl GoCodeGenerator {
         identifier: &String,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
-        let mut mht_ctx = mhtemplate::Context::new();
+        let mut mht_ctx = self.new_template_context();
         mht_ctx["PACKAGE_NAME"] = module_name.to_lowercase();
         mht_ctx["TYPE_NAME"] = identifier.to_owned();
 
