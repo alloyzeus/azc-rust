@@ -28,6 +28,15 @@ impl GoCodeGenerator {
         mht_ctx
     }
 
+    fn id_size_from_space(id_space: i8) -> i8 {
+        match id_space {
+            d if d < 16 => 16,
+            d if d < 32 => 32,
+            d if d < 64 => 64,
+            _ => -1, //TODO: error. we won't need this here. generators receive clean data.
+        }
+    }
+
     fn generate_entity_codes(
         &self,
         module_name: &String,
@@ -38,12 +47,7 @@ impl GoCodeGenerator {
         let pkg_path = format!("{}/{}", self.go_module_name, module_name);
         let id_def = &ent.id.parameters;
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
-            let id_size = match id_int.space {
-                d if d < 16 => 16,
-                d if d < 32 => 32,
-                d if d < 64 => 64,
-                _ => -1, //TODO: error. we won't need this here. generators receive clean data.
-            };
+            let id_size = Self::id_size_from_space(id_int.space);
 
             let id_type_name = format!("{}ID", identifier);
             let id_type_primitive = format!("int{}", id_size);
@@ -271,24 +275,16 @@ impl GoCodeGenerator {
         use data_type::DataType;
         match vo.data_type {
             DataType::Struct => {
+                let out_tpl_bytes = include_bytes!("value_object_struct.got");
                 tpl = mhtemplate::TemplateFactory::new(
-                    "package {{$PKG_NAME}}\n\
-                    \n\
-                    // {{$TYPE_NAME}} is ....\n\
-                    type {{$TYPE_NAME}} struct {\n\
-                    \t// TODO
-                    }\n\
-                    \n",
+                    String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 )
                 .parse()?;
             }
             _ => {
+                let out_tpl_bytes = include_bytes!("value_object_primitive.got");
                 tpl = mhtemplate::TemplateFactory::new(
-                    "package {{$PKG_NAME}}\n\
-                    \n\
-                    // {{$TYPE_NAME}} is ....\n\
-                    type {{$TYPE_NAME}} {{$PRIMITIVE_TYPE_NAME}}\n\
-                    \n",
+                    String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 )
                 .parse()?;
 

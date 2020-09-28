@@ -1,0 +1,13 @@
+package {{$PKG_NAME}}
+
+import (
+	{{$AZCORE_PKG}} "{{$AZCORE_IMPORT}}"
+)
+
+// TODO: get the docs from the source
+type {{$TYPE_NAME}} struct {
+	// TODO
+}
+
+var _ {{$AZCORE_PKG}}.ValueObject = {{$TYPE_NAME}}{}
+					

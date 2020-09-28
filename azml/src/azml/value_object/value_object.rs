@@ -6,6 +6,7 @@ use crate::azml::{data_type, symbol};
 pub struct ValueObject {
     pub documentation: String,
 
+    //TODO: support aliasing types from other module?
     pub data_type: data_type::DataType,
 
     // Required only when data_type is Struct

@@ -27,6 +27,32 @@ pub struct AdjunctEntityId {
     pub unique: bool,
 }
 
+pub trait AdjunctEntityIdDefinition:
+    mopa::Any + AdjunctEntityIdDefinitionClone + std::fmt::Debug
+{
+}
+
+mopafy!(AdjunctEntityIdDefinition);
+
+pub trait AdjunctEntityIdDefinitionClone {
+    fn clone_box(&self) -> Box<dyn AdjunctEntityIdDefinition>;
+}
+
+impl<T> AdjunctEntityIdDefinitionClone for T
+where
+    T: AdjunctEntityIdDefinition + Clone,
+{
+    fn clone_box(&self) -> Box<dyn AdjunctEntityIdDefinition> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn AdjunctEntityIdDefinition> {
+    fn clone(&self) -> Box<dyn AdjunctEntityIdDefinition> {
+        self.clone_box()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum AdjunctEntityOrdering {
     Unordered,

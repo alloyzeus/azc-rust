@@ -16,6 +16,25 @@ type {{$SERVICE_NAME}} interface {
 	// TODO: other stuff from the mixins
 }
 
+//TODO: an Event is a value-object.
+type {{$TYPE_NAME}}Event interface {
+	{{$TYPE_NAME}}Event() {{$TYPE_NAME}}Event
+}
+
+type {{$TYPE_NAME}}CreateEvent struct {
+	//TODO: context?
+	AZEntityCreationEventBase
+
+	// TODO
+}
+
+var _ {{$TYPE_NAME}}Event = {{$TYPE_NAME}}CreateEvent{}
+
+// {{$TYPE_NAME}}Event is required by {{$TYPE_NAME}}Event interface.
+func (evt {{$TYPE_NAME}}CreateEvent) {{$TYPE_NAME}}Event() {{$TYPE_NAME}}Event {
+	return evt
+}
+
 // {{$TYPE_NAME}}CreateInput is for use in Create{{$TYPE_NAME}} method of {{$SERVICE_NAME}}.
 type {{$TYPE_NAME}}CreateInput struct {
 	Context AZEntityCreationInputContext
@@ -34,13 +53,6 @@ type {{$TYPE_NAME}}CreateOutput struct {
 type {{$TYPE_NAME}}CreateOutputParameters struct {
 	ID {{$ID_TYPE_NAME}}
 	CreationInfo *AZEntityCreationInfo
-
-	// TODO
-}
-
-type {{$TYPE_NAME}}CreateEvent struct {
-	//TODO: context?
-	AZEntityCreationEventBase
 
 	// TODO
 }
