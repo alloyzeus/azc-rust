@@ -1,0 +1,58 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// {{.service_name}} provides a contract
+// for methods related to entity {{.type_name}}.
+type {{.service_name}} interface {
+	AZEntityServiceInterfaceBase
+
+	Listen{{.type_name}}Events({{.type_name}}EventsListenInput) {{.type_name}}EventsListenOutput
+
+	Create{{.type_name}}({{.type_name}}CreateInput) {{.type_name}}CreateOutput
+
+	// TODO: other stuff from the mixins
+}
+
+//TODO: an Event is a value-object.
+type {{.type_name}}Event interface {
+	{{.type_name}}Event() {{.type_name}}Event
+}
+
+type {{.type_name}}CreateEvent struct {
+	//TODO: context?
+	AZEntityCreationEventBase
+
+	// TODO
+}
+
+var _ {{.type_name}}Event = {{.type_name}}CreateEvent{}
+
+// {{.type_name}}Event is required by {{.type_name}}Event interface.
+func (evt {{.type_name}}CreateEvent) {{.type_name}}Event() {{.type_name}}Event {
+	return evt
+}
+
+// {{.type_name}}CreateInput is for use in Create{{.type_name}} method of {{.service_name}}.
+type {{.type_name}}CreateInput struct {
+	Context AZEntityCreationInputContext
+	Parameters {{.type_name}}CreateInputParameters
+}
+
+type {{.type_name}}CreateInputParameters struct {
+	// TODO
+}
+
+type {{.type_name}}CreateOutput struct {
+	Context AZEntityCreationOutputContext
+	Parameters {{.type_name}}CreateOutputParameters
+}
+
+type {{.type_name}}CreateOutputParameters struct {
+	ID {{.id_type_name}}
+	CreationInfo *AZEntityCreationInfo
+
+	// TODO
+}

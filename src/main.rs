@@ -1,5 +1,8 @@
 //
 
+#[macro_use]
+extern crate gtmpl_derive;
+
 use std::{env, io, io::Write, process};
 
 use azml::azml::{adjunct::adjunct, entity::entity, error, module, source_file};
@@ -29,9 +32,9 @@ fn main() {
         use codegen::CodeGenerator;
         let go_codegen = codegen_go::GoCodeGenerator {
             base_dir: "testdata/output/go".to_owned(),
-            go_module_name: "github.com/alloyzeus/go-experiment".to_owned(),
+            module_identifier: "github.com/alloyzeus/go-experiment".to_owned(),
             azcore_import: "github.com/alloyzeus/az-go/azcore".to_owned(),
-            azcore_name: "azcore".to_owned(),
+            azcore_pkg: "azcore".to_owned(),
         };
 
         go_codegen

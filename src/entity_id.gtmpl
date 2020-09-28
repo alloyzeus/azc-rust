@@ -1,0 +1,38 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// {{.id_type_name}} is used to identify an instance of {{.type_name}}.
+type {{.id_type_name}} {{.id_type_primitive}}
+
+var _ {{.base.azcore_pkg}}.EntityID = {{.id_type_name}}Zero
+
+// {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
+const {{.id_type_name}}Zero = {{.id_type_name}}(0)
+
+func {{.id_type_name}}FromPrimitiveValue(v {{.id_type_primitive}}) {{.id_type_name}} {
+	return {{.id_type_name}}(v)
+}
+
+func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
+	return {{.id_type_primitive}}(id)
+}
+
+// AZEntityID is required by {{.base.azcore_pkg}}.EntityID interface.
+func (id {{.id_type_name}}) AZEntityID() {{.base.azcore_pkg}}.EntityID { return id }
+
+// IsZero is required as {{.id_type_name}} is a value-object.
+func (id {{.id_type_name}}) IsZero() bool { return id == {{.id_type_name}}Zero }
+
+// Equals is required as {{.id_type_name}} is a value-object.
+func (id {{.id_type_name}}) Equals(other interface{}) bool {
+	if x, ok := other.({{.id_type_name}}); ok {
+		return x == refKey
+	}
+	if x, _ := other.(*{{.id_type_name}}); x != nil {
+		return *x == refKey
+	}
+	return false
+}

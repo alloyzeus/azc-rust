@@ -1,0 +1,8 @@
+package {{.pkg_name}}
+
+// {{.service_name}}Base is the base
+// implementation for {{.service_name}}
+// shared by client and server.
+type {{.service_name}}Base struct {
+	//TODO: implement this.
+}

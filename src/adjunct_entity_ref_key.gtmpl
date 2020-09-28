@@ -1,0 +1,25 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// {{.ref_key_type_name}} is used to identify
+// an instance of {{.type_name}} system-wide.
+type {{.ref_key_type_name}} {
+	// TODO: hosts' keys if not globally-unique otherwise key == id
+
+	ID {{.id_type_name}}
+}
+
+var _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}{
+	// TODO: hosts'
+
+	ID: {{.id_type_name}}Zero,
+}
+var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = _{{.ref_key_type_name}}Zero
+
+func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
+	return _{{.ref_key_type_name}}Zero
+}

@@ -1,8 +1,0 @@
-package {{$PKG_NAME}}
-
-// {{$SERVICE_NAME}}Base is the base
-// implementation for {{$SERVICE_NAME}}
-// shared by client and server.
-type {{$SERVICE_NAME}}Base struct {
-	//TODO: implement this.
-}

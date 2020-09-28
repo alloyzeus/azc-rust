@@ -1,0 +1,20 @@
+package client
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+
+	"{{.pkg_path}}"
+)
+
+// {{.service_name}}ClientBase is the base
+// client implementation for {{.service_name}}.
+type {{.service_name}}ClientBase struct {
+	{{.base.azcore_pkg}}.EntityServiceClientBase
+	// Embed shared service implementation.
+	{{.pkg_name}}.{{.service_name}}Base
+
+	//TODO: implement this.
+}
+
+var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}ClientBase{}
+var _ {{.base.azcore_pkg}}.EntityServiceClient = &{{.service_name}}ClientBase{}

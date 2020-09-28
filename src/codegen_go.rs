@@ -13,19 +13,21 @@ use azml::azml::{
 };
 
 pub struct GoCodeGenerator {
+    // The target directory path
     pub base_dir: String,
-    pub go_module_name: String,
+    // Go module identifier. This is the one defined in the go.mod file.
+    pub module_identifier: String,
     pub azcore_import: String,
-    pub azcore_name: String,
+    pub azcore_pkg: String,
 }
 
 impl GoCodeGenerator {
-    fn new_template_context(&self) -> mhtemplate::Context {
-        let mut mht_ctx = mhtemplate::Context::new();
-        mht_ctx["MOD_NAME"] = self.go_module_name.to_owned();
-        mht_ctx["AZCORE_IMPORT"] = self.azcore_import.to_owned();
-        mht_ctx["AZCORE_PKG"] = self.azcore_name.to_owned();
-        mht_ctx
+    fn render_base_context(&self) -> BaseContext {
+        BaseContext {
+            mod_name: self.module_identifier.to_owned(),
+            azcore_import: self.azcore_import.to_owned(),
+            azcore_pkg: self.azcore_pkg.to_owned(),
+        }
     }
 
     fn id_size_from_space(id_space: i8) -> i8 {
@@ -44,7 +46,7 @@ impl GoCodeGenerator {
         identifier: &String,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
-        let pkg_path = format!("{}/{}", self.go_module_name, module_name);
+        let pkg_path = format!("{}/{}", self.module_identifier, module_name);
         let id_def = &ent.id.definition;
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
             let id_size = Self::id_size_from_space(id_int.space);
@@ -54,23 +56,25 @@ impl GoCodeGenerator {
             let ref_key_type_name = format!("{}RefKey", identifier);
             let service_name = format!("{}Service", identifier);
 
-            let mut mht_ctx = self.new_template_context();
-            mht_ctx["PKG_NAME"] = module_name.to_lowercase();
-            mht_ctx["PKG_PATH"] = pkg_path.to_owned();
-            mht_ctx["TYPE_NAME"] = identifier.to_owned();
-            mht_ctx["ID_TYPE_NAME"] = id_type_name.to_owned();
-            mht_ctx["ID_TYPE_PRIMITIVE"] = id_type_primitive;
-            mht_ctx["REF_KEY_TYPE_NAME"] = ref_key_type_name.to_owned();
-            mht_ctx["SERVICE_NAME"] = service_name.to_owned();
+            let tpl_ctx = EntityContext {
+                base: self.render_base_context(),
+                pkg_name: module_name.to_lowercase(),
+                pkg_path: pkg_path.to_owned(),
+                type_name: identifier.to_owned(),
+                id_type_name: id_type_name.to_owned(),
+                id_type_primitive: id_type_primitive.to_owned(),
+                ref_key_type_name: ref_key_type_name.to_owned(),
+                service_name: service_name.to_owned(),
+            };
 
             // ID
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}.go", base_dir, module_name, id_type_name,);
-            let out_tpl_bytes = include_bytes!("entity_id.got");
-            let out_tpl =
-                mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                    .parse()?;
-            let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+            let out_tpl_bytes = include_bytes!("entity_id.gtmpl");
+            let out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -81,11 +85,11 @@ impl GoCodeGenerator {
             // RefKey
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}.go", base_dir, module_name, ref_key_type_name,);
-            let out_tpl_bytes = include_bytes!("entity_ref_key.got");
-            let out_tpl =
-                mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                    .parse()?;
-            let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+            let out_tpl_bytes = include_bytes!("entity_ref_key.gtmpl");
+            let out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -96,11 +100,11 @@ impl GoCodeGenerator {
             // Service
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}.go", base_dir, module_name, service_name,);
-            let out_tpl_bytes = include_bytes!("entity_service.got");
-            let out_tpl =
-                mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                    .parse()?;
-            let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+            let out_tpl_bytes = include_bytes!("entity_service.gtmpl");
+            let out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -115,11 +119,11 @@ impl GoCodeGenerator {
             // Service
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}Base.go", base_dir, module_name, service_name,);
-            let out_tpl_bytes = include_bytes!("entity_service_base.got");
-            let out_tpl =
-                mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                    .parse()?;
-            let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+            let out_tpl_bytes = include_bytes!("entity_service_base.gtmpl");
+            let out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -133,11 +137,11 @@ impl GoCodeGenerator {
                 "{}/{}/client/{}Base.go",
                 base_dir, module_name, service_name,
             );
-            let out_tpl_bytes = include_bytes!("entity_service_client_base.got");
-            let out_tpl =
-                mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                    .parse()?;
-            let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+            let out_tpl_bytes = include_bytes!("entity_service_client_base.gtmpl");
+            let out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -151,11 +155,11 @@ impl GoCodeGenerator {
                 "{}/{}server/{}Server.go",
                 base_dir, module_name, service_name,
             );
-            let out_tpl_bytes = include_bytes!("entity_service_server.got");
-            let out_tpl =
-                mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                    .parse()?;
-            let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+            let out_tpl_bytes = include_bytes!("entity_service_server.gtmpl");
+            let out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -163,6 +167,7 @@ impl GoCodeGenerator {
             out_file.write_all(out_code.as_bytes())?;
             drop(out_file);
         }
+
         Ok(())
     }
 
@@ -174,6 +179,7 @@ impl GoCodeGenerator {
         hosts: &Vec<adjunct::AdjunctHost>,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
+        let pkg_path = format!("{}/{}", self.module_identifier, module_name);
         let base_type_name = hosts
             .into_iter()
             .map(|x| x.name.to_owned())
@@ -187,23 +193,26 @@ impl GoCodeGenerator {
         let attrs_type_name = format!("{}Attributes", type_name);
         let service_name = format!("{}Service", type_name);
 
-        let mut mht_ctx = self.new_template_context();
-        mht_ctx["PKG_NAME"] = module_name.to_lowercase();
-        mht_ctx["TYPE_NAME"] = type_name.to_owned();
-        mht_ctx["ID_TYPE_NAME"] = id_type_name.to_owned();
-        mht_ctx["ID_TYPE_PRIMITIVE"] = id_type_primitive;
-        mht_ctx["REF_KEY_TYPE_NAME"] = ref_key_type_name.to_owned();
-        mht_ctx["ATTRIBUTES_TYPE_NAME"] = attrs_type_name.to_owned();
-        mht_ctx["SERVICE_NAME"] = service_name.to_owned();
+        let tpl_ctx = AdjunctEntityContext {
+            base: self.render_base_context(),
+            pkg_name: module_name.to_lowercase(),
+            pkg_path: pkg_path.to_owned(),
+            type_name: type_name.to_owned(),
+            id_type_name: id_type_name.to_owned(),
+            id_type_primitive: id_type_primitive.to_owned(),
+            ref_key_type_name: ref_key_type_name.to_owned(),
+            attributes_type_name: attrs_type_name.to_owned(),
+            service_name: service_name.to_owned(),
+        };
 
         // ID
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, id_type_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_id.got");
-        let out_tpl =
-            mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                .parse()?;
-        let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+        let out_tpl_bytes = include_bytes!("adjunct_entity_id.gtmpl");
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
         let mut out_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -214,11 +223,11 @@ impl GoCodeGenerator {
         // RefKey
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, ref_key_type_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_ref_key.got");
-        let out_tpl =
-            mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                .parse()?;
-        let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+        let out_tpl_bytes = include_bytes!("adjunct_entity_ref_key.gtmpl");
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
         let mut out_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -229,11 +238,11 @@ impl GoCodeGenerator {
         // Attributes
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, attrs_type_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_attributes.got");
-        let out_tpl =
-            mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                .parse()?;
-        let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+        let out_tpl_bytes = include_bytes!("adjunct_entity_attributes.gtmpl");
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
         let mut out_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -244,11 +253,11 @@ impl GoCodeGenerator {
         // Service
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, service_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_service.got");
-        let out_tpl =
-            mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                .parse()?;
-        let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+        let out_tpl_bytes = include_bytes!("adjunct_entity_service.gtmpl");
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
         let mut out_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -266,28 +275,18 @@ impl GoCodeGenerator {
         identifier: &String,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
-        let mut mht_ctx = self.new_template_context();
-        mht_ctx["PKG_NAME"] = module_name.to_lowercase();
-        mht_ctx["TYPE_NAME"] = identifier.to_owned();
 
-        let tpl: Box<dyn mhtemplate::Template>;
+        let mut tpl_ctx = ValueObjectContext {
+            base: self.render_base_context(),
+            pkg_name: module_name.to_lowercase(),
+            type_name: identifier.to_owned(),
+            primitive_type_name: "".to_owned(),
+        };
 
         use data_type::DataType;
-        match vo.data_type {
-            DataType::Struct => {
-                let out_tpl_bytes = include_bytes!("value_object_struct.got");
-                tpl = mhtemplate::TemplateFactory::new(
-                    String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                )
-                .parse()?;
-            }
+        let out_tpl_bytes = match vo.data_type {
+            DataType::Struct => include_bytes!("value_object_struct.gtmpl"),
             _ => {
-                let out_tpl_bytes = include_bytes!("value_object_primitive.got");
-                tpl = mhtemplate::TemplateFactory::new(
-                    String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                )
-                .parse()?;
-
                 let prim_type = match vo.data_type {
                     DataType::Int8 => "int8".to_owned(),
                     DataType::Int16 => "int16".to_owned(),
@@ -296,17 +295,22 @@ impl GoCodeGenerator {
                     DataType::String => "string".to_owned(),
                     DataType::Struct => "struct".to_owned(),
                 };
-                mht_ctx["PRIMITIVE_TYPE_NAME"] = prim_type;
+                tpl_ctx.primitive_type_name = prim_type;
+                include_bytes!("value_object_primitive.gtmpl")
             }
-        }
+        };
 
-        let service_code = tpl.evaluate(&mut mht_ctx)?;
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
+
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let mut service_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
             .open(format!("{}/{}/{}.go", base_dir, module_name, identifier,))?;
-        service_file.write_all(service_code.as_bytes())?;
+        service_file.write_all(out_code.as_bytes())?;
 
         Ok(())
     }
@@ -319,15 +323,17 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         module_def: &module::ModuleDefinition,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = self.base_dir.to_owned();
-        let mut mht_ctx = self.new_template_context();
-        mht_ctx["PKG_NAME"] = module_name.to_owned();
+        let tpl_ctx = LibraryContext {
+            base: self.render_base_context(),
+            pkg_name: module_name.to_owned(),
+        };
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/AZEntityService.go", base_dir, module_name,);
-        let out_tpl_bytes = include_bytes!("az_entity_service.got");
-        let out_tpl =
-            mhtemplate::TemplateFactory::new(String::from_utf8_lossy(out_tpl_bytes).as_ref())
-                .parse()?;
-        let out_code = out_tpl.evaluate(&mut mht_ctx)?;
+        let out_tpl_bytes = include_bytes!("az_entity_service.gtmpl");
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
         let mut out_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -370,4 +376,50 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         }
         Ok(())
     }
+}
+
+#[derive(Clone, Gtmpl)]
+struct BaseContext {
+    mod_name: String,
+    azcore_import: String,
+    azcore_pkg: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct LibraryContext {
+    base: BaseContext,
+    pkg_name: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityContext {
+    base: BaseContext,
+    pkg_name: String,
+    pkg_path: String,
+    type_name: String,
+    id_type_name: String,
+    id_type_primitive: String,
+    ref_key_type_name: String,
+    service_name: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct AdjunctEntityContext {
+    base: BaseContext,
+    pkg_name: String,
+    pkg_path: String,
+    type_name: String,
+    id_type_name: String,
+    id_type_primitive: String,
+    ref_key_type_name: String,
+    attributes_type_name: String,
+    service_name: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct ValueObjectContext {
+    base: BaseContext,
+    pkg_name: String,
+    type_name: String,
+    primitive_type_name: String,
 }

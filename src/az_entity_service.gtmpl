@@ -1,32 +1,32 @@
-package {{$PKG_NAME}}
+package {{.pkg_name}}
 
 import (
-	{{$AZCORE_PKG}} "{{$AZCORE_IMPORT}}"
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
 type AZEntityServiceInterfaceBase interface {
-	{{$AZCORE_PKG}}.EntityServiceInterfaceBase
+	{{.base.azcore_pkg}}.EntityServiceInterfaceBase
 }
 
 // AZEntityServiceBase is the base implementation of
 // AZEntityServiceInterfaceBase designed to be embedded into application's
 // entity services.
 type AZEntityServiceBase struct {
-	{{$AZCORE_PKG}}.EntityServiceBase
+	{{.base.azcore_pkg}}.EntityServiceBase
 }
 
 type AZEntityCreationInputContext struct {
-	{{$AZCORE_PKG}}.EntityCreationInputContextBase
+	{{.base.azcore_pkg}}.EntityCreationInputContextBase
 }
 
 type AZEntityCreationOutputContext struct {
-	{{$AZCORE_PKG}}.EntityCreationOutputContextBase
+	{{.base.azcore_pkg}}.EntityCreationOutputContextBase
 }
 
 type AZEntityCreationEventBase struct {
-	{{$AZCORE_PKG}}.EntityCreationEventBase
+	{{.base.azcore_pkg}}.EntityCreationEventBase
 }
 
 type AZEntityCreationInfo struct {
-	{{$AZCORE_PKG}}.EntityCreationInfoBase
+	{{.base.azcore_pkg}}.EntityCreationInfoBase
 }
