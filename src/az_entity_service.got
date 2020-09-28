@@ -1,0 +1,32 @@
+package {{$PKG_NAME}}
+
+import (
+	{{$AZCORE_PKG}} "{{$AZCORE_IMPORT}}"
+)
+
+type AZEntityServiceInterfaceBase interface {
+	{{$AZCORE_PKG}}.EntityServiceInterfaceBase
+}
+
+// AZEntityServiceBase is the base implementation of
+// AZEntityServiceInterfaceBase designed to be embedded into application's
+// entity services.
+type AZEntityServiceBase struct {
+	{{$AZCORE_PKG}}.EntityServiceBase
+}
+
+type AZEntityCreationInputContext struct {
+	{{$AZCORE_PKG}}.EntityCreationInputContextBase
+}
+
+type AZEntityCreationOutputContext struct {
+	{{$AZCORE_PKG}}.EntityCreationOutputContextBase
+}
+
+type AZEntityCreationEventBase struct {
+	{{$AZCORE_PKG}}.EntityCreationEventBase
+}
+
+type AZEntityCreationInfo struct {
+	{{$AZCORE_PKG}}.EntityCreationInfoBase
+}

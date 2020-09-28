@@ -1,0 +1,9 @@
+package {{$PKG_NAME}}
+
+// {{$ATTRIBUTES_TYPE_NAME}} contains
+// attributes for adjunct {{$TYPE_NAME}}.
+type {{$ATTRIBUTES_TYPE_NAME}} struct {
+	AZAdjunctEntityAttributesBase
+
+	//TODO: implement this.
+}

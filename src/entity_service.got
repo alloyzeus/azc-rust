@@ -1,0 +1,46 @@
+package {{$PKG_NAME}}
+
+import (
+	{{$AZCORE_PKG}} "{{$AZCORE_IMPORT}}"
+)
+
+// {{$SERVICE_NAME}} provides a contract
+// for methods related to entity {{$TYPE_NAME}}.
+type {{$SERVICE_NAME}} interface {
+	AZEntityServiceInterfaceBase
+
+	Listen{{$TYPE_NAME}}Events({{$TYPE_NAME}}EventsListenInput) {{$TYPE_NAME}}EventsListenOutput
+
+	Create{{$TYPE_NAME}}({{$TYPE_NAME}}CreateInput) {{$TYPE_NAME}}CreateOutput
+
+	// TODO: other stuff from the mixins
+}
+
+// {{$TYPE_NAME}}CreateInput is for use in Create{{$TYPE_NAME}} method of {{$SERVICE_NAME}}.
+type {{$TYPE_NAME}}CreateInput struct {
+	Context AZEntityCreationInputContext
+	Parameters {{$TYPE_NAME}}CreateInputParameters
+}
+
+type {{$TYPE_NAME}}CreateInputParameters struct {
+	// TODO
+}
+
+type {{$TYPE_NAME}}CreateOutput struct {
+	Context AZEntityCreationOutputContext
+	Parameters {{$TYPE_NAME}}CreateOutputParameters
+}
+
+type {{$TYPE_NAME}}CreateOutputParameters struct {
+	ID {{$ID_TYPE_NAME}}
+	CreationInfo *AZEntityCreationInfo
+
+	// TODO
+}
+
+type {{$TYPE_NAME}}CreateEvent struct {
+	//TODO: context?
+	AZEntityCreationEventBase
+
+	// TODO
+}

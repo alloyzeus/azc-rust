@@ -1,0 +1,21 @@
+package {{$PKG_NAME}}server
+
+import (
+	{{$AZCORE_PKG}} "{{$AZCORE_IMPORT}}"
+
+	"{{$PKG_PATH}}"
+)
+
+// {{$SERVICE_NAME}}Server is the server
+// implementation for {{$SERVICE_NAME}}.
+type {{$SERVICE_NAME}}Server struct {
+	{{$AZCORE_PKG}}.EntityServiceServerBase
+	// Embed shared service implementation.
+	{{$PKG_NAME}}.{{$SERVICE_NAME}}Base
+
+	//TODO: implement this.
+}
+
+var _ {{$PKG_NAME}}.{{$SERVICE_NAME}} = &{{$SERVICE_NAME}}Server{}
+var _ {{$AZCORE_PKG}}.EntityServiceServer = &{{$SERVICE_NAME}}Server{}
+			

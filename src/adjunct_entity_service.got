@@ -1,0 +1,9 @@
+package {{$PKG_NAME}}
+
+// {{$SERVICE_NAME}} provides a contract
+// for methods related to adjunct {{$TYPE_NAME}}.
+type {{$SERVICE_NAME}} interface {
+	AZAdjunctEntityServiceInterfaceBase
+
+	//TODO: implement this.
+}
