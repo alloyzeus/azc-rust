@@ -45,7 +45,7 @@ impl GoCodeGenerator {
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
         let pkg_path = format!("{}/{}", self.go_module_name, module_name);
-        let id_def = &ent.id.parameters;
+        let id_def = &ent.id.definition;
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
             let id_size = Self::id_size_from_space(id_int.space);
 
@@ -336,14 +336,14 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         drop(out_file);
 
         for symbol in &module_def.symbols {
-            let params = &symbol.parameters;
+            let params = &symbol.definition;
             if let Some(ent) = params.downcast_ref::<entity::Entity>() {
                 self.generate_entity_codes(module_name, ent, &symbol.identifier)?;
                 continue;
             }
             if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
                 if let Some(adj_ent) = adj
-                    .parameters
+                    .definition
                     .downcast_ref::<adjunct_entity::AdjunctEntity>()
                 {
                     self.generate_adjunct_entity_codes(
@@ -355,7 +355,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                     continue;
                 }
                 if let Some(adj_vo) = adj
-                    .parameters
+                    .definition
                     .downcast_ref::<adjunct_value_object::AdjunctValueObject>()
                 {
                     println!("TODO: Value-object entity adjunct {:?}", adj_vo);

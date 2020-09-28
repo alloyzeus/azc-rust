@@ -48,7 +48,7 @@ fn main() {
 fn write_dot(w: &mut impl io::Write, src: &source_file::SourceFile) -> Result<(), error::Error> {
     w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
     for symbol in &src.symbols {
-        let params = &symbol.parameters;
+        let params = &symbol.definition;
         if let Some(ent) = params.downcast_ref::<entity::Entity>() {
             ent.write_dot_identifier(w, symbol.identifier.clone())?;
         } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
@@ -57,7 +57,7 @@ fn write_dot(w: &mut impl io::Write, src: &source_file::SourceFile) -> Result<()
     }
     w.write_all(b"\n")?;
     for symbol in &src.symbols {
-        let params = &symbol.parameters;
+        let params = &symbol.definition;
         if let Some(ent) = params.downcast_ref::<entity::Entity>() {
             ent.write_dot_relationships(w, symbol.identifier.clone())?;
         } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {

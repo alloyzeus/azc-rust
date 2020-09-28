@@ -2,7 +2,7 @@
 
 #[derive(Clone, Debug)]
 pub struct EntityId {
-    pub parameters: Box<dyn EntityIdDefinition>,
+    pub definition: Box<dyn EntityIdDefinition>,
 }
 
 pub trait EntityIdDefinition: mopa::Any + EntityIdDefinitionClone + std::fmt::Debug {}

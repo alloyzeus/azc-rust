@@ -37,7 +37,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     Some(p) => Ok(adjunct::Adjunct {
                         hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                         arity: x.arity.into(),
-                        parameters: Box::new(adjunct_entity::AdjunctEntity::from(p)),
+                        definition: Box::new(adjunct_entity::AdjunctEntity::from(p)),
                     }),
                     None => Err(yaml::Error::Msg("Missing parameters".to_owned())),
                 }
@@ -49,7 +49,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     Some(p) => Ok(adjunct::Adjunct {
                         hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                         arity: x.arity.into(),
-                        parameters: Box::new(adjunct_value_object::AdjunctValueObject::from(
+                        definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
                             p.try_into()?,
                         )),
                     }),

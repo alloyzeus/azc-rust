@@ -3,7 +3,7 @@
 #[derive(Clone, Debug)]
 pub struct Mixin {
     //TODO: non-optional
-    pub parameters: Option<Box<dyn MixinDefinition>>,
+    pub definition: Option<Box<dyn MixinDefinition>>,
 }
 
 pub trait MixinDefinition: mopa::Any + MixinDefinitionClone + std::fmt::Debug {}

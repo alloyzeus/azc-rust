@@ -22,14 +22,14 @@ impl convert::TryFrom<MixinYaml> for mixin::Mixin {
             "Ownership" => {
                 let params: Option<ownership_yaml::OwnershipYaml> = yaml::from_value(x.parameters)?;
                 Ok(mixin::Mixin {
-                    parameters: if let Some(p) = params {
+                    definition: if let Some(p) = params {
                         Some(Box::new(ownership::Ownership::try_from(p)?))
                     } else {
                         None
                     },
                 })
             }
-            _ => Ok(mixin::Mixin{parameters: None})
+            _ => Ok(mixin::Mixin{definition: None})
             // _ => Err(yaml::Error::Msg(format!(
             //     r#"Unrecognized mixin `{}`"#,
             //     x.kind

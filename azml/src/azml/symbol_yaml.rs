@@ -30,7 +30,7 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                 match params {
                     Some(p) => Ok(symbol::Symbol {
                         identifier: x.identifier,
-                        parameters: Box::new(entity::Entity::try_from(p)?),
+                        definition: Box::new(entity::Entity::try_from(p)?),
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }
@@ -40,7 +40,7 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                 match params {
                     Some(p) => Ok(symbol::Symbol {
                         identifier: x.identifier,
-                        parameters: Box::new(adjunct::Adjunct::try_from(p)?),
+                        definition: Box::new(adjunct::Adjunct::try_from(p)?),
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }
@@ -51,7 +51,7 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                 match params {
                     Some(p) => Ok(symbol::Symbol {
                         identifier: x.identifier,
-                        parameters: Box::new(value_object::ValueObject::try_from(p)?),
+                        definition: Box::new(value_object::ValueObject::try_from(p)?),
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }

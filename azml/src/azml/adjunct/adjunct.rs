@@ -8,7 +8,7 @@ pub struct Adjunct {
 
     pub arity: arity::ArityConstraint,
 
-    pub parameters: Box<dyn AdjuctDefinition>,
+    pub definition: Box<dyn AdjuctDefinition>,
 }
 
 impl symbol::SymbolDefinition for Adjunct {}

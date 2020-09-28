@@ -23,7 +23,7 @@ impl convert::TryFrom<EntityIdYaml> for entity_id::EntityId {
                     yaml::from_value(x.parameters)?;
                 match params {
                     Some(p) => Ok(entity_id::EntityId {
-                        parameters: Box::new(entity_id_integer::EntityIdInteger::try_from(p)?),
+                        definition: Box::new(entity_id_integer::EntityIdInteger::try_from(p)?),
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }
