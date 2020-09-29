@@ -12,13 +12,35 @@ use azml::azml::{
     value_object::value_object,
 };
 
+macro_rules! render_file {
+    ($target_dir: expr, $file_name_name: expr, $template_name: expr, $tpl_ctx: expr) => {
+        fs::create_dir_all($target_dir)?;
+        let out_tpl_bytes = include_bytes!($template_name);
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            $tpl_ctx.to_owned(),
+        )?;
+        let mut out_file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(format!("{}/{}.go", $target_dir, $file_name_name))?;
+        out_file.write_all(out_code.as_bytes())?;
+        drop(out_file);
+    };
+}
+
 pub struct GoCodeGenerator {
     // The target directory path
     pub base_dir: String,
     // Go module identifier. This is the one defined in the go.mod file.
     pub module_identifier: String,
+
+    // AZCore is the fundamental part of the language
     pub azcore_import: String,
     pub azcore_pkg: String,
+    // AZStd is a collection of well-thought, stable library
+    // AZExt contains additional libraries which are generally optional
+    // or they are in an experimental stage.
 }
 
 impl GoCodeGenerator {
@@ -51,16 +73,18 @@ impl GoCodeGenerator {
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
             let id_size = Self::id_size_from_space(id_int.space);
 
-            let id_type_name = format!("{}ID", identifier);
+            let type_name = &identifier;
+            let id_type_name = format!("{}ID", type_name);
             let id_type_primitive = format!("int{}", id_size);
-            let ref_key_type_name = format!("{}RefKey", identifier);
-            let service_name = format!("{}Service", identifier);
+            let ref_key_type_name = format!("{}RefKey", type_name);
+            let event_interface_name = format!("{}Event", type_name);
+            let service_name = format!("{}Service", type_name);
 
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),
                 pkg_path: pkg_path.to_owned(),
-                type_name: identifier.to_owned(),
+                type_name: (*type_name).clone(),
                 id_type_name: id_type_name.to_owned(),
                 id_type_primitive: id_type_primitive.to_owned(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
@@ -68,104 +92,63 @@ impl GoCodeGenerator {
             };
 
             // ID
-            fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-            let out_name = format!("{}/{}/{}.go", base_dir, module_name, id_type_name,);
-            let out_tpl_bytes = include_bytes!("templates/entity_id.gtmpl");
-            let out_code = gtmpl::template(
-                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                tpl_ctx.to_owned(),
-            )?;
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(out_name)?;
-            out_file.write_all(out_code.as_bytes())?;
-            drop(out_file);
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                id_type_name,
+                "templates/entity_id.gtmpl",
+                tpl_ctx
+            );
 
             // RefKey
-            fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-            let out_name = format!("{}/{}/{}.go", base_dir, module_name, ref_key_type_name,);
-            let out_tpl_bytes = include_bytes!("templates/entity_ref_key.gtmpl");
-            let out_code = gtmpl::template(
-                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                tpl_ctx.to_owned(),
-            )?;
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(out_name)?;
-            out_file.write_all(out_code.as_bytes())?;
-            drop(out_file);
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                ref_key_type_name,
+                "templates/entity_ref_key.gtmpl",
+                tpl_ctx
+            );
+
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                event_interface_name,
+                "templates/entity_event.gtmpl",
+                tpl_ctx
+            );
 
             // Service
-            fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-            let out_name = format!("{}/{}/{}.go", base_dir, module_name, service_name,);
-            let out_tpl_bytes = include_bytes!("templates/entity_service.gtmpl");
-            let out_code = gtmpl::template(
-                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                tpl_ctx.to_owned(),
-            )?;
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(out_name)?;
-            out_file.write_all(out_code.as_bytes())?;
-            drop(out_file);
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                service_name,
+                "templates/entity_service.gtmpl",
+                tpl_ctx
+            );
 
             if !ent.attributes.is_empty() {
-                println!("TODO: attributes for entity {}", identifier);
+                println!("TODO: attributes for entity {}", type_name);
             }
 
-            // Service
-            fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-            let out_name = format!("{}/{}/{}Base.go", base_dir, module_name, service_name,);
-            let out_tpl_bytes = include_bytes!("templates/entity_service_base.gtmpl");
-            let out_code = gtmpl::template(
-                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                tpl_ctx.to_owned(),
-            )?;
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(out_name)?;
-            out_file.write_all(out_code.as_bytes())?;
-            drop(out_file);
+            // Service shared implementation
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                format!("{}Base", service_name),
+                "templates/entity_service_base.gtmpl",
+                tpl_ctx
+            );
 
             // ServiceClient
-            fs::create_dir_all(format!("{}/{}/client", base_dir, module_name,))?;
-            let out_name = format!(
-                "{}/{}/client/{}Base.go",
-                base_dir, module_name, service_name,
+            render_file!(
+                format!("{}/{}/client", base_dir, module_name,),
+                format!("{}ClientBase", service_name),
+                "templates/entity_service_client_base.gtmpl",
+                tpl_ctx
             );
-            let out_tpl_bytes = include_bytes!("templates/entity_service_client_base.gtmpl");
-            let out_code = gtmpl::template(
-                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                tpl_ctx.to_owned(),
-            )?;
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(out_name)?;
-            out_file.write_all(out_code.as_bytes())?;
-            drop(out_file);
 
-            // ServiceClient
-            fs::create_dir_all(format!("{}/{}server", base_dir, module_name,))?;
-            let out_name = format!(
-                "{}/{}server/{}Server.go",
-                base_dir, module_name, service_name,
+            // ServiceServer
+            render_file!(
+                format!("{}/{}server", base_dir, module_name,),
+                format!("{}Server", service_name),
+                "templates/entity_service_server.gtmpl",
+                tpl_ctx
             );
-            let out_tpl_bytes = include_bytes!("templates/entity_service_server.gtmpl");
-            let out_code = gtmpl::template(
-                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-                tpl_ctx.to_owned(),
-            )?;
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(out_name)?;
-            out_file.write_all(out_code.as_bytes())?;
-            drop(out_file);
         }
 
         Ok(())
@@ -217,64 +200,36 @@ impl GoCodeGenerator {
         };
 
         // ID
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-        let out_name = format!("{}/{}/{}.go", base_dir, module_name, id_type_name,);
-        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_id.gtmpl");
-        let out_code = gtmpl::template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
-        let mut out_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(out_name)?;
-        out_file.write_all(out_code.as_bytes())?;
-        drop(out_file);
+        render_file!(
+            format!("{}/{}", base_dir, module_name,),
+            id_type_name,
+            "templates/adjunct_entity_id.gtmpl",
+            tpl_ctx
+        );
 
         // RefKey
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-        let out_name = format!("{}/{}/{}.go", base_dir, module_name, ref_key_type_name,);
-        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_ref_key.gtmpl");
-        let out_code = gtmpl::template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
-        let mut out_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(out_name)?;
-        out_file.write_all(out_code.as_bytes())?;
-        drop(out_file);
+        render_file!(
+            format!("{}/{}", base_dir, module_name,),
+            ref_key_type_name,
+            "templates/adjunct_entity_ref_key.gtmpl",
+            tpl_ctx
+        );
 
         // Attributes
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-        let out_name = format!("{}/{}/{}.go", base_dir, module_name, attrs_type_name,);
-        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_attributes.gtmpl");
-        let out_code = gtmpl::template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
-        let mut out_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(out_name)?;
-        out_file.write_all(out_code.as_bytes())?;
-        drop(out_file);
+        render_file!(
+            format!("{}/{}", base_dir, module_name,),
+            attrs_type_name,
+            "templates/adjunct_entity_attributes.gtmpl",
+            tpl_ctx
+        );
 
         // Service
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-        let out_name = format!("{}/{}/{}.go", base_dir, module_name, service_name,);
-        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_service.gtmpl");
-        let out_code = gtmpl::template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
-        let mut out_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(out_name)?;
-        out_file.write_all(out_code.as_bytes())?;
-        drop(out_file);
+        render_file!(
+            format!("{}/{}", base_dir, module_name,),
+            service_name,
+            "templates/adjunct_entity_service.gtmpl",
+            tpl_ctx
+        );
 
         Ok(())
     }

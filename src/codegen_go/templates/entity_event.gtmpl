@@ -1,0 +1,12 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+//TODO: an Event is a value-object.
+type {{.type_name}}Event interface {
+    {{.base.azcore_pkg}}.EntityEvent
+
+	{{.type_name}}Event() {{.type_name}}Event
+}

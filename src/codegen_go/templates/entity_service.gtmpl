@@ -16,11 +16,6 @@ type {{.service_name}} interface {
 	// TODO: other stuff from the mixins
 }
 
-//TODO: an Event is a value-object.
-type {{.type_name}}Event interface {
-	{{.type_name}}Event() {{.type_name}}Event
-}
-
 type {{.type_name}}CreateEvent struct {
 	//TODO: context?
 	AZEntityCreationEventBase
