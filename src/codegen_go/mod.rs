@@ -70,7 +70,7 @@ impl GoCodeGenerator {
             // ID
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}.go", base_dir, module_name, id_type_name,);
-            let out_tpl_bytes = include_bytes!("entity_id.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/entity_id.gtmpl");
             let out_code = gtmpl::template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -85,7 +85,7 @@ impl GoCodeGenerator {
             // RefKey
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}.go", base_dir, module_name, ref_key_type_name,);
-            let out_tpl_bytes = include_bytes!("entity_ref_key.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/entity_ref_key.gtmpl");
             let out_code = gtmpl::template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -100,7 +100,7 @@ impl GoCodeGenerator {
             // Service
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}.go", base_dir, module_name, service_name,);
-            let out_tpl_bytes = include_bytes!("entity_service.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/entity_service.gtmpl");
             let out_code = gtmpl::template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -119,7 +119,7 @@ impl GoCodeGenerator {
             // Service
             fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
             let out_name = format!("{}/{}/{}Base.go", base_dir, module_name, service_name,);
-            let out_tpl_bytes = include_bytes!("entity_service_base.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/entity_service_base.gtmpl");
             let out_code = gtmpl::template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -137,7 +137,7 @@ impl GoCodeGenerator {
                 "{}/{}/client/{}Base.go",
                 base_dir, module_name, service_name,
             );
-            let out_tpl_bytes = include_bytes!("entity_service_client_base.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/entity_service_client_base.gtmpl");
             let out_code = gtmpl::template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -155,7 +155,7 @@ impl GoCodeGenerator {
                 "{}/{}server/{}Server.go",
                 base_dir, module_name, service_name,
             );
-            let out_tpl_bytes = include_bytes!("entity_service_server.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/entity_service_server.gtmpl");
             let out_code = gtmpl::template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -219,7 +219,7 @@ impl GoCodeGenerator {
         // ID
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, id_type_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_id.gtmpl");
+        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_id.gtmpl");
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -234,7 +234,7 @@ impl GoCodeGenerator {
         // RefKey
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, ref_key_type_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_ref_key.gtmpl");
+        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_ref_key.gtmpl");
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -249,7 +249,7 @@ impl GoCodeGenerator {
         // Attributes
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, attrs_type_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_attributes.gtmpl");
+        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_attributes.gtmpl");
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -264,7 +264,7 @@ impl GoCodeGenerator {
         // Service
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/{}.go", base_dir, module_name, service_name,);
-        let out_tpl_bytes = include_bytes!("adjunct_entity_service.gtmpl");
+        let out_tpl_bytes = include_bytes!("templates/adjunct_entity_service.gtmpl");
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -296,7 +296,7 @@ impl GoCodeGenerator {
 
         use data_type::DataType;
         let out_tpl_bytes = match vo.data_type {
-            DataType::Struct => include_bytes!("value_object_struct.gtmpl"),
+            DataType::Struct => include_bytes!("templates/value_object_struct.gtmpl"),
             _ => {
                 let prim_type = match vo.data_type {
                     DataType::Int8 => "int8".to_owned(),
@@ -307,7 +307,7 @@ impl GoCodeGenerator {
                     DataType::Struct => "struct".to_owned(),
                 };
                 tpl_ctx.primitive_type_name = prim_type;
-                include_bytes!("value_object_primitive.gtmpl")
+                include_bytes!("templates/value_object_primitive.gtmpl")
             }
         };
 
@@ -340,7 +340,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         };
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
         let out_name = format!("{}/{}/AZEntityService.go", base_dir, module_name,);
-        let out_tpl_bytes = include_bytes!("az_entity_service.gtmpl");
+        let out_tpl_bytes = include_bytes!("templates/az_entity_service.gtmpl");
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
