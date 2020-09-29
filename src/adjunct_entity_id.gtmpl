@@ -1,9 +1,15 @@
 package {{.pkg_name}}
 
-// {{.id_type_name}} is a scoped identifier used to identify
-// an instance of adjunct entity {{.type_name}}
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// {{.id_type_name}} is a scoped identifier
+// used to identify an instance of adjunct entity {{.type_name}}
 // scoped within its host entity(s).
 type {{.id_type_name}} {{.id_type_primitive}}
+
+var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{.id_type_name}}Zero
 
 // {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
 const {{.id_type_name}}Zero = {{.id_type_name}}(0)
