@@ -8,17 +8,21 @@ import (
 // an instance of {{.type_name}} system-wide.
 type {{.ref_key_type_name}} {{.id_type_name}}
 
-const _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero)
+// To ensure that it conforms the interfaces
 var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.EntityRefKey = _{{.ref_key_type_name}}Zero
 
-// {{.ref_key_type_name}}Zero returns a zero-valued instance of {{.ref_key_type_name}}.
+const _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero)
+
+// {{.ref_key_type_name}}Zero returns
+// a zero-valued instance of {{.ref_key_type_name}}.
 func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} { return _{{.ref_key_type_name}}Zero }
 
 // AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
 func (refKey {{.ref_key_type_name}}) AZRefKey() {{.base.azcore_pkg}}.RefKey { return refKey }
 
-// AZEntityRefKey is required by {{.base.azcore_pkg}}.EntityRefKey interface.
+// AZEntityRefKey is required
+// by {{.base.azcore_pkg}}.EntityRefKey interface.
 func (refKey {{.ref_key_type_name}}) AZEntityRefKey() {{.base.azcore_pkg}}.EntityRefKey { return refKey }
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
@@ -35,4 +39,15 @@ func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 		return *x == refKey
 	}
 	return false
+}
+
+func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(other {{.ref_key_type_name}}) bool {
+	return other == refKey
+}
+
+// RefKeyString returns an encoded representation of this instance.
+//
+// RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) RefKeyString() string {
+	// TODO
 }

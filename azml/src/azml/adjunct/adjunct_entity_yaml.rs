@@ -10,6 +10,9 @@ pub struct AdjunctEntityYaml {
     ordering: String,
 
     id: AdjunctEntityIdYaml,
+
+    #[serde(default)]
+    scope: String,
 }
 
 impl From<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
@@ -17,6 +20,7 @@ impl From<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
         adjunct_entity::AdjunctEntity {
             ordering: x.ordering.try_into().unwrap_or_default(),
             id: x.id.try_into().unwrap(),
+            scope: x.scope.try_into().unwrap_or_default(),
         }
     }
 }

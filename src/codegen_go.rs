@@ -174,17 +174,25 @@ impl GoCodeGenerator {
     fn generate_adjunct_entity_codes(
         &self,
         module_name: &String,
-        _adj_ent: &adjunct_entity::AdjunctEntity,
+        adj_ent: &adjunct_entity::AdjunctEntity,
         identifier: &String,
         hosts: &Vec<adjunct::AdjunctHost>,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
         let pkg_path = format!("{}/{}", self.module_identifier, module_name);
-        let base_type_name = hosts
+        let hosts_names = hosts
             .into_iter()
             .map(|x| x.name.to_owned())
-            .collect::<Vec<String>>()
-            .join("");
+            .collect::<Vec<String>>();
+        //TODO: if the adjunct is globally addressable, i.e., an instance's
+        // ID is unique system-wide, it must not derive its hosts' name
+        // by default.
+        // And also, RefKey is just a typedef of ID.
+        let base_type_name = if let adjunct_entity::AdjunctEntityScope::Global = adj_ent.scope {
+            "".to_owned()
+        } else {
+            hosts_names.join("")
+        };
 
         let type_name = format!("{}{}", base_type_name, identifier);
         let id_type_name = format!("{}ID", type_name);
@@ -203,6 +211,7 @@ impl GoCodeGenerator {
             ref_key_type_name: ref_key_type_name.to_owned(),
             attributes_type_name: attrs_type_name.to_owned(),
             service_name: service_name.to_owned(),
+            hosts: hosts_names,
         };
 
         // ID
@@ -414,6 +423,7 @@ struct AdjunctEntityContext {
     ref_key_type_name: String,
     attributes_type_name: String,
     service_name: String,
+    hosts: Vec<String>,
 }
 
 #[derive(Clone, Gtmpl)]

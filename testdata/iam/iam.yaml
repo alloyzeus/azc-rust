@@ -115,6 +115,12 @@ symbols:
       hosts:
         - name: Application
       parameters:
+        # An adjunct entity with global scope will make it more similar to
+        # Entity. It's still an adjunct of other entity but an instance
+        # is directly addressable instead of through its entities.
+        # A global adjunct entity can only have unordered ordering, i.e.,
+        # instance IDs are required to be random.
+        scope: global
         id:
           unique: true
         mixins:
@@ -148,6 +154,7 @@ symbols:
         min: 0
         max: -1
       parameters:
+        scope: local
         id:
           # a flag to indicate that a session ID is globally unique regardless host entities' scope.
           # cannot be combined with ordered adjuncts.

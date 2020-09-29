@@ -8,9 +8,34 @@ use crate::azml::adjunct::adjunct;
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
     pub id: AdjunctEntityId,
+    pub scope: AdjunctEntityScope,
 }
 
 impl adjunct::AdjuctDefinition for AdjunctEntity {}
+
+#[derive(Clone, Debug)]
+pub enum AdjunctEntityScope {
+    Local,
+    Global,
+}
+
+impl Default for AdjunctEntityScope {
+    fn default() -> AdjunctEntityScope {
+        AdjunctEntityScope::Local
+    }
+}
+
+impl convert::TryFrom<String> for AdjunctEntityScope {
+    type Error = String;
+
+    fn try_from(s: String) -> result::Result<Self, Self::Error> {
+        match s.as_ref() {
+            "local" | "" => Ok(AdjunctEntityScope::Local),
+            "global" => Ok(AdjunctEntityScope::Global),
+            _ => Err(format!("Unrecognized AdjunctEntityScope value {}", s).to_owned()),
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntityId {
@@ -20,8 +45,10 @@ pub struct AdjunctEntityId {
     // being an adjunct.
     //
     // Some example of adjuncts with globally-unique IDs are shop items
-    // in a marketplace. They usually get globally-unique IDs to hide the
-    // store where it actually belongs to.
+    // in a marketplace. Some marketplace system provides URLs which refer
+    // to the items directly without giving information which store these
+    // items belong to. It shows, e.g., https://example.com/items/12345678
+    // instead of https://example.com/stores/345/items/12345678
     //
     // Enabling this flag requires the ordering to be Unordered.
     pub unique: bool,
