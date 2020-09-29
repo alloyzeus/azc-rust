@@ -5,12 +5,11 @@ import (
 )
 
 // {{.ref_key_type_name}} is used to identify
-// an instance of {{.type_name}} system-wide.
+// an instance of adjunct entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} {
-	{{range .hosts -}}
+	{{if not .global_scope -}}{{range .hosts -}}
 	{{.}} {{.}}RefKey
-	{{- end}}
-
+	{{end}}{{- end -}}
 	ID {{.id_type_name}}
 }
 
@@ -19,10 +18,9 @@ var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = _{{.ref_key_type_name}}Zero
 
 var _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}{
-	{{range .hosts -}}
+	{{if not .global_scope -}}{{range .hosts -}}
 	{{.}}: {{.}}RefKeyZero(),
-	{{- end}}
-
+	{{end}}{{- end -}}
 	ID: {{.id_type_name}}Zero,
 }
 
@@ -45,26 +43,26 @@ func (refKey {{.ref_key_type_name}}) AZAdjunctEntityRefKey() {{.base.azcore_pkg}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
-	return {{range .hosts}}refKey.{{.}}.IsZero() &&
-		{{end}}refKey.ID == {{.id_type_name}}Zero
+	return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.IsZero() &&
+		{{end}}{{- end -}} refKey.ID == {{.id_type_name}}Zero
 }
 
 // Equals is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
-		return {{range .hosts}}refKey.{{.}}.Equals(x.{{.}}) &&
-			{{end}}refKey.ID == x.ID
+		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
+			{{end}}{{- end -}} refKey.ID == x.ID
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
-		return {{range .hosts}}refKey.{{.}}.Equals(x.{{.}}) &&
-			{{end}}refKey.ID == x.ID
+		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
+			{{end}}{{- end -}} refKey.ID == x.ID
 	}
 	return false
 }
 
 func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(other {{.ref_key_type_name}}) bool {
-	return {{range .hosts}}refKey.{{.}}.Equals(other.{{.}}) &&
-		{{end}}refKey.ID == other.ID
+	return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(other.{{.}}) &&
+		{{end}}{{- end -}} refKey.ID == other.ID
 }
 
 // RefKeyString returns an encoded representation of this instance.

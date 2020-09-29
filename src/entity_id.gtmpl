@@ -4,7 +4,8 @@ import (
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
-// {{.id_type_name}} is used to identify an instance of {{.type_name}}.
+// {{.id_type_name}} is a scoped identifier
+// used to identify an instance of entity {{.type_name}}.
 type {{.id_type_name}} {{.id_type_primitive}}
 
 var _ {{.base.azcore_pkg}}.EntityID = {{.id_type_name}}Zero
@@ -27,6 +28,9 @@ func (id {{.id_type_name}}) AZEntityID() {{.base.azcore_pkg}}.EntityID { return 
 func (id {{.id_type_name}}) IsZero() bool { return id == {{.id_type_name}}Zero }
 
 // Equals is required as {{.id_type_name}} is a value-object.
+//
+// Use Equals{{.id_type_name}} method if the other value
+// has the same type.
 func (id {{.id_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.id_type_name}}); ok {
 		return x == refKey
@@ -35,4 +39,16 @@ func (id {{.id_type_name}}) Equals(other interface{}) bool {
 		return *x == refKey
 	}
 	return false
+}
+
+// Equal is a wrapper for Equals method. It is required for
+// compatibility with github.com/google/go-cmp
+func (id {{.id_type_name}}) Equal(other interface{}) bool {
+	return id.Equals(other)
+}
+
+// Equals{{.id_type_name}} determines if the other instance is equal
+// to this instance.
+func (id {{.id_type_name}}) Equals{{.id_type_name}}(other {{.id_type_name}}) bool {
+	return id == other
 }

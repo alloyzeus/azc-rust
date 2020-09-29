@@ -121,6 +121,8 @@ symbols:
         # A global adjunct entity can only have unordered ordering, i.e.,
         # instance IDs are required to be random.
         scope: global
+        ref_key:
+          prefix: "T0:"
         id:
           unique: true
         mixins:

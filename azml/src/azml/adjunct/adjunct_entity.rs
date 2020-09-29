@@ -13,7 +13,7 @@ pub struct AdjunctEntity {
 
 impl adjunct::AdjuctDefinition for AdjunctEntity {}
 
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum AdjunctEntityScope {
     Local,
     Global,

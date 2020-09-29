@@ -1,7 +1,8 @@
 package {{.pkg_name}}
 
-// {{.id_type_name}} is used to identify
-// an instance of {{.type_name}} scoped within its entity(s).
+// {{.id_type_name}} is a scoped identifier used to identify
+// an instance of adjunct entity {{.type_name}}
+// scoped within its host entity(s).
 type {{.id_type_name}} {{.id_type_primitive}}
 
 // {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
@@ -10,6 +11,33 @@ const {{.id_type_name}}Zero = {{.id_type_name}}(0)
 func {{.id_type_name}}FromPrimitiveValue(v {{.id_type_primitive}}) {{.id_type_name}} {
 	return {{.id_type_name}}(v)
 }
+
 func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
 	return {{.id_type_primitive}}(id)
+}
+
+// Equals is required as {{.id_type_name}} is a value-object.
+//
+// Use Equals{{.id_type_name}} method if the other value
+// has the same type.
+func (id {{.id_type_name}}) Equals(other interface{}) bool {
+	if x, ok := other.({{.id_type_name}}); ok {
+		return x == refKey
+	}
+	if x, _ := other.(*{{.id_type_name}}); x != nil {
+		return *x == refKey
+	}
+	return false
+}
+
+// Equal is a wrapper for Equals method. It is required for
+// compatibility with github.com/google/go-cmp
+func (id {{.id_type_name}}) Equal(other interface{}) bool {
+	return id.Equals(other)
+}
+
+// Equals{{.id_type_name}} determines if the other instance is equal
+// to this instance.
+func (id {{.id_type_name}}) Equals{{.id_type_name}}(other {{.id_type_name}}) bool {
+	return id == other
 }

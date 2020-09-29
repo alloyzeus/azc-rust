@@ -5,7 +5,7 @@ import (
 )
 
 // {{.ref_key_type_name}} is used to identify
-// an instance of {{.type_name}} system-wide.
+// an instance of entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} {{.id_type_name}}
 
 // To ensure that it conforms the interfaces

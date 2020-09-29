@@ -187,8 +187,9 @@ impl GoCodeGenerator {
         //TODO: if the adjunct is globally addressable, i.e., an instance's
         // ID is unique system-wide, it must not derive its hosts' name
         // by default.
-        // And also, RefKey is just a typedef of ID.
-        let base_type_name = if let adjunct_entity::AdjunctEntityScope::Global = adj_ent.scope {
+        // And also, the RefKey is just a typedef of ID.
+        let global_scope = adjunct_entity::AdjunctEntityScope::Global == adj_ent.scope;
+        let base_type_name = if global_scope {
             "".to_owned()
         } else {
             hosts_names.join("")
@@ -212,6 +213,7 @@ impl GoCodeGenerator {
             attributes_type_name: attrs_type_name.to_owned(),
             service_name: service_name.to_owned(),
             hosts: hosts_names,
+            global_scope: global_scope,
         };
 
         // ID
@@ -424,6 +426,7 @@ struct AdjunctEntityContext {
     attributes_type_name: String,
     service_name: String,
     hosts: Vec<String>,
+    global_scope: bool,
 }
 
 #[derive(Clone, Gtmpl)]
