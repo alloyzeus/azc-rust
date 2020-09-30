@@ -1,17 +1,15 @@
-package {{.pkg_name}}
-
-import (
-	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-)
-
 // {{.service_name}} provides a contract
 // for methods related to entity {{.type_name}}.
 type {{.service_name}} interface {
 	AZEntityServiceInterfaceBase
 
-	Listen{{.type_name}}Events({{.type_name}}EventsListenInput) {{.type_name}}EventsListenOutput
+	Listen{{.type_name}}Events(
+		{{.type_name}}EventsListenInput,
+	) {{.type_name}}EventsListenOutput
 
-	Create{{.type_name}}({{.type_name}}CreateInput) {{.type_name}}CreateOutput
+	Create{{.type_name}}(
+		{{.type_name}}CreateInput,
+	) {{.type_name}}CreateOutput
 
 	// TODO: other stuff from the mixins
 }

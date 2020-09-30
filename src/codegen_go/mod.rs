@@ -13,7 +13,7 @@ use azml::azml::{
 };
 
 macro_rules! render_file {
-    ($target_dir: expr, $file_name_name: expr, $template_name: expr, $tpl_ctx: expr) => {
+    ($target_dir: expr, $file_name_name: expr, $template_name: expr, $tpl_ctx: expr, $rendered_header: expr) => {
         fs::create_dir_all($target_dir)?;
         let out_tpl_bytes = include_bytes!($template_name);
         let out_code = gtmpl::template(
@@ -24,8 +24,21 @@ macro_rules! render_file {
             .write(true)
             .create_new(true)
             .open(format!("{}/{}.go", $target_dir, $file_name_name))?;
+        out_file.write_all($rendered_header.as_bytes())?;
         out_file.write_all(out_code.as_bytes())?;
         drop(out_file);
+    };
+}
+
+macro_rules! render_file_append {
+    ($out_file: expr, $template_name: expr, $tpl_ctx: expr) => {
+        let out_tpl_bytes = include_bytes!($template_name);
+        let out_code = gtmpl::template(
+            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+            $tpl_ctx.to_owned(),
+        )?;
+        $out_file.write_all("\n/**//**//**//**/\n\n".as_bytes())?;
+        $out_file.write_all(out_code.as_bytes())?;
     };
 }
 
@@ -34,6 +47,7 @@ pub struct GoCodeGenerator {
     pub base_dir: String,
     // Go module identifier. This is the one defined in the go.mod file.
     pub module_identifier: String,
+    pub file_per_struct: bool,
 
     // AZCore is the fundamental part of the language
     pub azcore_import: String,
@@ -91,55 +105,82 @@ impl GoCodeGenerator {
                 service_name: service_name.to_owned(),
             };
 
-            // ID
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                id_type_name,
-                "templates/entity_id.gtmpl",
-                tpl_ctx
-            );
-
-            // RefKey
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                ref_key_type_name,
-                "templates/entity_ref_key.gtmpl",
-                tpl_ctx
-            );
-
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                event_interface_name,
-                "templates/entity_event.gtmpl",
-                tpl_ctx
-            );
-
-            // Service
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                service_name,
-                "templates/entity_service.gtmpl",
-                tpl_ctx
-            );
+            let header_tpl_bytes = include_bytes!("templates/entity__header.gtmpl");
+            let header_code = gtmpl::template(
+                String::from_utf8_lossy(header_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
 
             if !ent.attributes.is_empty() {
                 println!("TODO: attributes for entity {}", type_name);
             }
 
-            // Service shared implementation
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                format!("{}Base", service_name),
-                "templates/entity_service_base.gtmpl",
-                tpl_ctx
-            );
+            if self.file_per_struct {
+                // ID
+                render_file!(
+                    format!("{}/{}", base_dir, module_name,),
+                    id_type_name,
+                    "templates/entity_id.gtmpl",
+                    tpl_ctx,
+                    header_code
+                );
+
+                // RefKey
+                render_file!(
+                    format!("{}/{}", base_dir, module_name,),
+                    ref_key_type_name,
+                    "templates/entity_ref_key.gtmpl",
+                    tpl_ctx,
+                    header_code
+                );
+
+                // Event interface
+                render_file!(
+                    format!("{}/{}", base_dir, module_name,),
+                    event_interface_name,
+                    "templates/entity_event.gtmpl",
+                    tpl_ctx,
+                    header_code
+                );
+
+                // Service
+                render_file!(
+                    format!("{}/{}", base_dir, module_name,),
+                    service_name,
+                    "templates/entity_service.gtmpl",
+                    tpl_ctx,
+                    header_code
+                );
+
+                // Service shared implementation
+                render_file!(
+                    format!("{}/{}", base_dir, module_name,),
+                    format!("{}Base", service_name),
+                    "templates/entity_service_base.gtmpl",
+                    tpl_ctx,
+                    header_code
+                );
+            } else {
+                let mut out_file = fs::OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+
+                out_file.write_all(header_code.as_bytes())?;
+                render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
+                render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
+                render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
+                render_file_append!(out_file, "templates/entity_service.gtmpl", tpl_ctx);
+                render_file_append!(out_file, "templates/entity_service_base.gtmpl", tpl_ctx);
+            }
 
             // ServiceClient
             render_file!(
                 format!("{}/{}/client", base_dir, module_name,),
                 format!("{}ClientBase", service_name),
                 "templates/entity_service_client_base.gtmpl",
-                tpl_ctx
+                tpl_ctx,
+                ""
             );
 
             // ServiceServer
@@ -147,7 +188,8 @@ impl GoCodeGenerator {
                 format!("{}/{}server", base_dir, module_name,),
                 format!("{}Server", service_name),
                 "templates/entity_service_server.gtmpl",
-                tpl_ctx
+                tpl_ctx,
+                ""
             );
         }
 
@@ -199,12 +241,16 @@ impl GoCodeGenerator {
             global_scope: global_scope,
         };
 
+        //TODO: render the header
+        let header_code = "".to_owned();
+
         // ID
         render_file!(
             format!("{}/{}", base_dir, module_name,),
             id_type_name,
             "templates/adjunct_entity_id.gtmpl",
-            tpl_ctx
+            tpl_ctx,
+            header_code
         );
 
         // RefKey
@@ -212,7 +258,8 @@ impl GoCodeGenerator {
             format!("{}/{}", base_dir, module_name,),
             ref_key_type_name,
             "templates/adjunct_entity_ref_key.gtmpl",
-            tpl_ctx
+            tpl_ctx,
+            header_code
         );
 
         // Attributes
@@ -220,7 +267,8 @@ impl GoCodeGenerator {
             format!("{}/{}", base_dir, module_name,),
             attrs_type_name,
             "templates/adjunct_entity_attributes.gtmpl",
-            tpl_ctx
+            tpl_ctx,
+            header_code
         );
 
         // Service
@@ -228,7 +276,8 @@ impl GoCodeGenerator {
             format!("{}/{}", base_dir, module_name,),
             service_name,
             "templates/adjunct_entity_service.gtmpl",
-            tpl_ctx
+            tpl_ctx,
+            header_code
         );
 
         Ok(())

@@ -1,5 +1,3 @@
-package {{.pkg_name}}
-
 // {{.service_name}}Base is the base
 // implementation for {{.service_name}}
 // shared by client and server.

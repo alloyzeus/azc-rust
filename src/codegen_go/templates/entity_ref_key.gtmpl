@@ -1,9 +1,3 @@
-package {{.pkg_name}}
-
-import (
-	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-)
-
 // {{.ref_key_type_name}} is used to identify
 // an instance of entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} {{.id_type_name}}
@@ -16,14 +10,20 @@ const _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero
 
 // {{.ref_key_type_name}}Zero returns
 // a zero-valued instance of {{.ref_key_type_name}}.
-func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} { return _{{.ref_key_type_name}}Zero }
+func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
+	return _{{.ref_key_type_name}}Zero
+}
 
 // AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
-func (refKey {{.ref_key_type_name}}) AZRefKey() {{.base.azcore_pkg}}.RefKey { return refKey }
+func (refKey {{.ref_key_type_name}}) AZRefKey() {{.base.azcore_pkg}}.RefKey {
+	return refKey
+}
 
 // AZEntityRefKey is required
 // by {{.base.azcore_pkg}}.EntityRefKey interface.
-func (refKey {{.ref_key_type_name}}) AZEntityRefKey() {{.base.azcore_pkg}}.EntityRefKey { return refKey }
+func (refKey {{.ref_key_type_name}}) AZEntityRefKey() {{.base.azcore_pkg}}.EntityRefKey {
+	return refKey
+}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
@@ -41,7 +41,9 @@ func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	return false
 }
 
-func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(other {{.ref_key_type_name}}) bool {
+func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
+	other {{.ref_key_type_name}},
+) bool {
 	return other == refKey
 }
 

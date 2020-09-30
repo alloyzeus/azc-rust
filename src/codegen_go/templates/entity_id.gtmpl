@@ -1,9 +1,3 @@
-package {{.pkg_name}}
-
-import (
-	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-)
-
 // {{.id_type_name}} is a scoped identifier
 // used to identify an instance of entity {{.type_name}}.
 type {{.id_type_name}} {{.id_type_primitive}}
@@ -25,7 +19,9 @@ func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
 func (id {{.id_type_name}}) AZEntityID() {{.base.azcore_pkg}}.EntityID { return id }
 
 // IsZero is required as {{.id_type_name}} is a value-object.
-func (id {{.id_type_name}}) IsZero() bool { return id == {{.id_type_name}}Zero }
+func (id {{.id_type_name}}) IsZero() bool {
+	return id == {{.id_type_name}}Zero
+}
 
 // Equals is required as {{.id_type_name}} is a value-object.
 //
@@ -49,6 +45,8 @@ func (id {{.id_type_name}}) Equal(other interface{}) bool {
 
 // Equals{{.id_type_name}} determines if the other instance is equal
 // to this instance.
-func (id {{.id_type_name}}) Equals{{.id_type_name}}(other {{.id_type_name}}) bool {
+func (id {{.id_type_name}}) Equals{{.id_type_name}}(
+	other {{.id_type_name}},
+) bool {
 	return id == other
 }

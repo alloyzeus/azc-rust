@@ -1,0 +1,8 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = {{.base.azcore_pkg}}.AZCorePackageIsVersion1
