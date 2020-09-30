@@ -37,7 +37,7 @@ macro_rules! render_file_append {
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             $tpl_ctx.to_owned(),
         )?;
-        $out_file.write_all("\n/**//**//**//**/\n\n".as_bytes())?;
+        $out_file.write_all("\n/**/ /**/ /**/ /**/\n\n".as_bytes())?;
         $out_file.write_all(out_code.as_bytes())?;
     };
 }

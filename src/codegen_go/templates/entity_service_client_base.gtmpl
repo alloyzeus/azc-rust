@@ -9,7 +9,8 @@ import (
 // {{.service_name}}ClientBase is the base
 // client implementation for {{.service_name}}.
 type {{.service_name}}ClientBase struct {
-	{{.base.azcore_pkg}}.EntityServiceClientBase
+	{{.pkg_name}}.AZEntityServiceClientBase
+
 	// Embed shared service implementation.
 	{{.pkg_name}}.{{.service_name}}Base
 

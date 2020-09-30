@@ -4,16 +4,58 @@ import (
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
-type AZEntityServiceInterfaceBase interface {
-	{{.base.azcore_pkg}}.EntityServiceInterfaceBase
+type AZEntityService interface {
+	{{.base.azcore_pkg}}.EntityService
 }
 
 // AZEntityServiceBase is the base implementation of
-// AZEntityServiceInterfaceBase designed to be embedded into application's
+// AZEntityService designed to be embedded into application's
 // entity services.
 type AZEntityServiceBase struct {
 	{{.base.azcore_pkg}}.EntityServiceBase
 }
+
+var _ AZEntityService = AZEntityServiceBase{}
+
+// AZEntityService is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc AZEntityServiceBase) AZEntityService() {{.base.azcore_pkg}}.EntityService { return svc }
+
+/**/ /**/ /**/ /**/
+
+type AZEntityServiceClient interface {
+	AZEntityService
+	{{.base.azcore_pkg}}.EntityServiceClient
+}
+
+type AZEntityServiceClientBase struct {
+	AZEntityServiceBase
+}
+
+var _ AZEntityServiceClient = AZEntityServiceClientBase{}
+
+// AZEntityServiceClient is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc AZEntityServiceClientBase) AZEntityServiceClient() {{.base.azcore_pkg}}.EntityServiceClient { return svc }
+
+/**/ /**/ /**/ /**/
+
+type AZEntityServiceServer interface {
+	AZEntityService
+	{{.base.azcore_pkg}}.EntityServiceServer
+}
+
+type AZEntityServiceServerBase struct {
+	AZEntityServiceBase
+}
+
+var _ AZEntityServiceServer = AZEntityServiceServerBase{}
+
+// AZEntityServiceServer is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc AZEntityServiceServerBase) AZEntityServiceServer() {{.base.azcore_pkg}}.EntityServiceServer { return svc }
+
+/**/ /**/ /**/ /**/
 
 type AZEntityCreationInputContext struct {
 	{{.base.azcore_pkg}}.EntityCreationInputContextBase
@@ -25,6 +67,14 @@ type AZEntityCreationOutputContext struct {
 
 type AZEntityCreationEventBase struct {
 	{{.base.azcore_pkg}}.EntityCreationEventBase
+}
+
+func (evt AZEntityCreationEventBase) AZEntityEvent() {{.base.azcore_pkg}}.EntityEvent {
+	return evt
+}
+
+func (evt AZEntityCreationEventBase) AZEvent() {{.base.azcore_pkg}}.Event {
+	return evt
 }
 
 type AZEntityCreationInfo struct {

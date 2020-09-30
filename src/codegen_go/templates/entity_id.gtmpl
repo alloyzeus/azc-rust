@@ -29,10 +29,10 @@ func (id {{.id_type_name}}) IsZero() bool {
 // has the same type.
 func (id {{.id_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.id_type_name}}); ok {
-		return x == refKey
+		return x == id
 	}
 	if x, _ := other.(*{{.id_type_name}}); x != nil {
-		return *x == refKey
+		return *x == id
 	}
 	return false
 }

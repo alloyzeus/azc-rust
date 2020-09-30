@@ -186,7 +186,7 @@ symbols:
   # TODO: we could just use prebuilt functionality,
   # e.g., PhoneNumberVerification, but we still need to declare something here
   # which brings the functionality here.
-  - identifier: TerminalRegistrationByPhoneNumber
+  - identifier: TerminalRegistrationPhoneNumber
     kind: entity
     parameters:
       # The idea is that this entity is built upon a component. We are

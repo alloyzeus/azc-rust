@@ -1,7 +1,7 @@
 // {{.service_name}} provides a contract
 // for methods related to entity {{.type_name}}.
 type {{.service_name}} interface {
-	AZEntityServiceInterfaceBase
+	AZEntityService
 
 	Listen{{.type_name}}Events(
 		{{.type_name}}EventsListenInput,
@@ -13,6 +13,10 @@ type {{.service_name}} interface {
 
 	// TODO: other stuff from the mixins
 }
+
+type {{.type_name}}EventsListenInput struct {}
+
+type {{.type_name}}EventsListenOutput struct {}
 
 type {{.type_name}}CreateEvent struct {
 	//TODO: context?

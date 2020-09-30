@@ -52,4 +52,5 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 // RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
 func (refKey {{.ref_key_type_name}}) RefKeyString() string {
 	// TODO
+	return "TODO"
 }

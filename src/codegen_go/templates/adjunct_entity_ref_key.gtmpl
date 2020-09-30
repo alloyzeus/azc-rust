@@ -6,7 +6,7 @@ import (
 
 // {{.ref_key_type_name}} is used to identify
 // an instance of adjunct entity {{.type_name}} system-wide.
-type {{.ref_key_type_name}} {
+type {{.ref_key_type_name}} struct {
 	{{if not .global_scope -}}{{range .hosts -}}
 	{{.}} {{.}}RefKey
 	{{end}}{{- end -}}
@@ -70,4 +70,5 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(other {{.ref_k
 // RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
 func (refKey {{.ref_key_type_name}}) RefKeyString() string {
 	// TODO
+	return "TODO"
 }
