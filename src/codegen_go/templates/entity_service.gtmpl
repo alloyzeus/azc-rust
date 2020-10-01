@@ -1,7 +1,7 @@
 // {{.service_name}} provides a contract
 // for methods related to entity {{.type_name}}.
 type {{.service_name}} interface {
-	AZEntityService
+	{{.base.azlib_prefix}}EntityService
 
 	Listen{{.type_name}}Events(
 		{{.type_name}}EventsListenInput,
@@ -20,7 +20,7 @@ type {{.type_name}}EventsListenOutput struct {}
 
 type {{.type_name}}CreateEvent struct {
 	//TODO: context?
-	AZEntityCreationEventBase
+	{{.base.azlib_prefix}}EntityCreationEventBase
 
 	// TODO
 }
@@ -34,7 +34,7 @@ func (evt {{.type_name}}CreateEvent) {{.type_name}}Event() {{.type_name}}Event {
 
 // {{.type_name}}CreateInput is for use in Create{{.type_name}} method of {{.service_name}}.
 type {{.type_name}}CreateInput struct {
-	Context AZEntityCreationInputContext
+	Context {{.base.azlib_prefix}}EntityCreationInputContext
 	Parameters {{.type_name}}CreateInputParameters
 }
 
@@ -43,13 +43,13 @@ type {{.type_name}}CreateInputParameters struct {
 }
 
 type {{.type_name}}CreateOutput struct {
-	Context AZEntityCreationOutputContext
+	Context {{.base.azlib_prefix}}EntityCreationOutputContext
 	Parameters {{.type_name}}CreateOutputParameters
 }
 
 type {{.type_name}}CreateOutputParameters struct {
 	ID {{.id_type_name}}
-	CreationInfo *AZEntityCreationInfo
+	CreationInfo *{{.base.azlib_prefix}}EntityCreationInfo
 
 	// TODO
 }

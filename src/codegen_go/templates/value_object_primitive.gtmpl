@@ -7,4 +7,18 @@ import (
 // TODO: get the docs from the source
 type {{.type_name}} {{.primitive_type_name}}
 
-var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}{}
+var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}(0)
+
+// Equals is required by {{.base.azcore_pkg}}.ValueObject.
+func (code {{.type_name}}) Equals(other interface{}) bool {
+	if x, ok := other.({{.type_name}}); ok {
+		return x == code
+	}
+	if x, _ := other.(*{{.type_name}}); x != nil {
+		return *x == code
+	}
+	return false
+}
+
+// Equal is required by {{.base.azcore_pkg}}.ValueObject.
+func (code {{.type_name}}) Equal(other interface{}) bool { return code.Equals(other) }

@@ -3,7 +3,7 @@ package {{.pkg_name}}
 // {{.attributes_type_name}} contains
 // attributes for adjunct {{.type_name}}.
 type {{.attributes_type_name}} struct {
-	AZAdjunctEntityAttributesBase
+	{{.base.azlib_prefix}}AdjunctEntityAttributesBase
 
 	//TODO: implement this.
 }

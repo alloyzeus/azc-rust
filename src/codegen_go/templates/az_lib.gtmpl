@@ -1,0 +1,98 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// This file contains specializations of azcore types.
+
+type {{.base.azlib_prefix}}EntityService interface {
+	{{.base.azcore_pkg}}.EntityService
+}
+
+// {{.base.azlib_prefix}}EntityServiceBase is the base implementation of
+// {{.base.azlib_prefix}}EntityService designed to be embedded into application's
+// entity services.
+type {{.base.azlib_prefix}}EntityServiceBase struct {
+	{{.base.azcore_pkg}}.EntityServiceBase
+}
+
+var _ {{.base.azlib_prefix}}EntityService = {{.base.azlib_prefix}}EntityServiceBase{}
+
+// {{.base.azlib_prefix}}EntityService is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc {{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {{.base.azcore_pkg}}.EntityService { return svc }
+
+/**/ /**/ /**/ /**/
+
+type {{.base.azlib_prefix}}EntityServiceClient interface {
+	{{.base.azlib_prefix}}EntityService
+	{{.base.azcore_pkg}}.EntityServiceClient
+}
+
+type {{.base.azlib_prefix}}EntityServiceClientBase struct {
+	{{.base.azlib_prefix}}EntityServiceBase
+}
+
+var _ {{.base.azlib_prefix}}EntityServiceClient = {{.base.azlib_prefix}}EntityServiceClientBase{}
+
+// {{.base.azlib_prefix}}EntityServiceClient is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc {{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {{.base.azcore_pkg}}.EntityServiceClient { return svc }
+
+/**/ /**/ /**/ /**/
+
+type {{.base.azlib_prefix}}EntityServiceServer interface {
+	{{.base.azlib_prefix}}EntityService
+	{{.base.azcore_pkg}}.EntityServiceServer
+}
+
+type {{.base.azlib_prefix}}EntityServiceServerBase struct {
+	{{.base.azlib_prefix}}EntityServiceBase
+}
+
+var _ {{.base.azlib_prefix}}EntityServiceServer = {{.base.azlib_prefix}}EntityServiceServerBase{}
+
+// {{.base.azlib_prefix}}EntityServiceServer is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc {{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {{.base.azcore_pkg}}.EntityServiceServer { return svc }
+
+/**/ /**/ /**/ /**/
+
+type {{.base.azlib_prefix}}EntityCreationInputContext struct {
+	{{.base.azcore_pkg}}.EntityCreationInputContextBase
+}
+
+type {{.base.azlib_prefix}}EntityCreationOutputContext struct {
+	{{.base.azcore_pkg}}.EntityCreationOutputContextBase
+}
+
+type {{.base.azlib_prefix}}EntityCreationEventBase struct {
+	{{.base.azcore_pkg}}.EntityCreationEventBase
+}
+
+func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEntityEvent() {{.base.azcore_pkg}}.EntityEvent {
+	return evt
+}
+
+func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEvent() {{.base.azcore_pkg}}.Event {
+	return evt
+}
+
+type {{.base.azlib_prefix}}EntityCreationInfo struct {
+	{{.base.azcore_pkg}}.EntityCreationInfoBase
+}
+
+/**/ /**/ /**/ /**/
+
+type {{.base.azlib_prefix}}AdjunctEntityAttributesBase struct {}
+
+var _ {{.base.azcore_pkg}}.AdjunctEntityAttributes = {{.base.azlib_prefix}}AdjunctEntityAttributesBase{}
+
+func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAdjunctEntityAttributes() {{.base.azcore_pkg}}.AdjunctEntityAttributes { return attrs }
+
+/**/ /**/ /**/ /**/
+
+type {{.base.azlib_prefix}}AdjunctEntityService interface {
+	{{.base.azcore_pkg}}.AdjunctEntityService
+}

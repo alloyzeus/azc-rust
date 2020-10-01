@@ -49,6 +49,8 @@ pub struct GoCodeGenerator {
     pub module_identifier: String,
     pub file_per_struct: bool,
 
+    pub azlib_prefix: String,
+
     // AZCore is the fundamental part of the language
     pub azcore_import: String,
     pub azcore_pkg: String,
@@ -61,6 +63,7 @@ impl GoCodeGenerator {
     fn render_base_context(&self) -> BaseContext {
         BaseContext {
             mod_name: self.module_identifier.to_owned(),
+            azlib_prefix: self.azlib_prefix.to_owned(), //TODO: make this configurable
             azcore_import: self.azcore_import.to_owned(),
             azcore_pkg: self.azcore_pkg.to_owned(),
         }
@@ -299,7 +302,8 @@ impl GoCodeGenerator {
         };
 
         use data_type::DataType;
-        let out_tpl_bytes = match vo.data_type {
+        let out_tpl_bytes: &[u8];
+        out_tpl_bytes = match vo.data_type {
             DataType::Struct => include_bytes!("templates/value_object_struct.gtmpl"),
             _ => {
                 let prim_type = match vo.data_type {
@@ -343,8 +347,8 @@ impl codegen::CodeGenerator for GoCodeGenerator {
             pkg_name: module_name.to_owned(),
         };
         fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-        let out_name = format!("{}/{}/AZEntityService.go", base_dir, module_name,);
-        let out_tpl_bytes = include_bytes!("templates/az_entity_service.gtmpl");
+        let out_name = format!("{}/{}/AZLib.go", base_dir, module_name,);
+        let out_tpl_bytes = include_bytes!("templates/az_lib.gtmpl");
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -396,6 +400,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
 #[derive(Clone, Gtmpl)]
 struct BaseContext {
     mod_name: String,
+    azlib_prefix: String,
     azcore_import: String,
     azcore_pkg: String,
 }

@@ -9,7 +9,7 @@ import (
 // {{.service_name}}Server is the server
 // implementation for {{.service_name}}.
 type {{.service_name}}Server struct {
-	{{.pkg_name}}.AZEntityServiceServerBase
+	{{.pkg_name}}.{{.base.azlib_prefix}}EntityServiceServerBase
 
 	// Embed shared service implementation.
 	{{.pkg_name}}.{{.service_name}}Base
