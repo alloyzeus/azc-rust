@@ -170,6 +170,7 @@ impl GoCodeGenerator {
                     .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
 
                 out_file.write_all(header_code.as_bytes())?;
+                out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
                 render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
@@ -240,48 +241,77 @@ impl GoCodeGenerator {
             ref_key_type_name: ref_key_type_name.to_owned(),
             attributes_type_name: attrs_type_name.to_owned(),
             service_name: service_name.to_owned(),
-            hosts: hosts_names,
+            hosts: hosts_names.clone(),
             global_scope: global_scope,
         };
 
-        //TODO: render the header
-        let header_code = "".to_owned();
+        let header_tpl_bytes = include_bytes!("templates/adjunct_entity__header.gtmpl");
+        let header_code = gtmpl::template(
+            String::from_utf8_lossy(header_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
 
-        // ID
-        render_file!(
-            format!("{}/{}", base_dir, module_name,),
-            id_type_name,
-            "templates/adjunct_entity_id.gtmpl",
-            tpl_ctx,
-            header_code
-        );
+        if self.file_per_struct {
+            // ID
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                id_type_name,
+                "templates/adjunct_entity_id.gtmpl",
+                tpl_ctx,
+                header_code
+            );
 
-        // RefKey
-        render_file!(
-            format!("{}/{}", base_dir, module_name,),
-            ref_key_type_name,
-            "templates/adjunct_entity_ref_key.gtmpl",
-            tpl_ctx,
-            header_code
-        );
+            // RefKey
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                ref_key_type_name,
+                "templates/adjunct_entity_ref_key.gtmpl",
+                tpl_ctx,
+                header_code
+            );
 
-        // Attributes
-        render_file!(
-            format!("{}/{}", base_dir, module_name,),
-            attrs_type_name,
-            "templates/adjunct_entity_attributes.gtmpl",
-            tpl_ctx,
-            header_code
-        );
+            // Attributes
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                attrs_type_name,
+                "templates/adjunct_entity_attributes.gtmpl",
+                tpl_ctx,
+                header_code
+            );
 
-        // Service
-        render_file!(
-            format!("{}/{}", base_dir, module_name,),
-            service_name,
-            "templates/adjunct_entity_service.gtmpl",
-            tpl_ctx,
-            header_code
-        );
+            // Service
+            render_file!(
+                format!("{}/{}", base_dir, module_name,),
+                service_name,
+                "templates/adjunct_entity_service.gtmpl",
+                tpl_ctx,
+                header_code
+            );
+        } else {
+            let mut out_file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+
+            out_file.write_all(header_code.as_bytes())?;
+            out_file.write_all(
+                format!(
+                    "\n// Adjunct-entity {} of {}.\n",
+                    type_name,
+                    hosts_names.join(", ")
+                )
+                .as_bytes(),
+            )?;
+            render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
+            //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
+            render_file_append!(
+                out_file,
+                "templates/adjunct_entity_attributes.gtmpl",
+                tpl_ctx
+            );
+            render_file_append!(out_file, "templates/adjunct_entity_service.gtmpl", tpl_ctx);
+        }
 
         Ok(())
     }
@@ -315,7 +345,7 @@ impl GoCodeGenerator {
                     DataType::Struct => "struct".to_owned(),
                 };
                 tpl_ctx.primitive_type_name = prim_type;
-                include_bytes!("templates/value_object_primitive.gtmpl")
+                include_bytes!("templates/value_object_alias.gtmpl")
             }
         };
 

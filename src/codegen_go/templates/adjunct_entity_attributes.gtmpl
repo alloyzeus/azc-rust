@@ -1,5 +1,3 @@
-package {{.pkg_name}}
-
 // {{.attributes_type_name}} contains
 // attributes for adjunct {{.type_name}}.
 type {{.attributes_type_name}} struct {

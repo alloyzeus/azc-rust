@@ -1,9 +1,3 @@
-package {{.pkg_name}}
-
-import (
-	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-)
-
 // {{.ref_key_type_name}} is used to identify
 // an instance of adjunct entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} struct {

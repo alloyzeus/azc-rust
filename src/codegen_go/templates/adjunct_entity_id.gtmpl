@@ -1,9 +1,3 @@
-package {{.pkg_name}}
-
-import (
-	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-)
-
 // {{.id_type_name}} is a scoped identifier
 // used to identify an instance of adjunct entity {{.type_name}}
 // scoped within its host entity(s).
