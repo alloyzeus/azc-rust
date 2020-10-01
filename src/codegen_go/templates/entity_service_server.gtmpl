@@ -9,7 +9,7 @@ import (
 // {{.service_name}}Server is the server
 // implementation for {{.service_name}}.
 type {{.service_name}}Server struct {
-	{{.pkg_name}}.{{.base.azlib_prefix}}EntityServiceServerBase
+	*{{.pkg_name}}.{{.base.azlib_prefix}}EntityServiceServerBase
 
 	// Embed shared service implementation.
 	{{.pkg_name}}.{{.service_name}}Base
@@ -19,4 +19,27 @@ type {{.service_name}}Server struct {
 
 var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}Server{}
 var _ {{.base.azcore_pkg}}.EntityServiceServer = &{{.service_name}}Server{}
-			
+
+// Listen{{.type_name}}Events subscribes to {{.type_name}}-related events.
+//
+// This method enforces full access control as it was designed to be called
+// from the inter-process API layer. For the intra-process version,
+// see Listen{{.type_name}}EventsInternal.
+func (srv *{{.service_name}}Server) Listen{{.type_name}}Events(
+	input {{.pkg_name}}.{{.type_name}}EventsListenInput,
+) {{.pkg_name}}.{{.type_name}}EventsListenOutput {
+	//TODO
+	return {{.pkg_name}}.{{.type_name}}EventsListenOutput{}
+}
+
+// Create{{.type_name}} creates a new {{.type_name}}.
+//
+// This method enforces full access control as it was designed to be called
+// from the inter-process API layer. For the intra-process version,
+// see Create{{.type_name}}Internal.
+func (srv *{{.service_name}}Server) Create{{.type_name}}(
+	input {{.pkg_name}}.{{.type_name}}CreateInput,
+) {{.pkg_name}}.{{.type_name}}CreateOutput {
+	//TODO
+	return {{.pkg_name}}.{{.type_name}}CreateOutput{}
+}

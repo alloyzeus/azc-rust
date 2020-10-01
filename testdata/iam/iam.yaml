@@ -69,6 +69,8 @@ symbols:
         unique: true
 
   - identifier: Application
+    documentation: |
+      An Application is an ....
     kind: entity
     parameters:
       # TODO: encode application type into the ID. we will then use
@@ -106,8 +108,21 @@ symbols:
               max: 4
 
   - identifier: Terminal
-    description: |
-      A terminal is an authorized instance of application.
+    documentation: |
+      A Terminal is an authorized instance of application. As long the the
+      authorization is still valid, a terminal could be used to access the
+      service. An authorization of a Terminal will become invalid when it
+      is expired or revoked by the user, if the terminal is associated to
+      a user, or those who have the permission to revoke the authorization.
+
+      After a Terminal authorization is invalid, the user must re-authorize
+      their instance of Application if they wish to continue using their
+      instance of Application to access the service. Re-authorization of an
+      instance of an Application will generate a new Terminal. A
+      de-authorized Terminal is no longer usable.
+
+      A sucessful authorization will generate both a new Terminal and
+      an initial Session.
     kind: adjunct
     parameters:
       kind: entity
@@ -135,7 +150,7 @@ symbols:
               kind: User
           request:
             # TODO: union or interface
-            # we need to refer to TerminalRegistrationByPhoneNumber and
+            # we need to refer to TerminalRegistrationPhoneNumber and
             # other methods of authentication.
             kind: ref
         creation:
@@ -146,6 +161,17 @@ symbols:
           methods:
 
   - identifier: Session
+    documentation: |
+      A Session represents authorization for a time span. While Terminal
+      usually provide longer authorization period, a Session is used to
+      break down that authorization into smaller time spans.
+
+      If a Session is expired or revoked, the previously authorized
+      Application instance (Terminal) could request another Session as long the
+      Application's authorization is still valid. There's only one instance
+      of Session active at a time for a Terminal.
+
+      An access token represents a instance of Session.
     kind: adjunct
     parameters:
       kind: entity
@@ -187,6 +213,10 @@ symbols:
   # e.g., PhoneNumberVerification, but we still need to declare something here
   # which brings the functionality here.
   - identifier: TerminalRegistrationPhoneNumber
+    documentation: |
+      TerminalRegistrationPhoneNumber is used to track terminal registrations
+      which each was requested by requesting a verification of a phone-number
+      associated to a user.
     kind: entity
     parameters:
       # The idea is that this entity is built upon a component. We are
@@ -269,6 +299,9 @@ symbols:
               }
 
   - identifier: PhoneNumberVerificationCode
+    documentation: |
+      PhoneNumberVerificationCode is the type for storing the code
+      of a phone-number verification.
     kind: value_object
     parameters:
       data_type: int16

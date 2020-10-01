@@ -6,9 +6,6 @@ use crate::azml::{data_type, value_object::value_object, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct ValueObjectYaml {
-    #[serde(default)]
-    documentation: String,
-
     data_type: String,
 }
 
@@ -21,14 +18,12 @@ impl convert::TryFrom<ValueObjectYaml> for value_object::ValueObject {
             Ok(e) => {
                 match e {
                     data_type::DataType::Struct => Ok(value_object::ValueObject {
-                        documentation: x.documentation,
                         data_type: e,
                         struct_: Some(value_object::ValueObjectStruct {
                             documentation: "".to_owned(),
                         }), //TODO: fill this
                     }),
                     _ => Ok(value_object::ValueObject {
-                        documentation: x.documentation,
                         data_type: e,
                         struct_: None,
                     }),

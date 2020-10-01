@@ -7,10 +7,14 @@ var _ {{.base.azcore_pkg}}.EntityID = {{.id_type_name}}Zero
 // {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
 const {{.id_type_name}}Zero = {{.id_type_name}}(0)
 
+// {{.id_type_name}}FromPrimitiveValue creates an instance
+// of {{.id_type_name}} from its primitive value.
 func {{.id_type_name}}FromPrimitiveValue(v {{.id_type_primitive}}) {{.id_type_name}} {
 	return {{.id_type_name}}(v)
 }
 
+// PrimitiveValue returns the ID in its primitive type. Prefer to use
+// this method instead of casting directly.
 func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
 	return {{.id_type_primitive}}(id)
 }

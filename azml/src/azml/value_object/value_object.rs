@@ -4,8 +4,6 @@ use crate::azml::{data_type, symbol};
 
 #[derive(Clone, Debug)]
 pub struct ValueObject {
-    pub documentation: String,
-
     //TODO: should be two kinds: alias (of a primitive or other value_object)
     // or struct (composite).
     pub data_type: data_type::DataType,

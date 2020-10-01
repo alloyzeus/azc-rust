@@ -13,13 +13,16 @@ type {{.base.azlib_prefix}}EntityService interface {
 // {{.base.azlib_prefix}}EntityServiceBase is the base implementation of
 // {{.base.azlib_prefix}}EntityService designed to be embedded into application's
 // entity services.
+//
+// A base is stub which contains some 'nice default' implementations and
+// some utilities.
 type {{.base.azlib_prefix}}EntityServiceBase struct {
 	{{.base.azcore_pkg}}.EntityServiceBase
 }
 
 var _ {{.base.azlib_prefix}}EntityService = {{.base.azlib_prefix}}EntityServiceBase{}
 
-// {{.base.azlib_prefix}}EntityService is required for conformance
+// AZEntityService is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
 func (svc {{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {{.base.azcore_pkg}}.EntityService { return svc }
 
@@ -36,7 +39,7 @@ type {{.base.azlib_prefix}}EntityServiceClientBase struct {
 
 var _ {{.base.azlib_prefix}}EntityServiceClient = {{.base.azlib_prefix}}EntityServiceClientBase{}
 
-// {{.base.azlib_prefix}}EntityServiceClient is required for conformance
+// AZEntityServiceClient is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
 func (svc {{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {{.base.azcore_pkg}}.EntityServiceClient { return svc }
 
@@ -53,7 +56,7 @@ type {{.base.azlib_prefix}}EntityServiceServerBase struct {
 
 var _ {{.base.azlib_prefix}}EntityServiceServer = {{.base.azlib_prefix}}EntityServiceServerBase{}
 
-// {{.base.azlib_prefix}}EntityServiceServer is required for conformance
+// AZEntityServiceServer is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
 func (svc {{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {{.base.azcore_pkg}}.EntityServiceServer { return svc }
 
@@ -85,11 +88,17 @@ type {{.base.azlib_prefix}}EntityCreationInfo struct {
 
 /**/ /**/ /**/ /**/
 
+// {{.base.azlib_prefix}}AdjunctEntityAttributesBase could be used as the
+// base for {{.base.azcore_pkg}}.AdjunctEntityAttributes implementations.
 type {{.base.azlib_prefix}}AdjunctEntityAttributesBase struct {}
 
 var _ {{.base.azcore_pkg}}.AdjunctEntityAttributes = {{.base.azlib_prefix}}AdjunctEntityAttributesBase{}
 
-func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAdjunctEntityAttributes() {{.base.azcore_pkg}}.AdjunctEntityAttributes { return attrs }
+// AZAdjunctEntityAttributes is required for conformance
+// with {{.base.azcore_pkg}}.AdjunctEntityAttributes.
+func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAdjunctEntityAttributes() {{.base.azcore_pkg}}.AdjunctEntityAttributes {
+	return attrs
+}
 
 /**/ /**/ /**/ /**/
 

@@ -8,7 +8,7 @@ use azml::azml::{
     adjunct::{adjunct, adjunct_entity, adjunct_value_object},
     data_type,
     entity::{entity, entity_id_integer},
-    module,
+    module, symbol,
     value_object::value_object,
 };
 
@@ -82,26 +82,30 @@ impl GoCodeGenerator {
         &self,
         module_name: &String,
         ent: &entity::Entity,
-        identifier: &String,
+        symbol: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
+        let type_name = symbol.identifier.to_owned();
         let pkg_path = format!("{}/{}", self.module_identifier, module_name);
         let id_def = &ent.id.definition;
+
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
             let id_size = Self::id_size_from_space(id_int.space);
 
-            let type_name = &identifier;
             let id_type_name = format!("{}ID", type_name);
             let id_type_primitive = format!("int{}", id_size);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let event_interface_name = format!("{}Event", type_name);
             let service_name = format!("{}Service", type_name);
+            let type_doc_lines: Vec<String> =
+                symbol.documentation.lines().map(|x| x.to_owned()).collect();
 
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),
                 pkg_path: pkg_path.to_owned(),
-                type_name: (*type_name).clone(),
+                type_name: type_name.to_owned(),
+                type_doc_lines: type_doc_lines.clone(),
                 id_type_name: id_type_name.to_owned(),
                 id_type_primitive: id_type_primitive.to_owned(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
@@ -171,6 +175,14 @@ impl GoCodeGenerator {
 
                 out_file.write_all(header_code.as_bytes())?;
                 out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
+                if !type_doc_lines.is_empty() {
+                    out_file.write_all("//\n".as_bytes())?;
+                    for x in type_doc_lines {
+                        out_file.write_all("// ".as_bytes())?;
+                        out_file.write_all(x.as_bytes())?;
+                        out_file.write_all("\n".as_bytes())?;
+                    }
+                }
                 render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
@@ -204,10 +216,11 @@ impl GoCodeGenerator {
         &self,
         module_name: &String,
         adj_ent: &adjunct_entity::AdjunctEntity,
-        identifier: &String,
+        symbol: &symbol::Symbol,
         hosts: &Vec<adjunct::AdjunctHost>,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
+        let type_name = symbol.identifier.to_owned();
         let pkg_path = format!("{}/{}", self.module_identifier, module_name);
         let hosts_names = hosts
             .into_iter()
@@ -224,12 +237,14 @@ impl GoCodeGenerator {
             hosts_names.join("")
         };
 
-        let type_name = format!("{}{}", base_type_name, identifier);
+        let type_name = format!("{}{}", base_type_name, type_name);
         let id_type_name = format!("{}ID", type_name);
         let id_type_primitive = format!("int{}", 64); //TODO: de-hardcode
         let ref_key_type_name = format!("{}RefKey", type_name);
         let attrs_type_name = format!("{}Attributes", type_name);
         let service_name = format!("{}Service", type_name);
+        let type_doc_lines: Vec<String> =
+            symbol.documentation.lines().map(|x| x.to_owned()).collect();
 
         let tpl_ctx = AdjunctEntityContext {
             base: self.render_base_context(),
@@ -302,6 +317,14 @@ impl GoCodeGenerator {
                 )
                 .as_bytes(),
             )?;
+            if !type_doc_lines.is_empty() {
+                out_file.write_all("//\n".as_bytes())?;
+                for x in type_doc_lines {
+                    out_file.write_all("// ".as_bytes())?;
+                    out_file.write_all(x.as_bytes())?;
+                    out_file.write_all("\n".as_bytes())?;
+                }
+            }
             render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
             render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
             //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
@@ -319,15 +342,17 @@ impl GoCodeGenerator {
     fn generate_value_object_codes(
         &self,
         module_name: &String,
+        symbol: &symbol::Symbol,
         vo: &value_object::ValueObject,
-        identifier: &String,
     ) -> Result<(), Box<dyn error::Error>> {
         let base_dir = &self.base_dir;
+        let type_name = symbol.identifier.to_owned();
 
         let mut tpl_ctx = ValueObjectContext {
             base: self.render_base_context(),
             pkg_name: module_name.to_lowercase(),
-            type_name: identifier.to_owned(),
+            type_name: type_name.to_owned(),
+            type_doc_lines: symbol.documentation.lines().map(|x| x.to_owned()).collect(),
             primitive_type_name: "".to_owned(),
         };
 
@@ -358,7 +383,7 @@ impl GoCodeGenerator {
         let mut service_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
-            .open(format!("{}/{}/{}.go", base_dir, module_name, identifier,))?;
+            .open(format!("{}/{}/{}.go", base_dir, module_name, type_name,))?;
         service_file.write_all(out_code.as_bytes())?;
 
         Ok(())
@@ -393,7 +418,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         for symbol in &module_def.symbols {
             let params = &symbol.definition;
             if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                self.generate_entity_codes(module_name, ent, &symbol.identifier)?;
+                self.generate_entity_codes(module_name, ent, &symbol)?;
                 continue;
             }
             if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
@@ -401,12 +426,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                     .definition
                     .downcast_ref::<adjunct_entity::AdjunctEntity>()
                 {
-                    self.generate_adjunct_entity_codes(
-                        module_name,
-                        adj_ent,
-                        &symbol.identifier,
-                        &adj.hosts,
-                    )?;
+                    self.generate_adjunct_entity_codes(module_name, adj_ent, &symbol, &adj.hosts)?;
                     continue;
                 }
                 if let Some(adj_vo) = adj
@@ -419,7 +439,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 continue;
             }
             if let Some(vo) = params.downcast_ref::<value_object::ValueObject>() {
-                self.generate_value_object_codes(module_name, vo, &symbol.identifier)?;
+                self.generate_value_object_codes(module_name, &symbol, vo)?;
                 continue;
             }
         }
@@ -447,6 +467,7 @@ struct EntityContext {
     pkg_name: String,
     pkg_path: String,
     type_name: String,
+    type_doc_lines: Vec<String>,
     id_type_name: String,
     id_type_primitive: String,
     ref_key_type_name: String,
@@ -473,5 +494,6 @@ struct ValueObjectContext {
     base: BaseContext,
     pkg_name: String,
     type_name: String,
+    type_doc_lines: Vec<String>,
     primitive_type_name: String,
 }

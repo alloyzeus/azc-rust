@@ -4,7 +4,8 @@ import (
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
-// TODO: get the docs from the source
+{{range .type_doc_lines}}// {{.}}
+{{end -}}
 type {{.type_name}} {{.primitive_type_name}}
 
 var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}(0)

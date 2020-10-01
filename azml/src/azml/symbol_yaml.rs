@@ -18,6 +18,9 @@ pub struct SymbolYaml {
     //TODO: required
     #[serde(default)]
     parameters: yaml::Value,
+
+    #[serde(default)]
+    documentation: String,
 }
 
 impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
@@ -31,6 +34,7 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                     Some(p) => Ok(symbol::Symbol {
                         identifier: x.identifier,
                         definition: Box::new(entity::Entity::try_from(p)?),
+                        documentation: x.documentation,
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }
@@ -41,6 +45,7 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                     Some(p) => Ok(symbol::Symbol {
                         identifier: x.identifier,
                         definition: Box::new(adjunct::Adjunct::try_from(p)?),
+                        documentation: x.documentation,
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }
@@ -52,6 +57,7 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                     Some(p) => Ok(symbol::Symbol {
                         identifier: x.identifier,
                         definition: Box::new(value_object::ValueObject::try_from(p)?),
+                        documentation: x.documentation,
                     }),
                     None => Err(yaml::Error::Msg("Missing definition".to_owned())),
                 }

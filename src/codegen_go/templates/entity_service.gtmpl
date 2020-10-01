@@ -16,6 +16,9 @@ type {{.service_name}} interface {
 
 type {{.type_name}}EventsListenInput struct {}
 
+//TODO: the output should contain a field which is an instance of Rx Observable.
+// See http://reactivex.io/documentation/contract.html and
+// https://pkg.go.dev/github.com/reactivex/rxgo/v2#Observable .
 type {{.type_name}}EventsListenOutput struct {}
 
 type {{.type_name}}CreateEvent struct {
