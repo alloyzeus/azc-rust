@@ -1,6 +1,6 @@
 //
 
-use std::{error, fmt};
+use std::{convert, error, fmt, io};
 
 #[derive(Debug)]
 pub enum Error {
@@ -31,8 +31,20 @@ impl fmt::Display for Error {
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(x: std::io::Error) -> Error {
+impl From<io::Error> for Error {
+    fn from(x: io::Error) -> Error {
         Error::Internal(Box::new(x))
+    }
+}
+
+impl From<String> for Error {
+    fn from(x: String) -> Error {
+        Error::Msg(x)
+    }
+}
+
+impl From<convert::Infallible> for Error {
+    fn from(x: convert::Infallible) -> Error {
+        Error::Msg(x.to_string())
     }
 }

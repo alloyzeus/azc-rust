@@ -17,21 +17,22 @@ impl convert::TryFrom<EntityIdYaml> for entity_id::EntityId {
     type Error = yaml::Error;
 
     fn try_from(x: EntityIdYaml) -> Result<Self, Self::Error> {
-        match x.kind.as_str() {
-            "integer" => {
-                let params: Option<entity_id_integer_yaml::EntityIdIntegerYaml> =
-                    yaml::from_value(x.parameters)?;
-                match params {
-                    Some(p) => Ok(entity_id::EntityId {
-                        definition: Box::new(entity_id_integer::EntityIdInteger::try_from(p)?),
-                    }),
-                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
+        if x.parameters.is_null() {
+            Err(yaml::Error::Msg("Missing definition parameters".to_owned()))
+        } else {
+            match x.kind.as_str() {
+                "integer" => {
+                    let def: entity_id_integer_yaml::EntityIdIntegerYaml =
+                        yaml::from_value(x.parameters)?;
+                    Ok(entity_id::EntityId {
+                        definition: Box::new(entity_id_integer::EntityIdInteger::try_from(def)?),
+                    })
                 }
+                _ => Err(yaml::Error::Msg(format!(
+                    "Unrecognized entity ID kind `{}`",
+                    x.kind
+                ))),
             }
-            _ => Err(yaml::Error::Msg(format!(
-                r#"Unrecognized symbol kind `{}`"#,
-                x.kind
-            ))),
         }
     }
 }

@@ -7,7 +7,7 @@ pub enum DataType {
     Int32,
     Int64,
     String,
-    Struct,
+    Bytes,
 }
 
 impl std::str::FromStr for DataType {
@@ -20,7 +20,7 @@ impl std::str::FromStr for DataType {
             "int32" => Ok(DataType::Int32),
             "int64" => Ok(DataType::Int64),
             "string" => Ok(DataType::String),
-            "struct" => Ok(DataType::Struct),
+            "bytes" => Ok(DataType::Bytes),
             _ => Err(format!("Unrecognized data type {}", s)),
         }
     }

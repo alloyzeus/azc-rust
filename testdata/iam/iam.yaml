@@ -251,6 +251,7 @@ symbols:
                 unit: minute
       # Creation is a special service method.
       creation:
+        allow_inter_process: true
         authorization:
           - kind: Application
             allow: on-condition
@@ -304,4 +305,6 @@ symbols:
       of a phone-number verification.
     kind: value_object
     parameters:
-      data_type: int16
+      kind: alias
+      parameters:
+        data_type: int16

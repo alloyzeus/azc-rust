@@ -16,13 +16,13 @@ pub struct Symbol {
     // an optional leading article.
     pub documentation: String,
     //TODO: naming options for the identifier. we can explicitly define the
-    // standard naming option, which will be used for cross-implementation,
-    // e.g., for identifier in encoded data.
-    // we can also explicitly define the name in different
+    // standard naming option, which required to be consistent across
+    // implementations e.g., for identifier in encoded data.
+    // We can also explicitly define the name in different
     // cases, SymbolPascalCase, symbolCamelCase, symbol_snake_case,
     // symbol-kebab-case, symbolflatcase, SYMBOL_MACRO_CASE, etc. These
     // letter case options affect only for generating the codes; they won't
-    // affect the identifiers used across implementations.
+    // affect the identifiers for inter-process communications.
     // We will also allow the letter-casing options based on the
     // generators and usages, for class/struct names, for file names. These
     // options will be useful for conformance with language's

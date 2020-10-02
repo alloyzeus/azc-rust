@@ -17,7 +17,7 @@ impl convert::TryFrom<OwnershipYaml> for ownership::Ownership {
         //TODO: use generic TryFrom
         let owner_arity = mixin::MixinField::<arity::ArityConstraint> {
             overridable: x.owner_arity.overridable,
-            value: x.owner_arity.value.try_into().unwrap(), //TODO: use `?`
+            value: x.owner_arity.value.try_into()?,
         };
         Ok(ownership::Ownership {
             owner_arity: owner_arity,

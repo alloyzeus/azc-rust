@@ -22,4 +22,6 @@ func (code {{.type_name}}) Equals(other interface{}) bool {
 }
 
 // Equal is required by {{.base.azcore_pkg}}.ValueObject.
-func (code {{.type_name}}) Equal(other interface{}) bool { return code.Equals(other) }
+func (code {{.type_name}}) Equal(other interface{}) bool {
+	return code.Equals(other)
+}

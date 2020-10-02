@@ -20,8 +20,6 @@ pub struct AdjunctYaml {
     #[serde(default)]
     arity: arity_yaml::ArityConstraintYaml,
 
-    //TODO: required
-    #[serde(default)]
     parameters: yaml::Value,
 }
 
@@ -31,33 +29,26 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
     fn try_from(x: AdjunctYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<adjunct_entity_yaml::AdjunctEntityYaml> =
-                    yaml::from_value(x.parameters)?;
-                match params {
-                    Some(p) => Ok(adjunct::Adjunct {
-                        hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
-                        arity: x.arity.into(),
-                        definition: Box::new(adjunct_entity::AdjunctEntity::from(p)),
-                    }),
-                    None => Err(yaml::Error::Msg("Missing parameters".to_owned())),
-                }
+                let def: adjunct_entity_yaml::AdjunctEntityYaml = yaml::from_value(x.parameters)?;
+                Ok(adjunct::Adjunct {
+                    hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                    arity: x.arity.into(),
+                    definition: Box::new(adjunct_entity::AdjunctEntity::from(def)),
+                })
             }
             "value-object" => {
-                let params: Option<adjunct_value_object_yaml::AdjunctValueObjectYaml> =
+                let def: adjunct_value_object_yaml::AdjunctValueObjectYaml =
                     yaml::from_value(x.parameters)?;
-                match params {
-                    Some(p) => Ok(adjunct::Adjunct {
-                        hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
-                        arity: x.arity.into(),
-                        definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
-                            p.try_into()?,
-                        )),
-                    }),
-                    None => Err(yaml::Error::Msg("Missing parameters".to_owned())),
-                }
+                Ok(adjunct::Adjunct {
+                    hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                    arity: x.arity.into(),
+                    definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
+                        def.try_into()?,
+                    )),
+                })
             }
             _ => Err(yaml::Error::Msg(format!(
-                r#"Unrecognized symbol kind `{}`"#,
+                "Unrecognized adjunct kind `{}`",
                 x.kind
             ))),
         }

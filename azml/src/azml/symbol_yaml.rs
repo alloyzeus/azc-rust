@@ -15,8 +15,6 @@ pub struct SymbolYaml {
     identifier: String,
     kind: String,
 
-    //TODO: required
-    #[serde(default)]
     parameters: yaml::Value,
 
     #[serde(default)]
@@ -29,41 +27,31 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
     fn try_from(x: SymbolYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let params: Option<entity_yaml::EntityYaml> = yaml::from_value(x.parameters)?;
-                match params {
-                    Some(p) => Ok(symbol::Symbol {
-                        identifier: x.identifier,
-                        definition: Box::new(entity::Entity::try_from(p)?),
-                        documentation: x.documentation,
-                    }),
-                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
-                }
+                let def: entity_yaml::EntityYaml = yaml::from_value(x.parameters)?;
+                Ok(symbol::Symbol {
+                    identifier: x.identifier,
+                    definition: Box::new(entity::Entity::try_from(def)?),
+                    documentation: x.documentation,
+                })
             }
             "adjunct" => {
-                let params: Option<adjunct_yaml::AdjunctYaml> = yaml::from_value(x.parameters)?;
-                match params {
-                    Some(p) => Ok(symbol::Symbol {
-                        identifier: x.identifier,
-                        definition: Box::new(adjunct::Adjunct::try_from(p)?),
-                        documentation: x.documentation,
-                    }),
-                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
-                }
+                let def: adjunct_yaml::AdjunctYaml = yaml::from_value(x.parameters)?;
+                Ok(symbol::Symbol {
+                    identifier: x.identifier,
+                    definition: Box::new(adjunct::Adjunct::try_from(def)?),
+                    documentation: x.documentation,
+                })
             }
             "value_object" => {
-                let params: Option<value_object_yaml::ValueObjectYaml> =
-                    yaml::from_value(x.parameters)?;
-                match params {
-                    Some(p) => Ok(symbol::Symbol {
-                        identifier: x.identifier,
-                        definition: Box::new(value_object::ValueObject::try_from(p)?),
-                        documentation: x.documentation,
-                    }),
-                    None => Err(yaml::Error::Msg("Missing definition".to_owned())),
-                }
+                let def: value_object_yaml::ValueObjectYaml = yaml::from_value(x.parameters)?;
+                Ok(symbol::Symbol {
+                    identifier: x.identifier,
+                    definition: Box::new(value_object::ValueObject::try_from(def)?),
+                    documentation: x.documentation,
+                })
             }
             _ => Err(yaml::Error::Msg(format!(
-                r#"Unrecognized symbol kind `{}`"#,
+                "Unrecognized symbol kind `{}`",
                 x.kind
             ))),
         }

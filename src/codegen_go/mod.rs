@@ -63,7 +63,7 @@ impl GoCodeGenerator {
     fn render_base_context(&self) -> BaseContext {
         BaseContext {
             mod_name: self.module_identifier.to_owned(),
-            azlib_prefix: self.azlib_prefix.to_owned(), //TODO: make this configurable
+            azlib_prefix: self.azlib_prefix.to_owned(),
             azcore_import: self.azcore_import.to_owned(),
             azcore_pkg: self.azcore_pkg.to_owned(),
         }
@@ -358,21 +358,28 @@ impl GoCodeGenerator {
 
         use data_type::DataType;
         let out_tpl_bytes: &[u8];
-        out_tpl_bytes = match vo.data_type {
-            DataType::Struct => include_bytes!("templates/value_object_struct.gtmpl"),
-            _ => {
-                let prim_type = match vo.data_type {
-                    DataType::Int8 => "int8".to_owned(),
-                    DataType::Int16 => "int16".to_owned(),
-                    DataType::Int32 => "int32".to_owned(),
-                    DataType::Int64 => "int64".to_owned(),
-                    DataType::String => "string".to_owned(),
-                    DataType::Struct => "struct".to_owned(),
-                };
-                tpl_ctx.primitive_type_name = prim_type;
-                include_bytes!("templates/value_object_alias.gtmpl")
-            }
-        };
+        if let Some(_vo_struct) = vo
+            .definition
+            .downcast_ref::<value_object::ValueObjectStruct>()
+        {
+            out_tpl_bytes = include_bytes!("templates/value_object_struct.gtmpl");
+        } else if let Some(vo_alias) = vo
+            .definition
+            .downcast_ref::<value_object::ValueObjectAlias>()
+        {
+            let prim_type = match vo_alias.data_type {
+                DataType::Int8 => "int8".to_owned(),
+                DataType::Int16 => "int16".to_owned(),
+                DataType::Int32 => "int32".to_owned(),
+                DataType::Int64 => "int64".to_owned(),
+                DataType::String => "string".to_owned(),
+                DataType::Bytes => "bytes".to_owned(),
+            };
+            tpl_ctx.primitive_type_name = prim_type;
+            out_tpl_bytes = include_bytes!("templates/value_object_alias.gtmpl")
+        } else {
+            out_tpl_bytes = "".as_bytes();
+        }
 
         let out_code = gtmpl::template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),

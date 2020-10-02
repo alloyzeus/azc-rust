@@ -13,6 +13,8 @@ pub struct AdjunctEntity {
 
 impl adjunct::AdjuctDefinition for AdjunctEntity {}
 
+//----
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum AdjunctEntityScope {
     Local,
@@ -36,6 +38,8 @@ impl convert::TryFrom<String> for AdjunctEntityScope {
         }
     }
 }
+
+//----
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntityId {
@@ -79,6 +83,8 @@ impl Clone for Box<dyn AdjunctEntityIdDefinition> {
         self.clone_box()
     }
 }
+
+//----
 
 #[derive(Clone, Debug)]
 pub enum AdjunctEntityOrdering {

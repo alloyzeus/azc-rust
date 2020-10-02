@@ -13,9 +13,6 @@ use crate::azml::{
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct EntityYaml {
-    #[serde(default)]
-    documentation: String,
-
     id: entity_id_yaml::EntityIdYaml,
 
     creation: EntityCreationYaml,
@@ -33,7 +30,6 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
 
     fn try_from(x: EntityYaml) -> Result<Self, Self::Error> {
         Ok(entity::Entity {
-            documentation: x.documentation,
             id: x.id.try_into()?,
             creation: x.creation.try_into()?,
             mixins: x

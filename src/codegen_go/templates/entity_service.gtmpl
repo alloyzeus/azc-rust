@@ -3,9 +3,9 @@
 type {{.service_name}} interface {
 	{{.base.azlib_prefix}}EntityService
 
-	Listen{{.type_name}}Events(
-		{{.type_name}}EventsListenInput,
-	) {{.type_name}}EventsListenOutput
+	Observe{{.type_name}}Events(
+		{{.type_name}}EventsObserveInput,
+	) {{.type_name}}EventsObserveOutput
 
 	Create{{.type_name}}(
 		{{.type_name}}CreateInput,
@@ -14,12 +14,19 @@ type {{.service_name}} interface {
 	// TODO: other stuff from the mixins
 }
 
-type {{.type_name}}EventsListenInput struct {}
+// {{.type_name}}EventsObserveInput is the input
+// type for Observe{{.type_name}}Events method in
+// {{.service_name}}.
+type {{.type_name}}EventsObserveInput struct {}
 
+// {{.type_name}}EventsObserveOutput is the output
+// type for Observe{{.type_name}}Events method in
+// {{.service_name}}.
+//
 //TODO: the output should contain a field which is an instance of Rx Observable.
 // See http://reactivex.io/documentation/contract.html and
 // https://pkg.go.dev/github.com/reactivex/rxgo/v2#Observable .
-type {{.type_name}}EventsListenOutput struct {}
+type {{.type_name}}EventsObserveOutput struct {}
 
 type {{.type_name}}CreateEvent struct {
 	//TODO: context?
