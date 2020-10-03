@@ -12,10 +12,9 @@ pub struct Adjunct {
 
     pub definition: Box<dyn AdjuctDefinition>,
 
-    // A flag to indicate that the symbol's name is bare. Code generators
-    // will prepend the name of the hosts into the name if the name is bare
-    // unless it's a global adjunct entity.
-    pub bare_name: bool,
+    // A flag to indicate the generators to not prepend host names for
+    // the resulting class/struct, model names.
+    pub prepared_name: bool,
 }
 
 impl symbol::SymbolDefinition for Adjunct {}

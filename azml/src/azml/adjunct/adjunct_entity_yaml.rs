@@ -27,6 +27,7 @@ impl From<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctEntityIdYaml {
+    #[serde(default)]
     unique: bool,
 }
 

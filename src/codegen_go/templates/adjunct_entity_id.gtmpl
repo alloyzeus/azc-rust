@@ -44,8 +44,8 @@ func (id {{.id_type_name}}) Equal(other interface{}) bool {
 	return id.Equals(other)
 }
 
-// Equals{{.id_type_name}} determines if the other instance is equal
-// to this instance.
+// Equals{{.id_type_name}} determines if the other instance
+// is equal to this instance.
 func (id {{.id_type_name}}) Equals{{.id_type_name}}(other {{.id_type_name}}) bool {
 	return id == other
 }

@@ -108,6 +108,25 @@ symbols:
               min: 0
               max: 4
 
+  - identifier: ApplicationAccessKey
+    kind: adjunct
+    parameters:
+      prepared_name: true
+      hosts:
+        - name: Application
+      arity:
+        min: 0
+        max: 4
+      kind: entity
+      parameters:
+        id:
+          kind: integer
+          parameters:
+            space: 24
+        attributes:
+          - identifier: Secret
+            kind: ApplicationAccessKeySecret
+
   - identifier: Terminal
     documentation: |
       A Terminal is an authorized instance of application. As long the the
@@ -184,10 +203,11 @@ symbols:
         min: 0
         max: -1
       parameters:
+        # a flag to indicate that a session is scoped within its host entities.
+        # An instance of local adjunct entity might have a same id with other
+        # instance under different hosts.
         scope: local
         id:
-          # a flag to indicate that a session ID is globally unique regardless host entities' scope.
-          # cannot be combined with ordered adjuncts.
           unique: true 
         service:
           enabled: true

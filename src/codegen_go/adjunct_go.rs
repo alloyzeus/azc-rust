@@ -54,7 +54,7 @@ impl GoCodeGenerator {
         // by default.
         // And also, the RefKey is just a typedef of ID.
         let global_scope = adjunct_entity::AdjunctEntityScope::Global == adj_ent.scope;
-        let base_type_name = if adj.bare_name || global_scope {
+        let base_type_name = if adj.prepared_name || global_scope {
             "".to_owned()
         } else {
             hosts_names.join("")
@@ -135,7 +135,7 @@ impl GoCodeGenerator {
             .into_iter()
             .map(|x| x.name.to_owned())
             .collect::<Vec<String>>();
-        let base_type_name = if adj.bare_name {
+        let base_type_name = if adj.prepared_name {
             "".to_owned()
         } else {
             hosts_names.join("")
