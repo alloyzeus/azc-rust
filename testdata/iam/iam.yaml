@@ -11,10 +11,10 @@ symbols:
       lifecycle:
         creation:
       id:
-        # Options: integer(space), uuid(version), string
+        # Options: integer(bits), uuid(version), string
         kind: integer
         parameters:
-          space: 48
+          bits: 48
         generator:
           # Other options: ShardedRandomIntegerGenerator
           # The option for generator is defined by the registered generators
@@ -79,7 +79,7 @@ symbols:
       id:
         kind: integer
         parameters:
-          space: 24
+          bits: 24
       creation:
         allow_inter_process: true
       mixins:
@@ -122,7 +122,7 @@ symbols:
         id:
           kind: integer
           parameters:
-            space: 24
+            bits: 48
         attributes:
           - identifier: Secret
             kind: ApplicationAccessKeySecret
@@ -159,7 +159,9 @@ symbols:
         ref_key:
           prefix: "T0:"
         id:
-          unique: true
+          kind: integer
+          parameters:
+            bits: 48
         mixins:
           - kind: Deletion
             parameters:
@@ -208,7 +210,9 @@ symbols:
         # instance under different hosts.
         scope: local
         id:
-          unique: true 
+          kind: integer
+          parameters:
+            bits: 24
         service:
           enabled: true
           description: |
@@ -256,7 +260,7 @@ symbols:
       id:
         kind: integer
         parameters:
-          space: 48
+          bits: 48
           encodings:
             text:
               prefix: ""
@@ -336,6 +340,15 @@ symbols:
                   }
                 }
               }
+
+  - identifier: ApplicationAccessKeySecret
+    documentation: |
+      ApplicationAccessKeySecret encapsulates application access key secret.
+    kind: value_object
+    parameters:
+      kind: alias
+      parameters:
+        data_type: string
 
   - identifier: PhoneNumberVerificationCode
     documentation: |

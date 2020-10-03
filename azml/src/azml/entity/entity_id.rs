@@ -5,6 +5,8 @@ pub struct EntityId {
     pub definition: Box<dyn EntityIdDefinition>,
 }
 
+//----
+
 pub trait EntityIdDefinition: mopa::Any + EntityIdDefinitionClone + std::fmt::Debug {}
 
 mopafy!(EntityIdDefinition);

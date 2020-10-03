@@ -20,7 +20,7 @@ pub struct EntityIdInteger {
     //
     // * For example, 0 in the context of user ID could be used to indicate
     //   nobody.
-    pub space: i8,
+    pub bits: i8,
 }
 
 impl entity_id::EntityIdDefinition for EntityIdInteger {}

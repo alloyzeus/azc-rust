@@ -44,7 +44,7 @@ impl GoCodeGenerator {
         }
     }
 
-    fn id_size_from_space(id_space: i8) -> i8 {
+    fn int_id_size_from_bits(id_space: i8) -> i8 {
         match id_space {
             d if d < 16 => 16,
             d if d < 32 => 32,

@@ -61,65 +61,74 @@ impl GoCodeGenerator {
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
-        let id_type_name = format!("{}ID", type_name);
-        let id_type_primitive = format!("int{}", 64); //TODO: de-hardcode
-        let ref_key_type_name = format!("{}RefKey", type_name);
-        let attrs_type_name = format!("{}Attributes", type_name);
-        let service_name = format!("{}Service", type_name);
-        let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
+        let id_def = &adj_ent.id.definition;
 
-        let tpl_ctx = AdjunctEntityContext {
-            base: self.render_base_context(),
-            pkg_name: module_name.to_lowercase(),
-            pkg_path: pkg_path.to_owned(),
-            type_name: type_name.to_owned(),
-            id_type_name: id_type_name.to_owned(),
-            id_type_primitive: id_type_primitive.to_owned(),
-            ref_key_type_name: ref_key_type_name.to_owned(),
-            attributes_type_name: attrs_type_name.to_owned(),
-            service_name: service_name.to_owned(),
-            hosts: hosts_names.clone(),
-            global_scope: global_scope,
-        };
+        if let Some(id_int) = id_def.downcast_ref::<adjunct_entity::AdjunctEntityIdInteger>() {
+            let id_type_name = format!("{}ID", type_name);
+            let id_type_primitive = format!("int{}", id_int.bits);
+            let ref_key_type_name = format!("{}RefKey", type_name);
+            let attrs_type_name = format!("{}Attributes", type_name);
+            let service_name = format!("{}Service", type_name);
+            let type_doc_lines: Vec<String> =
+                sym.documentation.lines().map(|x| x.to_owned()).collect();
 
-        let header_tpl_bytes = include_bytes!("templates/adjunct_entity__header.gtmpl");
-        let header_code = render_template(
-            String::from_utf8_lossy(header_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
+            let tpl_ctx = AdjunctEntityContext {
+                base: self.render_base_context(),
+                pkg_name: module_name.to_lowercase(),
+                pkg_path: pkg_path.to_owned(),
+                type_name: type_name.to_owned(),
+                id_type_name: id_type_name.to_owned(),
+                id_type_primitive: id_type_primitive.to_owned(),
+                ref_key_type_name: ref_key_type_name.to_owned(),
+                attributes_type_name: attrs_type_name.to_owned(),
+                service_name: service_name.to_owned(),
+                hosts: hosts_names.clone(),
+                global_scope: global_scope,
+            };
 
-        let mut out_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
-        out_file.write_all(header_code.as_bytes())?;
-        out_file.write_all(
-            format!(
-                "\n// Adjunct-entity {} of {}.\n",
-                type_name,
-                hosts_names.join(", ")
-            )
-            .as_bytes(),
-        )?;
-        if !type_doc_lines.is_empty() {
-            out_file.write_all("//\n".as_bytes())?;
-            for x in type_doc_lines {
-                out_file.write_all("// ".as_bytes())?;
-                out_file.write_all(x.as_bytes())?;
-                out_file.write_all("\n".as_bytes())?;
+            let header_tpl_bytes = include_bytes!("templates/adjunct_entity__header.gtmpl");
+            let header_code = render_template(
+                String::from_utf8_lossy(header_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
+
+            let mut out_file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+            out_file.write_all(header_code.as_bytes())?;
+            out_file.write_all(
+                format!(
+                    "\n// Adjunct-entity {} of {}.\n",
+                    type_name,
+                    hosts_names.join(", ")
+                )
+                .as_bytes(),
+            )?;
+            if !type_doc_lines.is_empty() {
+                out_file.write_all("//\n".as_bytes())?;
+                for x in type_doc_lines {
+                    out_file.write_all("// ".as_bytes())?;
+                    out_file.write_all(x.as_bytes())?;
+                    out_file.write_all("\n".as_bytes())?;
+                }
             }
-        }
-        render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
-        render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
-        //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
-        render_file_append!(
-            out_file,
-            "templates/adjunct_entity_attributes.gtmpl",
-            tpl_ctx
-        );
-        render_file_append!(out_file, "templates/adjunct_entity_service.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
+            //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
+            render_file_append!(
+                out_file,
+                "templates/adjunct_entity_attributes.gtmpl",
+                tpl_ctx
+            );
+            render_file_append!(out_file, "templates/adjunct_entity_service.gtmpl", tpl_ctx);
 
-        Ok(())
+            Ok(())
+        } else {
+            Err(Box::new(azml::azml::Error::Msg(
+                "Unsupported ID type".to_owned(),
+            )))
+        }
     }
 
     pub fn generate_adjunct_value_object_codes(

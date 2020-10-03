@@ -24,7 +24,7 @@ impl GoCodeGenerator {
         let id_def = &ent.id.definition;
 
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
-            let id_size = Self::id_size_from_space(id_int.space);
+            let id_size = Self::int_id_size_from_bits(id_int.bits);
 
             let id_type_name = format!("{}ID", type_name);
             let id_type_primitive = format!("int{}", id_size);
@@ -105,9 +105,13 @@ impl GoCodeGenerator {
                 tpl_ctx,
                 ""
             );
-        }
 
-        Ok(())
+            Ok(())
+        } else {
+            Err(Box::new(azml::azml::Error::Msg(
+                "Unsupported ID type".to_owned(),
+            )))
+        }
     }
 }
 

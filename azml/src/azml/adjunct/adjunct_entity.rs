@@ -15,6 +15,16 @@ impl adjunct::AdjuctDefinition for AdjunctEntity {}
 
 //----
 
+// This is used to determine whether an instance can be addressed directly
+// or that it requires going through its hosts.
+//
+// Some example of adjuncts with global scope are shop items
+// in a marketplace. Some marketplace systems provide URLs which refer
+// to the items directly without giving information which store these
+// items belong to. It shows, e.g., https://example.com/items/12345678
+// instead of https://example.com/stores/345/items/12345678
+//
+// The Global scope requires the ordering to be Unordered.
 #[derive(Clone, PartialEq, Debug)]
 pub enum AdjunctEntityScope {
     Local,
@@ -43,20 +53,10 @@ impl convert::TryFrom<String> for AdjunctEntityScope {
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntityId {
-    // A flag to indicate that an ID is globally-unique; a more accurate term
-    // would be system-wide-unique. A globally-unique
-    // means that an instance of adjunct can be addressed directly while
-    // being an adjunct.
-    //
-    // Some example of adjuncts with globally-unique IDs are shop items
-    // in a marketplace. Some marketplace system provides URLs which refer
-    // to the items directly without giving information which store these
-    // items belong to. It shows, e.g., https://example.com/items/12345678
-    // instead of https://example.com/stores/345/items/12345678
-    //
-    // Enabling this flag requires the ordering to be Unordered.
-    pub unique: bool,
+    pub definition: Box<dyn AdjunctEntityIdDefinition>,
 }
+
+//----
 
 pub trait AdjunctEntityIdDefinition:
     mopa::Any + AdjunctEntityIdDefinitionClone + std::fmt::Debug
@@ -83,6 +83,20 @@ impl Clone for Box<dyn AdjunctEntityIdDefinition> {
         self.clone_box()
     }
 }
+
+//----
+
+#[derive(Clone, Debug)]
+pub struct AdjunctEntityIdInteger {
+    // See EntityIdInteger for information
+    pub bits: i8,
+}
+
+impl AdjunctEntityIdDefinition for AdjunctEntityIdInteger {}
+
+pub trait AdjunctEntityIdIntegerEncoding: mopa::Any + std::fmt::Debug {}
+
+mopafy!(AdjunctEntityIdIntegerEncoding);
 
 //----
 

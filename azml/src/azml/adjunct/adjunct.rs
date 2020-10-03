@@ -12,8 +12,10 @@ pub struct Adjunct {
 
     pub definition: Box<dyn AdjuctDefinition>,
 
-    // A flag to indicate the generators to not prepend host names for
-    // the resulting class/struct, model names.
+    // Indicates that the symbol name is already prepared. If this is set
+    // to false, then the symbol name is assumed non-prepared and the compiler
+    // will prepend the names of the hosts to be used as class/struct, model
+    // names in the resulting codes.
     pub prepared_name: bool,
 }
 

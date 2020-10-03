@@ -4,6 +4,8 @@ use std::convert::{self, TryInto};
 
 use crate::azml::{adjunct::adjunct_entity, yaml};
 
+//----
+
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctEntityYaml {
     #[serde(default)]
@@ -25,16 +27,50 @@ impl From<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
     }
 }
 
+//----
+
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctEntityIdYaml {
-    #[serde(default)]
-    unique: bool,
+    pub kind: String,
+    pub parameters: yaml::Value,
 }
 
 impl convert::TryFrom<AdjunctEntityIdYaml> for adjunct_entity::AdjunctEntityId {
     type Error = yaml::Error;
 
     fn try_from(x: AdjunctEntityIdYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_entity::AdjunctEntityId { unique: x.unique })
+        if x.parameters.is_null() {
+            Err(yaml::Error::Msg("Missing definition parameters".to_owned()))
+        } else {
+            match x.kind.as_str() {
+                "integer" => {
+                    let def: AdjunctEntityIdIntegerYaml = yaml::from_value(x.parameters)?;
+                    Ok(adjunct_entity::AdjunctEntityId {
+                        definition: Box::new(adjunct_entity::AdjunctEntityIdInteger::try_from(
+                            def,
+                        )?),
+                    })
+                }
+                _ => Err(yaml::Error::Msg(format!(
+                    "Unrecognized entity ID kind `{}`",
+                    x.kind
+                ))),
+            }
+        }
+    }
+}
+
+//----
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct AdjunctEntityIdIntegerYaml {
+    bits: i8,
+}
+
+impl convert::TryFrom<AdjunctEntityIdIntegerYaml> for adjunct_entity::AdjunctEntityIdInteger {
+    type Error = yaml::Error;
+
+    fn try_from(x: AdjunctEntityIdIntegerYaml) -> Result<Self, Self::Error> {
+        Ok(adjunct_entity::AdjunctEntityIdInteger { bits: x.bits })
     }
 }
