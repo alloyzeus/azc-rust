@@ -56,7 +56,6 @@ func (attrs {{.attributes_type_name}}) Equals(
 func (attrs *{{.attributes_type_name}}) Equals{{.attributes_type_name}}Ptr(
 	other *{{.attributes_type_name}},
 ) bool {
-	return attrs == other || (
-		other != nil {{- range .attributes}} &&
-		attrs.{{unexported_field .identifier}}.Equals{{.type_name}}(other.{{unexported_field .identifier}}){{end}})
+	return attrs == other || (other != nil {{- range .attributes}} &&
+		attrs.{{unexported_field .identifier}}.Equals{{sym_name .type_name}}(other.{{unexported_field .identifier}}){{end}})
 }

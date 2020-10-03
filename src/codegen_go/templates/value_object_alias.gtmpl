@@ -1,6 +1,10 @@
 package {{.pkg_name}}
 
 import (
+	{{if eq .primitive_type_name "[]byte" -}}
+	"bytes"
+
+	{{end -}}
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
@@ -11,20 +15,39 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 {{end -}}
 type {{.type_name}} {{.primitive_type_name}}
 
-var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}(0)
+var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}({{.primitive_zero_value}})
 
 // Equals is required by {{.base.azcore_pkg}}.ValueObject.
-func (code {{.type_name}}) Equals(other interface{}) bool {
+func (vo {{.type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.type_name}}); ok {
-		return x == code
+		{{if eq .primitive_type_name "[]byte" -}}
+		return bytes.Equal(vo, x)
+		{{- else -}}
+		return vo == x
+		{{- end}}
 	}
 	if x, _ := other.(*{{.type_name}}); x != nil {
-		return *x == code
+		{{if eq .primitive_type_name "[]byte" -}}
+		return bytes.Equal(vo, *x)
+		{{- else -}}
+		return vo == *x
+		{{- end}}
 	}
 	return false
 }
 
 // Equal is required by {{.base.azcore_pkg}}.ValueObject.
-func (code {{.type_name}}) Equal(other interface{}) bool {
-	return code.Equals(other)
+func (vo {{.type_name}}) Equal(other interface{}) bool {
+	return vo.Equals(other)
+}
+
+// Equals{{.type_name}} returns true if the other value is equal to this instance.
+func (vo {{.type_name}}) Equals{{.type_name}}(
+	other {{.type_name}},
+) bool {
+	{{if eq .primitive_type_name "[]byte" -}}
+	return bytes.Equal(vo, other)
+	{{- else -}}
+	return vo == other
+	{{- end}}
 }
