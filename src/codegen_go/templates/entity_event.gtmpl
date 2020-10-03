@@ -1,7 +1,7 @@
-// {{.type_name}}Event provides a contract
+// {{.event_interface_name}} provides a contract
 // for all {{.type_name}}-related events.
-type {{.type_name}}Event interface {
+type {{.event_interface_name}} interface {
 	{{.base.azcore_pkg}}.EntityEvent
 
-	{{.type_name}}Event() {{.type_name}}Event
+	{{.event_interface_name}}() {{.event_interface_name}}
 }

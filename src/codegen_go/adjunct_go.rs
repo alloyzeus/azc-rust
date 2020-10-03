@@ -88,75 +88,36 @@ impl GoCodeGenerator {
             tpl_ctx.to_owned(),
         )?;
 
-        if self.file_per_struct {
-            // ID
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                id_type_name,
-                "templates/adjunct_entity_id.gtmpl",
-                tpl_ctx,
-                header_code
-            );
-
-            // RefKey
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                ref_key_type_name,
-                "templates/adjunct_entity_ref_key.gtmpl",
-                tpl_ctx,
-                header_code
-            );
-
-            // Attributes
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                attrs_type_name,
-                "templates/adjunct_entity_attributes.gtmpl",
-                tpl_ctx,
-                header_code
-            );
-
-            // Service
-            render_file!(
-                format!("{}/{}", base_dir, module_name,),
-                service_name,
-                "templates/adjunct_entity_service.gtmpl",
-                tpl_ctx,
-                header_code
-            );
-        } else {
-            let mut out_file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
-
-            out_file.write_all(header_code.as_bytes())?;
-            out_file.write_all(
-                format!(
-                    "\n// Adjunct-entity {} of {}.\n",
-                    type_name,
-                    hosts_names.join(", ")
-                )
-                .as_bytes(),
-            )?;
-            if !type_doc_lines.is_empty() {
-                out_file.write_all("//\n".as_bytes())?;
-                for x in type_doc_lines {
-                    out_file.write_all("// ".as_bytes())?;
-                    out_file.write_all(x.as_bytes())?;
-                    out_file.write_all("\n".as_bytes())?;
-                }
+        let mut out_file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+        out_file.write_all(header_code.as_bytes())?;
+        out_file.write_all(
+            format!(
+                "\n// Adjunct-entity {} of {}.\n",
+                type_name,
+                hosts_names.join(", ")
+            )
+            .as_bytes(),
+        )?;
+        if !type_doc_lines.is_empty() {
+            out_file.write_all("//\n".as_bytes())?;
+            for x in type_doc_lines {
+                out_file.write_all("// ".as_bytes())?;
+                out_file.write_all(x.as_bytes())?;
+                out_file.write_all("\n".as_bytes())?;
             }
-            render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
-            //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
-            render_file_append!(
-                out_file,
-                "templates/adjunct_entity_attributes.gtmpl",
-                tpl_ctx
-            );
-            render_file_append!(out_file, "templates/adjunct_entity_service.gtmpl", tpl_ctx);
         }
+        render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
+        render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
+        //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
+        render_file_append!(
+            out_file,
+            "templates/adjunct_entity_attributes.gtmpl",
+            tpl_ctx
+        );
+        render_file_append!(out_file, "templates/adjunct_entity_service.gtmpl", tpl_ctx);
 
         Ok(())
     }

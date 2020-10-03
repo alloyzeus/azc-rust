@@ -41,7 +41,8 @@ func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	return false
 }
 
-// Equals{{.ref_key_type_name}} returs true if the other value has the same attributes as refKey.
+// Equals{{.ref_key_type_name}} returs true
+// if the other value has the same attributes as refKey.
 func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {

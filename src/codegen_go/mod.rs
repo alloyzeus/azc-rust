@@ -19,6 +19,8 @@ pub struct GoCodeGenerator {
     pub base_dir: String,
     // Go module identifier. This is the one defined in the go.mod file.
     pub module_identifier: String,
+
+    // A flag to render every struct on its own file. Currently unused.
     pub file_per_struct: bool,
 
     pub azlib_prefix: String,

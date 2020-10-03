@@ -53,6 +53,7 @@ impl GoCodeGenerator {
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
+                event_interface_name: event_interface_name.to_owned(),
                 service_name: service_name.to_owned(),
             };
 
@@ -66,74 +67,26 @@ impl GoCodeGenerator {
                 println!("TODO: attributes for entity {}", type_name);
             }
 
-            if self.file_per_struct {
-                // ID
-                render_file!(
-                    format!("{}/{}", base_dir, module_name,),
-                    id_type_name,
-                    "templates/entity_id.gtmpl",
-                    tpl_ctx,
-                    header_code
-                );
-
-                // RefKey
-                render_file!(
-                    format!("{}/{}", base_dir, module_name,),
-                    ref_key_type_name,
-                    "templates/entity_ref_key.gtmpl",
-                    tpl_ctx,
-                    header_code
-                );
-
-                // Event interface
-                render_file!(
-                    format!("{}/{}", base_dir, module_name,),
-                    event_interface_name,
-                    "templates/entity_event.gtmpl",
-                    tpl_ctx,
-                    header_code
-                );
-
-                // Service
-                render_file!(
-                    format!("{}/{}", base_dir, module_name,),
-                    service_name,
-                    "templates/entity_service.gtmpl",
-                    tpl_ctx,
-                    header_code
-                );
-
-                // Service shared implementation
-                render_file!(
-                    format!("{}/{}", base_dir, module_name,),
-                    format!("{}Base", service_name),
-                    "templates/entity_service_base.gtmpl",
-                    tpl_ctx,
-                    header_code
-                );
-            } else {
-                let mut out_file = fs::OpenOptions::new()
-                    .write(true)
-                    .create_new(true)
-                    .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
-
-                out_file.write_all(header_code.as_bytes())?;
-                out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
-                if !type_doc_lines.is_empty() {
-                    out_file.write_all("//\n".as_bytes())?;
-                    for x in type_doc_lines {
-                        out_file.write_all("// ".as_bytes())?;
-                        out_file.write_all(x.as_bytes())?;
-                        out_file.write_all("\n".as_bytes())?;
-                    }
+            let mut out_file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+            out_file.write_all(header_code.as_bytes())?;
+            out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
+            if !type_doc_lines.is_empty() {
+                out_file.write_all("//\n".as_bytes())?;
+                for x in type_doc_lines {
+                    out_file.write_all("// ".as_bytes())?;
+                    out_file.write_all(x.as_bytes())?;
+                    out_file.write_all("\n".as_bytes())?;
                 }
-                render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
-                render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
-                render_file_append!(out_file, "templates/entity_attributes.gtmpl", tpl_ctx);
-                render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
-                render_file_append!(out_file, "templates/entity_service.gtmpl", tpl_ctx);
-                render_file_append!(out_file, "templates/entity_service_base.gtmpl", tpl_ctx);
             }
+            render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/entity_attributes.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/entity_service.gtmpl", tpl_ctx);
+            render_file_append!(out_file, "templates/entity_service_base.gtmpl", tpl_ctx);
 
             // ServiceClient
             render_file!(
@@ -170,6 +123,7 @@ struct EntityContext {
     ref_key_type_name: String,
     attributes_type_name: String,
     attributes: Vec<EntityAttributeContext>,
+    event_interface_name: String,
     service_name: String,
 }
 
