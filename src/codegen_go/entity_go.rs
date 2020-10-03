@@ -9,6 +9,8 @@ use azml::azml::{
     symbol,
 };
 
+use crate::codegen_go::template::render_template;
+
 impl GoCodeGenerator {
     pub fn generate_entity_codes(
         &self,
@@ -27,10 +29,18 @@ impl GoCodeGenerator {
             let id_type_name = format!("{}ID", type_name);
             let id_type_primitive = format!("int{}", id_size);
             let ref_key_type_name = format!("{}RefKey", type_name);
+            let attrs_type_name = format!("{}Attributes", type_name);
             let event_interface_name = format!("{}Event", type_name);
             let service_name = format!("{}Service", type_name);
             let type_doc_lines: Vec<String> =
                 symbol.documentation.lines().map(|x| x.to_owned()).collect();
+            let attributes: Vec<EntityAttributeContext> = (&ent.attributes)
+                .into_iter()
+                .map(|x| EntityAttributeContext {
+                    identifier: x.identifier.to_owned(),
+                    type_name: x.kind.to_owned(),
+                })
+                .collect();
 
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
@@ -41,11 +51,13 @@ impl GoCodeGenerator {
                 id_type_name: id_type_name.to_owned(),
                 id_type_primitive: id_type_primitive.to_owned(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
+                attributes_type_name: attrs_type_name.to_owned(),
+                attributes: attributes,
                 service_name: service_name.to_owned(),
             };
 
             let header_tpl_bytes = include_bytes!("templates/entity__header.gtmpl");
-            let header_code = gtmpl::template(
+            let header_code = render_template(
                 String::from_utf8_lossy(header_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
             )?;
@@ -117,6 +129,7 @@ impl GoCodeGenerator {
                 }
                 render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
+                render_file_append!(out_file, "templates/entity_attributes.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_service.gtmpl", tpl_ctx);
                 render_file_append!(out_file, "templates/entity_service_base.gtmpl", tpl_ctx);
@@ -155,5 +168,13 @@ struct EntityContext {
     id_type_name: String,
     id_type_primitive: String,
     ref_key_type_name: String,
+    attributes_type_name: String,
+    attributes: Vec<EntityAttributeContext>,
     service_name: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityAttributeContext {
+    identifier: String,
+    type_name: String,
 }

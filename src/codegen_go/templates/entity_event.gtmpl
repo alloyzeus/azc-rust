@@ -1,6 +1,7 @@
-// {{.type_name}}Event provides a contract for all {{.type_name}} events.
+// {{.type_name}}Event provides a contract
+// for all {{.type_name}}-related events.
 type {{.type_name}}Event interface {
-    {{.base.azcore_pkg}}.EntityEvent
+	{{.base.azcore_pkg}}.EntityEvent
 
 	{{.type_name}}Event() {{.type_name}}Event
 }

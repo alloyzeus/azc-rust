@@ -11,6 +11,11 @@ pub struct Adjunct {
     pub arity: arity::ArityConstraint,
 
     pub definition: Box<dyn AdjuctDefinition>,
+
+    // A flag to indicate that the symbol's name is bare. Code generators
+    // will prepend the name of the hosts into the name if the name is bare
+    // unless it's a global adjunct entity.
+    pub bare_name: bool,
 }
 
 impl symbol::SymbolDefinition for Adjunct {}

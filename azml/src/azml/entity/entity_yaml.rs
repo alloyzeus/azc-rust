@@ -1,9 +1,6 @@
 //
 
-use std::{
-    collections::HashMap,
-    convert::{self, TryInto},
-};
+use std::convert::{self, TryInto};
 
 use crate::azml::{
     attribute, attribute_yaml,
@@ -22,7 +19,7 @@ pub struct EntityYaml {
     service: Option<EntityServiceYaml>,
 
     #[serde(default)]
-    attributes: HashMap<String, attribute_yaml::AttributeYaml>,
+    attributes: Vec<attribute_yaml::AttributeYaml>,
 }
 
 impl convert::TryFrom<EntityYaml> for entity::Entity {
@@ -45,8 +42,8 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
             attributes: x
                 .attributes
                 .iter()
-                .map(|(k, v)| (k.to_owned(), attribute::Attribute::try_from(v).unwrap()))
-                .collect::<HashMap<String, attribute::Attribute>>(),
+                .map(|x| attribute::Attribute::try_from(x).unwrap())
+                .collect(),
         })
     }
 }
@@ -55,6 +52,8 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
 struct EntityCreationYaml {
     #[serde(default)]
     documentation: String,
+
+    allow_inter_process: bool,
 }
 
 impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
@@ -63,6 +62,7 @@ impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
     fn try_from(x: EntityCreationYaml) -> Result<Self, Self::Error> {
         Ok(entity::EntityCreation {
             documentation: x.documentation,
+            allow_inter_process: x.allow_inter_process,
         })
     }
 }

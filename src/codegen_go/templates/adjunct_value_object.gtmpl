@@ -6,3 +6,7 @@ import (
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
+
+{{range .type_doc_lines}}// {{.}}
+{{end -}}
+type {{.type_name}} struct{}

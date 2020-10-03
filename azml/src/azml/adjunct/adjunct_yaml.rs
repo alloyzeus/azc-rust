@@ -34,6 +34,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
                     definition: Box::new(adjunct_entity::AdjunctEntity::from(def)),
+                    bare_name: false,
                 })
             }
             "value-object" => {
@@ -45,6 +46,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
                         def.try_into()?,
                     )),
+                    bare_name: false,
                 })
             }
             _ => Err(yaml::Error::Msg(format!(

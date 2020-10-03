@@ -4,18 +4,14 @@ use std::{error, fs, io::Write};
 
 use crate::codegen;
 
-use azml::azml::{
-    adjunct::{adjunct, adjunct_entity, adjunct_value_object},
-    entity::entity,
-    module,
-    value_object::value_object,
-};
+use azml::azml::{adjunct::adjunct, entity::entity, module, value_object::value_object};
 
 #[macro_use]
 mod render_macros;
 
 mod adjunct_go;
 mod entity_go;
+mod template;
 mod value_object_go;
 
 pub struct GoCodeGenerator {
@@ -42,6 +38,7 @@ impl GoCodeGenerator {
             azlib_prefix: self.azlib_prefix.to_owned(),
             azcore_import: self.azcore_import.to_owned(),
             azcore_pkg: self.azcore_pkg.to_owned(),
+            azcore_version: "AZCorePackageIsVersion1".to_owned(),
         }
     }
 
@@ -87,20 +84,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 continue;
             }
             if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
-                if let Some(adj_ent) = adj
-                    .definition
-                    .downcast_ref::<adjunct_entity::AdjunctEntity>()
-                {
-                    self.generate_adjunct_entity_codes(module_name, adj_ent, &symbol, &adj.hosts)?;
-                    continue;
-                }
-                if let Some(adj_vo) = adj
-                    .definition
-                    .downcast_ref::<adjunct_value_object::AdjunctValueObject>()
-                {
-                    println!("TODO: Value-object entity adjunct {:?}", adj_vo);
-                    continue;
-                }
+                self.generate_adjunct_codes(module_name, adj, &symbol)?;
                 continue;
             }
             if let Some(vo) = params.downcast_ref::<value_object::ValueObject>() {
@@ -118,6 +102,7 @@ struct BaseContext {
     azlib_prefix: String,
     azcore_import: String,
     azcore_pkg: String,
+    azcore_version: String,
 }
 
 #[derive(Clone, Gtmpl)]

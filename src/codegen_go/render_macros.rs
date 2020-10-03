@@ -5,7 +5,7 @@ macro_rules! render_file {
     ($target_dir: expr, $file_name_name: expr, $template_name: expr, $tpl_ctx: expr, $rendered_header: expr) => {
         fs::create_dir_all($target_dir)?;
         let out_tpl_bytes = include_bytes!($template_name);
-        let out_code = gtmpl::template(
+        let out_code = render_template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             $tpl_ctx.to_owned(),
         )?;
@@ -23,7 +23,7 @@ macro_rules! render_file {
 macro_rules! render_file_append {
     ($out_file: expr, $template_name: expr, $tpl_ctx: expr) => {
         let out_tpl_bytes = include_bytes!($template_name);
-        let out_code = gtmpl::template(
+        let out_code = render_template(
             String::from_utf8_lossy(out_tpl_bytes).as_ref(),
             $tpl_ctx.to_owned(),
         )?;

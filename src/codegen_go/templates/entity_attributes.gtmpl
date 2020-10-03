@@ -1,0 +1,42 @@
+// {{.attributes_type_name}} is a value-object which contains
+// entity's built-in attributes.
+type {{.attributes_type_name}} struct {
+	{{.base.azlib_prefix}}EntityAttributesBase
+	{{range .attributes}}
+	{{unexported_field .identifier}} {{.type_name}}
+	{{- end}}
+}
+
+// New{{.attributes_type_name}} returns a new instance
+// of {{.attributes_type_name}} with the provided attribute values.
+func New{{.attributes_type_name}}(
+	{{- range .attributes}}
+	{{arg_name .identifier}} {{.type_name}},{{end}}
+) {{.attributes_type_name}} {
+	return {{.attributes_type_name}}{
+		{{- range .attributes}}
+		{{unexported_field .identifier}}: {{arg_name .identifier}},{{end}}
+	}
+}
+
+{{- range .attributes}}
+
+// {{.identifier}} returns instance's {{.identifier}} value.
+func (attrs {{$.attributes_type_name}}) {{.identifier}}() {{.type_name}} {
+	return attrs.{{unexported_field .identifier}}
+}
+
+// With{{.identifier}} returns a copy
+// of {{$.attributes_type_name}}
+// with its {{unexported_field .identifier}} attribute set to the provided value.
+func (attrs {{$.attributes_type_name}}) With{{.identifier}}(
+	{{arg_name .identifier}} {{.type_name}},
+) {{$.attributes_type_name}} {
+	{{- $p := .identifier}}
+	return {{$.attributes_type_name}}{
+		{{- range $.attributes}}{{if eq .identifier $p}}
+		{{unexported_field .identifier}}: {{arg_name .identifier}},{{else}}
+		{{unexported_field .identifier}}: attrs.{{unexported_field .identifier}},{{end}}{{- end}}
+	}
+}
+{{- end}}

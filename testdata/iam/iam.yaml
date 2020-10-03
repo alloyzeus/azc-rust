@@ -34,6 +34,7 @@ symbols:
       # Declares the creation rules. This defines how and who can create
       # an instance.
       creation:
+        allow_inter_process: false
         # The authorization definition for the creation method.
         access:
           # Here, we allow creation from the same service process
@@ -80,7 +81,7 @@ symbols:
         parameters:
           space: 24
       creation:
-        documentation: ""
+        allow_inter_process: true
       mixins:
         - kind: Ownership
           parameters:
@@ -94,7 +95,7 @@ symbols:
                 min: 1
                 max: 4
       attributes:
-        access_keys:
+        - identifier: AccessKeys
           # A set of AccessKey with uniqueness is defined by the field id
           # by default, we use object's defined key, or we will use the
           # equality trait (value objects are required to provide equality
@@ -154,6 +155,7 @@ symbols:
             # other methods of authentication.
             kind: ref
         creation:
+          allow_inter_process: false
           authorization:
             - kind: intraprocess
               allow: always
@@ -251,7 +253,22 @@ symbols:
                 unit: minute
       # Creation is a special service method.
       creation:
+        # Master flag. Only if the value is true, each of creation methods
+        # could set its own flag.
+        #
+        # By default, this flag is set to false.
+        #
+        # If the value is false, we won't allow any creation through
+        # other application, including the same kind of application on
+        # different process/machine; the creation can only be performed by other
+        # part of the same application. It means that the entity was
+        # designed as by-product of other entity's method, i.e., non-direct
+        # creation.
+        #
+        # If the value is true, we want to allow the creation to be initiated
+        # directly by other applications.
         allow_inter_process: true
+        allow_cross_domain: true
         authorization:
           - kind: Application
             allow: on-condition
@@ -263,13 +280,14 @@ symbols:
           - all
         methods:
           create:
+            allow_inter_process: true
             input_parameters:
               Self.phone_number:
       attributes:
-        phone_number:
+        - identifier: PhoneNumber
           kind: telephony.PhoneNumber
           final: true
-        verification_code:
+        - identifier: VerificationCode
           kind: PhoneNumberVerificationCode
           final: true
       service:
