@@ -40,3 +40,23 @@ func (attrs {{$.attributes_type_name}}) With{{.identifier}}(
 	}
 }
 {{- end}}
+
+func (attrs {{.attributes_type_name}}) Equals(
+	other interface{},
+) bool {
+	if x, ok := other.({{.attributes_type_name}}); ok {
+		return attrs.Equals{{.attributes_type_name}}Ptr(&x)
+	}
+	if x, _ := other.(*{{.attributes_type_name}}); x != nil {
+		return attrs.Equals{{.attributes_type_name}}Ptr(x)
+	}
+	return false
+}
+
+func (attrs *{{.attributes_type_name}}) Equals{{.attributes_type_name}}Ptr(
+	other *{{.attributes_type_name}},
+) bool {
+	return attrs == other || (
+		other != nil {{- range .attributes}} &&
+		attrs.{{unexported_field .identifier}}.Equals{{.type_name}}(other.{{unexported_field .identifier}}){{end}})
+}

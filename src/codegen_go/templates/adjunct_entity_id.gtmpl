@@ -20,9 +20,13 @@ func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
 	return {{.id_type_primitive}}(id)
 }
 
+// AZID is required
+// for conformance with {{.base.azcore_pkg}}.ID.
+func (id {{.id_type_name}}) AZID() {}
+
 // AZAdjunctEntityID is required
 // for conformance with {{.base.azcore_pkg}}.AdjunctEntityID.
-func (id {{.id_type_name}}) AZAdjunctEntityID() {{.base.azcore_pkg}}.AdjunctEntityID { return id }
+func (id {{.id_type_name}}) AZAdjunctEntityID() {}
 
 // Equals is required as {{.id_type_name}} is a value-object.
 //

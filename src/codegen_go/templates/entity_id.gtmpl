@@ -19,8 +19,11 @@ func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
 	return {{.id_type_primitive}}(id)
 }
 
-// AZEntityID is required by {{.base.azcore_pkg}}.EntityID interface.
-func (id {{.id_type_name}}) AZEntityID() {{.base.azcore_pkg}}.EntityID { return id }
+// AZID is required for conformance with {{.base.azcore_pkg}}.ID.
+func (id {{.id_type_name}}) AZID() {}
+
+// AZEntityID is required for conformance with {{.base.azcore_pkg}}.EntityID.
+func (id {{.id_type_name}}) AZEntityID() {}
 
 // IsZero is required as {{.id_type_name}} is a value-object.
 func (id {{.id_type_name}}) IsZero() bool {

@@ -25,15 +25,11 @@ func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 }
 
 // AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
-func (refKey {{.ref_key_type_name}}) AZRefKey() {{.base.azcore_pkg}}.RefKey {
-	return refKey
-}
+func (refKey {{.ref_key_type_name}}) AZRefKey() {}
 
 // AZAdjunctEntityRefKey is required
 // by {{.base.azcore_pkg}}.AdjunctEntityRefKey interface.
-func (refKey {{.ref_key_type_name}}) AZAdjunctEntityRefKey() {{.base.azcore_pkg}}.AdjunctEntityRefKey {
-	return refKey
-}
+func (refKey {{.ref_key_type_name}}) AZAdjunctEntityRefKey() {}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
@@ -41,7 +37,7 @@ func (refKey {{.ref_key_type_name}}) IsZero() bool {
 		{{end}}{{- end -}} refKey.ID == {{.id_type_name}}Zero
 }
 
-// Equals is required as {{.ref_key_type_name}} is a value-object.
+// Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
 func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
 		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
@@ -52,6 +48,11 @@ func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 			{{end}}{{- end -}} refKey.ID == x.ID
 	}
 	return false
+}
+
+// Equal is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
+func (refKey {{.ref_key_type_name}}) Equal(other interface{}) bool {
+	return refKey.Equals(other)
 }
 
 // Equals{{.ref_key_type_name}} returs true

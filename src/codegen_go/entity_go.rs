@@ -63,10 +63,6 @@ impl GoCodeGenerator {
                 tpl_ctx.to_owned(),
             )?;
 
-            if !ent.attributes.is_empty() {
-                println!("TODO: attributes for entity {}", type_name);
-            }
-
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -81,12 +77,32 @@ impl GoCodeGenerator {
                     out_file.write_all("\n".as_bytes())?;
                 }
             }
-            render_file_append!(out_file, "templates/entity_id.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/entity_ref_key.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/entity_attributes.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/entity_event.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/entity_service.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/entity_service_base.gtmpl", tpl_ctx);
+            render_file_region!(out_file, "ID", "templates/entity_id.gtmpl", tpl_ctx);
+            render_file_region!(
+                out_file,
+                "RefKey",
+                "templates/entity_ref_key.gtmpl",
+                tpl_ctx
+            );
+            render_file_region!(
+                out_file,
+                "Attributes",
+                "templates/entity_attributes.gtmpl",
+                tpl_ctx
+            );
+            render_file_region!(out_file, "Events", "templates/entity_event.gtmpl", tpl_ctx);
+            render_file_region!(
+                out_file,
+                "Service",
+                "templates/entity_service.gtmpl",
+                tpl_ctx
+            );
+            render_file_region!(
+                out_file,
+                "ServiceBase",
+                "templates/entity_service_base.gtmpl",
+                tpl_ctx
+            );
 
             // ServiceClient
             render_file!(

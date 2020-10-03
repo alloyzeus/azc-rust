@@ -49,7 +49,7 @@ impl GoCodeGenerator {
             .into_iter()
             .map(|x| x.name.to_owned())
             .collect::<Vec<String>>();
-        //TODO: if the adjunct is globally addressable, i.e., an instance's
+        // If the adjunct is globally addressable, i.e., an instance's
         // ID is unique system-wide, it must not derive its hosts' name
         // by default.
         // And also, the RefKey is just a typedef of ID.
@@ -64,8 +64,10 @@ impl GoCodeGenerator {
         let id_def = &adj_ent.id.definition;
 
         if let Some(id_int) = id_def.downcast_ref::<adjunct_entity::AdjunctEntityIdInteger>() {
+            let id_size = Self::int_id_size_from_bits(id_int.bits);
+
             let id_type_name = format!("{}ID", type_name);
-            let id_type_primitive = format!("int{}", id_int.bits);
+            let id_type_primitive = format!("int{}", id_size);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let service_name = format!("{}Service", type_name);
@@ -113,15 +115,26 @@ impl GoCodeGenerator {
                     out_file.write_all("\n".as_bytes())?;
                 }
             }
-            render_file_append!(out_file, "templates/adjunct_entity_id.gtmpl", tpl_ctx);
-            render_file_append!(out_file, "templates/adjunct_entity_ref_key.gtmpl", tpl_ctx);
-            //render_file_append!(out_file, "templates/adjunct_entity_event.gtmpl", tpl_ctx);
-            render_file_append!(
+            render_file_region!(out_file, "ID", "templates/adjunct_entity_id.gtmpl", tpl_ctx);
+            render_file_region!(
                 out_file,
+                "RefKey",
+                "templates/adjunct_entity_ref_key.gtmpl",
+                tpl_ctx
+            );
+            render_file_region!(
+                out_file,
+                "Attributes",
                 "templates/adjunct_entity_attributes.gtmpl",
                 tpl_ctx
             );
-            render_file_append!(out_file, "templates/adjunct_entity_service.gtmpl", tpl_ctx);
+            //render_file_region!(out_file, "Events", "templates/adjunct_entity_event.gtmpl", tpl_ctx);
+            render_file_region!(
+                out_file,
+                "Service",
+                "templates/adjunct_entity_service.gtmpl",
+                tpl_ctx
+            );
 
             Ok(())
         } else {

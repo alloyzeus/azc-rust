@@ -6,6 +6,27 @@ import (
 
 // This file contains specializations of azcore types.
 
+//region EntityAttributesBase
+
+// {{.base.azlib_prefix}}EntityAttributesBase is
+// a partial implementation of {{.base.azcore_pkg}}.EntityAttributes.
+// This struct was designed to be embedded in other
+// {{.base.azcore_pkg}}.EntityAttributes implementations.
+type {{.base.azlib_prefix}}EntityAttributesBase struct {
+}
+
+// AZAttributes is required
+// for conformance with {{.base.azcore_pkg}}.Attributes
+func (attrs {{.base.azlib_prefix}}EntityAttributesBase) AZAttributes() {}
+
+// AZEntityAttributes is required
+// for conformance with {{.base.azcore_pkg}}.EntityAttributes
+func (attrs {{.base.azlib_prefix}}EntityAttributesBase) AZEntityAttributes() {}
+
+//endregion
+
+//region EntityService
+
 type {{.base.azlib_prefix}}EntityService interface {
 	{{.base.azcore_pkg}}.EntityService
 }
@@ -24,9 +45,11 @@ var _ {{.base.azlib_prefix}}EntityService = {{.base.azlib_prefix}}EntityServiceB
 
 // AZEntityService is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
-func (svc {{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {{.base.azcore_pkg}}.EntityService { return svc }
+func (svc {{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {}
 
-/**/ /**/ /**/ /**/
+//endregion
+
+//region EntityServiceClient
 
 type {{.base.azlib_prefix}}EntityServiceClient interface {
 	{{.base.azlib_prefix}}EntityService
@@ -41,9 +64,11 @@ var _ {{.base.azlib_prefix}}EntityServiceClient = {{.base.azlib_prefix}}EntitySe
 
 // AZEntityServiceClient is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
-func (svc {{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {{.base.azcore_pkg}}.EntityServiceClient { return svc }
+func (svc {{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {}
 
-/**/ /**/ /**/ /**/
+//endregion
+
+//region EntityServiceServer
 
 type {{.base.azlib_prefix}}EntityServiceServer interface {
 	{{.base.azlib_prefix}}EntityService
@@ -58,9 +83,11 @@ var _ {{.base.azlib_prefix}}EntityServiceServer = {{.base.azlib_prefix}}EntitySe
 
 // AZEntityServiceServer is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
-func (svc {{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {{.base.azcore_pkg}}.EntityServiceServer { return svc }
+func (svc {{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {}
 
-/**/ /**/ /**/ /**/
+//endregion
+
+//region EntityCreation
 
 type {{.base.azlib_prefix}}EntityCreationInputContext struct {
 	{{.base.azcore_pkg}}.EntityCreationInputContextBase
@@ -74,34 +101,39 @@ type {{.base.azlib_prefix}}EntityCreationEventBase struct {
 	{{.base.azcore_pkg}}.EntityCreationEventBase
 }
 
-func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEntityEvent() {{.base.azcore_pkg}}.EntityEvent {
-	return evt
-}
+func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEntityEvent() {}
 
-func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEvent() {{.base.azcore_pkg}}.Event {
-	return evt
-}
+func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEvent() {}
 
 type {{.base.azlib_prefix}}EntityCreationInfo struct {
 	{{.base.azcore_pkg}}.EntityCreationInfoBase
 }
 
-/**/ /**/ /**/ /**/
+//endregion
 
-// {{.base.azlib_prefix}}AdjunctEntityAttributesBase could be used as the
-// base for {{.base.azcore_pkg}}.AdjunctEntityAttributes implementations.
-type {{.base.azlib_prefix}}AdjunctEntityAttributesBase struct {}
+//region AdjunctEntityAttributesBase
 
-var _ {{.base.azcore_pkg}}.AdjunctEntityAttributes = {{.base.azlib_prefix}}AdjunctEntityAttributesBase{}
-
-// AZAdjunctEntityAttributes is required for conformance
-// with {{.base.azcore_pkg}}.AdjunctEntityAttributes.
-func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAdjunctEntityAttributes() {{.base.azcore_pkg}}.AdjunctEntityAttributes {
-	return attrs
+// {{.base.azlib_prefix}}AdjunctEntityAttributesBase is
+// a partial implementation of {{.base.azcore_pkg}}.AZAdjunctEntityAttributes.
+// This struct was designed to be embedded in other
+// {{.base.azcore_pkg}}.AdjunctEntityAttributes implementations.
+type {{.base.azlib_prefix}}AdjunctEntityAttributesBase struct {
 }
 
-/**/ /**/ /**/ /**/
+// AZAttributes is required
+// for conformance with {{.base.azcore_pkg}}.Attributes.
+func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAttributes() {}
+
+// AZAdjunctEntityAttributes is required
+// for conformance with {{.base.azcore_pkg}}.AdjunctEntityAttributes.
+func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAdjunctEntityAttributes() {}
+
+//endregion
+
+//region AdjunctEntityService
 
 type {{.base.azlib_prefix}}AdjunctEntityService interface {
 	{{.base.azcore_pkg}}.AdjunctEntityService
 }
+
+//endregion
