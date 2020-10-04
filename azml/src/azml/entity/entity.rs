@@ -2,7 +2,7 @@
 
 use crate::azml::{attribute, entity::entity_id, mixin, symbol};
 
-//----
+//region Entity
 
 #[derive(Clone, Debug)]
 pub struct Entity {
@@ -13,7 +13,19 @@ pub struct Entity {
     pub attributes: Vec<attribute::Attribute>,
 }
 
-impl symbol::SymbolDefinition for Entity {}
+impl symbol::SymbolDefinition for Entity {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        self.attributes
+            .iter()
+            .fold(Vec::<symbol::SymbolRef>::new(), |a, b| {
+                a.into_iter()
+                    .chain(b.collect_symbol_refs())
+                    .collect::<Vec<_>>()
+            })
+    }
+}
+
+//endregion
 
 //----
 

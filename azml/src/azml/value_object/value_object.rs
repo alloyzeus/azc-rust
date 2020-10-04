@@ -2,12 +2,21 @@
 
 use crate::azml::{data_type, symbol};
 
+//region ValueObject
+
 #[derive(Clone, Debug)]
 pub struct ValueObject {
     pub definition: Box<dyn ValueObjectDefinition>,
 }
 
-impl symbol::SymbolDefinition for ValueObject {}
+impl symbol::SymbolDefinition for ValueObject {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        //TODO: collect from definition
+        Vec::new()
+    }
+}
+
+//endregion
 
 //----
 

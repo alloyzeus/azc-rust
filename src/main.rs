@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate gtmpl_derive;
 
-use std::{env, io, io::Write, process};
+use std::{collections::HashMap, env, io, io::Write, process};
 
 use azml::azml::{adjunct::adjunct, entity::entity, error, module, source_file};
 
@@ -29,11 +29,18 @@ fn main() {
         write_dot(&mut buf, &src).unwrap();
         io::stdout().write_all(buf.buffer()).unwrap();
 
+        let mut package_urls = HashMap::new();
+        package_urls.insert(
+            "telephony".to_owned(),
+            "github.com/alloyzeus/go-modules/telephony".to_owned(),
+        );
+
         use codegen::CodeGenerator;
         let go_codegen = codegen_go::GoCodeGenerator {
             base_dir: "testdata/output/go".to_owned(),
             module_identifier: "github.com/alloyzeus/go-examples".to_owned(),
             file_per_struct: false,
+            package_urls: package_urls,
             azlib_prefix: "AZx".to_owned(),
             azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
             azcore_pkg: "azcore".to_owned(),

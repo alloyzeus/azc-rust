@@ -1,6 +1,6 @@
 //
 
-use std::{error, fs, io::Write};
+use std::{collections::HashMap, error, fs, io::Write};
 
 use crate::codegen;
 
@@ -23,6 +23,8 @@ pub struct GoCodeGenerator {
 
     // A flag to render every struct on its own file. Currently unused.
     pub file_per_struct: bool,
+
+    pub package_urls: HashMap<String, String>,
 
     pub azlib_prefix: String,
 
@@ -51,6 +53,13 @@ impl GoCodeGenerator {
             d if d < 32 => 32,
             d if d < 64 => 64,
             _ => -1, //TODO: error. we won't need this here. generators receive clean data.
+        }
+    }
+
+    fn resolve_import(&self, pkg: &String) -> String {
+        match self.package_urls.get(pkg) {
+            Some(s) => s.to_owned(),
+            _ => "???".to_owned(),
         }
     }
 }
@@ -112,4 +121,10 @@ struct BaseContext {
 struct LibraryContext {
     base: BaseContext,
     pkg_name: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct ImportContext {
+    alias: String,
+    url: String,
 }

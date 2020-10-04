@@ -2,7 +2,7 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{symbol_go, BaseContext, GoCodeGenerator};
+use crate::codegen_go::{symbol_go, BaseContext, GoCodeGenerator, ImportContext};
 
 use azml::azml::{
     entity::{entity, entity_id_integer},
@@ -42,11 +42,22 @@ impl GoCodeGenerator {
                     kind: (&x.kind).into(),
                 })
                 .collect();
+            let imports = symbol
+                .definition
+                .collect_symbol_refs()
+                .iter()
+                .filter(|x| !x.package_identifier.is_empty())
+                .map(|x| ImportContext {
+                    alias: x.package_identifier.to_owned(),
+                    url: self.resolve_import(&x.package_identifier),
+                })
+                .collect();
 
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),
                 pkg_path: pkg_path.to_owned(),
+                imports: imports,
                 type_name: type_name.to_owned(),
                 type_doc_lines: type_doc_lines.clone(),
                 id_type_name: id_type_name.to_owned(),
@@ -137,6 +148,7 @@ struct EntityContext {
     base: BaseContext,
     pkg_name: String,
     pkg_path: String,
+    imports: Vec<ImportContext>,
     type_name: String,
     type_doc_lines: Vec<String>,
     id_type_name: String,

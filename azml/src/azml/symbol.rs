@@ -36,7 +36,9 @@ pub struct Symbol {
 
 //region SymbolDefinition
 
-pub trait SymbolDefinition: mopa::Any + SymbolDefinitionClone + fmt::Debug {}
+pub trait SymbolDefinition: mopa::Any + SymbolDefinitionClone + fmt::Debug {
+    fn collect_symbol_refs(&self) -> Vec<SymbolRef>;
+}
 
 mopafy!(SymbolDefinition);
 

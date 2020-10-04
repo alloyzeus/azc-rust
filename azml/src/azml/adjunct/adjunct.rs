@@ -2,7 +2,7 @@
 
 use crate::azml::{arity, symbol};
 
-//----
+//region Adjunct
 
 #[derive(Clone, Debug)]
 pub struct Adjunct {
@@ -19,9 +19,16 @@ pub struct Adjunct {
     pub prepared_name: bool,
 }
 
-impl symbol::SymbolDefinition for Adjunct {}
+impl symbol::SymbolDefinition for Adjunct {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        //TODO: collect from definition
+        Vec::new()
+    }
+}
 
-//----
+//endregion
+
+//region AdjunctDefinition
 
 pub trait AdjuctDefinition: mopa::Any + AdjuctDefinitionClone + std::fmt::Debug {}
 
@@ -47,9 +54,13 @@ impl Clone for Box<dyn AdjuctDefinition> {
 
 mopafy!(AdjuctDefinition);
 
-//----
+//endregion
+
+//region AdjunctHost
 
 #[derive(Clone, Debug)]
 pub struct AdjunctHost {
     pub name: String,
 }
+
+//endregion
