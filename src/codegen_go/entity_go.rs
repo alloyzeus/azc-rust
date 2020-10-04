@@ -2,7 +2,7 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{BaseContext, GoCodeGenerator};
+use crate::codegen_go::{symbol_go, BaseContext, GoCodeGenerator};
 
 use azml::azml::{
     entity::{entity, entity_id_integer},
@@ -38,7 +38,8 @@ impl GoCodeGenerator {
                 .into_iter()
                 .map(|x| EntityAttributeContext {
                     identifier: x.identifier.to_owned(),
-                    type_name: x.kind.to_owned(),
+                    type_name: (&x.kind).into(),
+                    kind: (&x.kind).into(),
                 })
                 .collect();
 
@@ -151,4 +152,5 @@ struct EntityContext {
 struct EntityAttributeContext {
     identifier: String,
     type_name: String,
+    kind: symbol_go::SymbolRefContext,
 }

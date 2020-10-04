@@ -3,7 +3,7 @@
 type {{.attributes_type_name}} struct {
 	{{.base.azlib_prefix}}EntityAttributesBase
 	{{range .attributes}}
-	{{unexported_field .identifier}} {{.type_name}}
+	{{unexported_field .identifier}} {{.kind}}
 	{{- end}}
 }
 
@@ -11,7 +11,7 @@ type {{.attributes_type_name}} struct {
 // of {{.attributes_type_name}} with the provided attribute values.
 func New{{.attributes_type_name}}(
 	{{- range .attributes}}
-	{{arg_name .identifier}} {{.type_name}},{{end}}
+	{{arg_name .identifier}} {{.kind}},{{end}}
 ) {{.attributes_type_name}} {
 	return {{.attributes_type_name}}{
 		{{- range .attributes}}
@@ -22,7 +22,7 @@ func New{{.attributes_type_name}}(
 {{- range .attributes}}
 
 // {{.identifier}} returns instance's {{.identifier}} value.
-func (attrs {{$.attributes_type_name}}) {{.identifier}}() {{.type_name}} {
+func (attrs {{$.attributes_type_name}}) {{.identifier}}() {{.kind}} {
 	return attrs.{{unexported_field .identifier}}
 }
 
@@ -30,7 +30,7 @@ func (attrs {{$.attributes_type_name}}) {{.identifier}}() {{.type_name}} {
 // of {{$.attributes_type_name}}
 // with its {{unexported_field .identifier}} attribute set to the provided value.
 func (attrs {{$.attributes_type_name}}) With{{.identifier}}(
-	{{arg_name .identifier}} {{.type_name}},
+	{{arg_name .identifier}} {{.kind}},
 ) {{$.attributes_type_name}} {
 	{{- $p := .identifier}}
 	return {{$.attributes_type_name}}{
@@ -57,5 +57,5 @@ func (attrs *{{.attributes_type_name}}) Equals{{.attributes_type_name}}Ptr(
 	other *{{.attributes_type_name}},
 ) bool {
 	return attrs == other || (other != nil {{- range .attributes}} &&
-		attrs.{{unexported_field .identifier}}.Equals{{sym_name .type_name}}(other.{{unexported_field .identifier}}){{end}})
+		attrs.{{unexported_field .identifier}}.Equals{{sym_name .kind}}(other.{{unexported_field .identifier}}){{end}})
 }

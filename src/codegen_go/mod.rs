@@ -11,6 +11,7 @@ mod render_macros;
 
 mod adjunct_go;
 mod entity_go;
+mod symbol_go;
 mod template;
 mod value_object_go;
 

@@ -23,7 +23,7 @@ impl convert::TryFrom<AttributeYaml> for attribute::Attribute {
     fn try_from(x: AttributeYaml) -> Result<Self, Self::Error> {
         Ok(attribute::Attribute {
             identifier: x.identifier,
-            kind: x.kind,
+            kind: x.kind.into(),
             final_: x.final_,
             identifier_options: attribute::AttributeIdentifierOptions {},
             documentation: x.documentation,
@@ -37,7 +37,7 @@ impl convert::TryFrom<&AttributeYaml> for attribute::Attribute {
     fn try_from(x: &AttributeYaml) -> Result<Self, Self::Error> {
         Ok(attribute::Attribute {
             identifier: x.identifier.to_owned(),
-            kind: x.kind.to_owned(),
+            kind: (&x.kind).into(),
             final_: x.final_,
             identifier_options: attribute::AttributeIdentifierOptions {},
             documentation: x.documentation.to_owned(),

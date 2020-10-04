@@ -1,10 +1,12 @@
 //
 
+use crate::azml::symbol;
+
 #[derive(Clone, Debug)]
 pub struct Attribute {
     pub identifier: String,
 
-    pub kind: String, //TODO: replace with the definition
+    pub kind: symbol::SymbolRef,
 
     // A directive for persistent data immutability. This doesn't affect
     // in-memory data structure.

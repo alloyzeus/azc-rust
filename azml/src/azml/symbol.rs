@@ -2,6 +2,8 @@
 
 use std::fmt;
 
+//region Symbol
+
 #[derive(Clone, Debug)]
 pub struct Symbol {
     pub identifier: String,
@@ -30,6 +32,10 @@ pub struct Symbol {
     // HttpRequest.java in contrast to http_request.rs .
 }
 
+//endregion
+
+//region SymbolDefinition
+
 pub trait SymbolDefinition: mopa::Any + SymbolDefinitionClone + fmt::Debug {}
 
 mopafy!(SymbolDefinition);
@@ -52,3 +58,54 @@ impl Clone for Box<dyn SymbolDefinition> {
         self.clone_box()
     }
 }
+
+//endregion
+
+//region SymbolRef
+
+#[derive(Clone, Debug)]
+pub struct SymbolRef {
+    pub package_identifier: String,
+    pub symbol_name: String,
+}
+
+impl From<String> for SymbolRef {
+    fn from(s: String) -> SymbolRef {
+        (&s).into()
+    }
+}
+
+impl From<&String> for SymbolRef {
+    fn from(s: &String) -> SymbolRef {
+        let parts: Vec<&str> = s.rsplitn(2, ".").collect();
+        if parts.len() == 2 {
+            SymbolRef {
+                package_identifier: parts[1].to_owned(),
+                symbol_name: parts[0].to_owned(),
+            }
+        } else {
+            SymbolRef {
+                package_identifier: "".to_owned(),
+                symbol_name: parts[0].to_owned(),
+            }
+        }
+    }
+}
+
+impl From<SymbolRef> for String {
+    fn from(s: SymbolRef) -> String {
+        (&s).into()
+    }
+}
+
+impl From<&SymbolRef> for String {
+    fn from(s: &SymbolRef) -> String {
+        if s.package_identifier.is_empty() {
+            s.symbol_name.to_owned()
+        } else {
+            format!("{}.{}", s.package_identifier, s.symbol_name)
+        }
+    }
+}
+
+//endregion

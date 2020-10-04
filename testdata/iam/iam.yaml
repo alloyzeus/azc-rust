@@ -94,19 +94,6 @@ symbols:
               value:
                 min: 1
                 max: 4
-      attributes:
-        - identifier: AccessKeys
-          # A set of AccessKey with uniqueness is defined by the field id
-          # by default, we use object's defined key, or we will use the
-          # equality trait (value objects are required to provide equality
-          # operator)
-          kind: set
-          parameters:
-            kind: AccessKey
-            key_fields: [id]
-            arity:
-              min: 0
-              max: 4
 
   - identifier: ApplicationAccessKey
     kind: adjunct
