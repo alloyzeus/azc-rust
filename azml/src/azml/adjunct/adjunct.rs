@@ -16,7 +16,7 @@ pub struct Adjunct {
     // to false, then the symbol name is assumed non-prepared and the compiler
     // will prepend the names of the hosts to be used as class/struct, model
     // names in the resulting codes.
-    pub prepared_name: bool,
+    pub name_is_prepared: bool,
 }
 
 impl symbol::SymbolDefinition for Adjunct {

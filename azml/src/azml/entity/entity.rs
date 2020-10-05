@@ -36,7 +36,7 @@ impl symbol::SymbolDefinition for Entity {
 #[derive(Clone, Debug)]
 pub struct EntityCreation {
     pub documentation: String,
-    pub allow_inter_process: bool,
+    pub allow_cross_process_callers: bool,
 }
 
 //----

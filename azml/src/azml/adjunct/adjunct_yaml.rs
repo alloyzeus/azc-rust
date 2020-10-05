@@ -23,7 +23,7 @@ pub struct AdjunctYaml {
     parameters: yaml::Value,
 
     #[serde(default)]
-    prepared_name: bool,
+    name_is_prepared: bool,
 }
 
 impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
@@ -37,7 +37,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
                     definition: Box::new(adjunct_entity::AdjunctEntity::from(def)),
-                    prepared_name: x.prepared_name,
+                    name_is_prepared: x.name_is_prepared,
                 })
             }
             "value-object" => {
@@ -49,7 +49,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
                         def.try_into()?,
                     )),
-                    prepared_name: x.prepared_name,
+                    name_is_prepared: x.name_is_prepared,
                 })
             }
             _ => Err(yaml::Error::Msg(format!(

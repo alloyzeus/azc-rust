@@ -34,20 +34,8 @@ symbols:
       # Declares the creation rules. This defines how and who can create
       # an instance.
       creation:
-        allow_inter_process: false
-        # The authorization definition for the creation method.
-        access:
-          # Here, we allow creation from the same service process
-          - kind: intraprocess-private
-            authorization: none
-            allow: always
-          - kind: intraprocess-public
-            authorization: none
-            allow: always
-          - kind: interprocess-private (same host, loopback)
-            allow: none
-          - kind: interprocess-public (through public transport, e.g., internet)
-            allow: none
+        allow_cross_process_callers: false
+        allow_cross_process_event_observers: false
       service:
         enabled: true
         methods:
@@ -80,8 +68,13 @@ symbols:
         kind: integer
         parameters:
           bits: 24
+      ref_key:
+        # This is a directive to include some attributes into the ref-keys.
+        # Only final attributes can be included in ref keys.
+        include_attributes:
+          - name: IsInternal
       creation:
-        allow_inter_process: true
+        allow_cross_process_callers: true
       mixins:
         - kind: Ownership
           parameters:
@@ -94,11 +87,15 @@ symbols:
               value:
                 min: 1
                 max: 4
+      attributes:
+        - identifier: IsInternal
+          kind: bool
+          final: true
 
   - identifier: ApplicationAccessKey
     kind: adjunct
     parameters:
-      prepared_name: true
+      name_is_prepared: true
       hosts:
         - name: Application
       arity:
@@ -163,7 +160,7 @@ symbols:
             # other methods of authentication.
             kind: ref
         creation:
-          allow_inter_process: false
+          allow_cross_process_callers: false
           authorization:
             - kind: intraprocess
               allow: always
@@ -278,8 +275,14 @@ symbols:
         #
         # If the value is true, we want to allow the creation to be initiated
         # directly by other applications.
-        allow_inter_process: true
-        allow_cross_domain: true
+        allow_cross_process_callers: true
+        # A flag to determine if applications from other realms is allowed
+        # to make call to this method.
+        #
+        # An application from other realms is an application which received
+        # authorization to integrate with this realm. In contrast to
+        # own-realm applications.
+        allow_cross_realm_callers: false
         authorization:
           - kind: Application
             allow: on-condition
@@ -291,7 +294,7 @@ symbols:
           - all
         methods:
           create:
-            allow_inter_process: true
+            allow_cross_process_callers: true
             input_parameters:
               Self.phone_number:
       attributes:

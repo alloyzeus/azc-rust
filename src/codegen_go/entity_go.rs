@@ -67,6 +67,7 @@ impl GoCodeGenerator {
                 attributes: attributes,
                 event_interface_name: event_interface_name.to_owned(),
                 service_name: service_name.to_owned(),
+                creation: (&ent.creation).into(),
             };
 
             let header_tpl_bytes = include_bytes!("templates/entity__header.gtmpl");
@@ -158,6 +159,7 @@ struct EntityContext {
     attributes: Vec<EntityAttributeContext>,
     event_interface_name: String,
     service_name: String,
+    creation: EntityCreationContext,
 }
 
 #[derive(Clone, Gtmpl)]
@@ -165,4 +167,17 @@ struct EntityAttributeContext {
     identifier: String,
     type_name: String,
     kind: symbol_go::SymbolRefContext,
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityCreationContext {
+    allow_cross_process_callers: bool,
+}
+
+impl From<&entity::EntityCreation> for EntityCreationContext {
+    fn from(s: &entity::EntityCreation) -> EntityCreationContext {
+        EntityCreationContext {
+            allow_cross_process_callers: s.allow_cross_process_callers,
+        }
+    }
 }

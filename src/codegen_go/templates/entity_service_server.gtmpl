@@ -32,12 +32,27 @@ func (srv *{{.service_name}}Server) Observe{{.type_name}}Events(
 	return {{.pkg_name}}.{{.type_name}}EventsObserveOutput{}
 }
 
+{{if .creation.allow_cross_process_callers}}
+
 // Create{{.type_name}} creates a new {{.type_name}}.
 //
 // This method enforces full access control as it was designed to be called
 // from the inter-process API layer. For the intra-process version,
 // see Create{{.type_name}}Internal.
 func (srv *{{.service_name}}Server) Create{{.type_name}}(
+	input {{.pkg_name}}.{{.type_name}}CreateInput,
+) {{.pkg_name}}.{{.type_name}}CreateOutput {
+	//TODO: access control. after it's been cleared, continue with internal.
+	return srv.Create{{.type_name}}Internal(input)
+}
+
+{{end}}
+
+// Create{{.type_name}}Internal is for intra-process. It doesn't enforce any
+// access control.
+//
+//TODO: create internal input-output as the non-internal might be not available.
+func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
 	input {{.pkg_name}}.{{.type_name}}CreateInput,
 ) {{.pkg_name}}.{{.type_name}}CreateOutput {
 	//TODO

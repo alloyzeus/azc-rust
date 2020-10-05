@@ -53,7 +53,7 @@ struct EntityCreationYaml {
     #[serde(default)]
     documentation: String,
 
-    allow_inter_process: bool,
+    allow_cross_process_callers: bool,
 }
 
 impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
@@ -62,7 +62,7 @@ impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
     fn try_from(x: EntityCreationYaml) -> Result<Self, Self::Error> {
         Ok(entity::EntityCreation {
             documentation: x.documentation,
-            allow_inter_process: x.allow_inter_process,
+            allow_cross_process_callers: x.allow_cross_process_callers,
         })
     }
 }
