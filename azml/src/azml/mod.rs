@@ -11,6 +11,8 @@ pub mod error;
 pub mod mixin;
 pub mod mixin_yaml;
 pub mod module;
+pub mod oid;
+pub mod oid_yaml;
 pub mod ref_key;
 pub mod ref_key_yaml;
 pub mod result;

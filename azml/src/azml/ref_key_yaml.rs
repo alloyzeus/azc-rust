@@ -8,7 +8,8 @@ use crate::azml::{ref_key, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct RefKeyYaml {
-    included_attributes: Vec<RefKeyIncludedAttributeYaml>,
+    #[serde(default)]
+    pub included_attributes: Vec<RefKeyIncludedAttributeYaml>,
 }
 
 impl convert::TryFrom<RefKeyYaml> for ref_key::RefKey {
@@ -42,8 +43,8 @@ impl convert::TryFrom<&RefKeyYaml> for ref_key::RefKey {
 //region RefKeyIncludedAttributeYaml
 
 #[derive(serde::Deserialize, serde::Serialize)]
-struct RefKeyIncludedAttributeYaml {
-    name: String,
+pub struct RefKeyIncludedAttributeYaml {
+    pub name: String,
 }
 
 impl convert::TryFrom<RefKeyIncludedAttributeYaml> for ref_key::RefKeyIncludedAttribute {

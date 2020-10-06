@@ -81,7 +81,7 @@ symbols:
           #   |+----- IsInternal (bit 31)
           #   +------ reserved for 32bit integer
           bits: 26
-          include_attributes:
+          flags:
             - identifier: IsInternal
               # This determines the bit we will use for this attribute.
               bit: 31
@@ -134,7 +134,7 @@ symbols:
           kind: integer
           parameters:
             bits: 56
-            include_attributes:
+            flags:
               # This is similar to entity ID, but instead of encode own
               # attributes, we encode host's attributes.
               #
@@ -188,7 +188,7 @@ symbols:
           kind: integer
           parameters:
             bits: 56
-          include_attributes:
+            flags:
             - identifier: hosts.0.IsInternal
               bit: 63
             - identifier: hosts.0.IsUserAgent

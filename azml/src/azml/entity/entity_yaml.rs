@@ -8,10 +8,13 @@ use crate::azml::{
     mixin, mixin_yaml, ref_key_yaml, yaml,
 };
 
+//region EntityYaml
+
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct EntityYaml {
     id: entity_id_yaml::EntityIdYaml,
 
+    #[serde(default)]
     ref_key: ref_key_yaml::RefKeyYaml,
 
     creation: EntityCreationYaml,
@@ -51,6 +54,18 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
     }
 }
 
+//endregion
+
+impl Default for ref_key_yaml::RefKeyYaml {
+    fn default() -> ref_key_yaml::RefKeyYaml {
+        ref_key_yaml::RefKeyYaml {
+            included_attributes: Vec::new(),
+        }
+    }
+}
+
+//region EntityCreationYaml
+
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 struct EntityCreationYaml {
     #[serde(default)]
@@ -69,6 +84,8 @@ impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
         })
     }
 }
+
+//endregion
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 struct EntityServiceYaml {
