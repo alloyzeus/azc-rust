@@ -1,6 +1,8 @@
 package {{.pkg_name}}
 
 import (
+	"strconv"
+
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"

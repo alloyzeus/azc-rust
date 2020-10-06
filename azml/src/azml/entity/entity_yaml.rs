@@ -5,12 +5,14 @@ use std::convert::{self, TryInto};
 use crate::azml::{
     attribute, attribute_yaml,
     entity::{entity, entity_id_yaml},
-    mixin, mixin_yaml, yaml,
+    mixin, mixin_yaml, ref_key_yaml, yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct EntityYaml {
     id: entity_id_yaml::EntityIdYaml,
+
+    ref_key: ref_key_yaml::RefKeyYaml,
 
     creation: EntityCreationYaml,
     mixins: Vec<mixin_yaml::MixinYaml>,
@@ -28,6 +30,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
     fn try_from(x: EntityYaml) -> Result<Self, Self::Error> {
         Ok(entity::Entity {
             id: x.id.try_into()?,
+            ref_key: x.ref_key.try_into()?,
             creation: x.creation.try_into()?,
             mixins: x
                 .mixins
@@ -42,7 +45,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
             attributes: x
                 .attributes
                 .iter()
-                .map(|x| attribute::Attribute::try_from(x).unwrap())
+                .map(|attr| attribute::Attribute::try_from(attr).unwrap())
                 .collect(),
         })
     }

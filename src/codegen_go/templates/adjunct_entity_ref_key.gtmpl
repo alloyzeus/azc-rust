@@ -68,6 +68,13 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 //
 // RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
 func (refKey {{.ref_key_type_name}}) RefKeyString() string {
-	// TODO
+	// TODO: refkeystring should be prepared as it needs to be strictly
+	// consistent across implementations.
+	// something like /host1_type-host1_id/host2_type-host2_id/hostn_type-hostn_id/own_type-own_id
+	// or for global adjuncts /own_type-own_id
+	//
+	// note that a ref key might comprise of other ref keys. so, we will have
+	// something like A(B(C(), D()), E()). the default pattern must be able
+	// to accomodate such structure.
 	return "TODO"
 }

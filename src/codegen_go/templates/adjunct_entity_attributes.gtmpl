@@ -2,6 +2,60 @@
 // attributes for adjunct {{.type_name}}.
 type {{.attributes_type_name}} struct {
 	{{.base.azlib_prefix}}AdjunctEntityAttributesBase
+	{{range .attributes}}
+	{{unexported_field .identifier}} {{.kind}}
+	{{- end}}
+}
 
-	//TODO: implement this.
+// New{{.attributes_type_name}} returns a new instance
+// of {{.attributes_type_name}} with the provided attribute values.
+func New{{.attributes_type_name}}(
+	{{- range .attributes}}
+	{{arg_name .identifier}} {{.kind}},{{end}}
+) {{.attributes_type_name}} {
+	return {{.attributes_type_name}}{
+		{{- range .attributes}}
+		{{unexported_field .identifier}}: {{arg_name .identifier}},{{end}}
+	}
+}
+
+{{- range .attributes}}
+
+// {{.identifier}} returns instance's {{.identifier}} value.
+func (attrs {{$.attributes_type_name}}) {{.identifier}}() {{.kind}} {
+	return attrs.{{unexported_field .identifier}}
+}
+
+// With{{.identifier}} returns a copy
+// of {{$.attributes_type_name}}
+// with its {{unexported_field .identifier}} attribute set to the provided value.
+func (attrs {{$.attributes_type_name}}) With{{.identifier}}(
+	{{arg_name .identifier}} {{.kind}},
+) {{$.attributes_type_name}} {
+	{{- $p := .identifier}}
+	return {{$.attributes_type_name}}{
+		{{- range $.attributes}}{{if eq .identifier $p}}
+		{{unexported_field .identifier}}: {{arg_name .identifier}},{{else}}
+		{{unexported_field .identifier}}: attrs.{{unexported_field .identifier}},{{end}}{{- end}}
+	}
+}
+{{- end}}
+
+func (attrs {{.attributes_type_name}}) Equals(
+	other interface{},
+) bool {
+	if x, ok := other.({{.attributes_type_name}}); ok {
+		return attrs.Equals{{.attributes_type_name}}Ptr(&x)
+	}
+	if x, _ := other.(*{{.attributes_type_name}}); x != nil {
+		return attrs.Equals{{.attributes_type_name}}Ptr(x)
+	}
+	return false
+}
+
+func (attrs *{{.attributes_type_name}}) Equals{{.attributes_type_name}}Ptr(
+	other *{{.attributes_type_name}},
+) bool {
+	return attrs == other || (other != nil {{- range .attributes}} &&
+		attrs.{{unexported_field .identifier}}.Equals{{sym_name .kind}}(other.{{unexported_field .identifier}}){{end}})
 }

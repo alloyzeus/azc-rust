@@ -36,7 +36,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                 Ok(adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     arity: x.arity.into(),
-                    definition: Box::new(adjunct_entity::AdjunctEntity::from(def)),
+                    definition: Box::new(adjunct_entity::AdjunctEntity::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
                 })
             }

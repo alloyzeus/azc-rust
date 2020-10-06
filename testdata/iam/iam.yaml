@@ -67,12 +67,33 @@ symbols:
       id:
         kind: integer
         parameters:
-          bits: 24
+          #TODO: reserve range?
+          #
+          # How this will be laid out:
+          #
+          # 0b00000000000000000000000000000000
+          #   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          #   ||||||||||||||||||||||||||||||||
+          #   |||||| determines uniqueness (bit 1-26)
+          #   ||||++- reserved 
+          #   |||+--- IsConfidentialUserAgent (bit 29)
+          #   ||+---- IsUserAgent (bit 30)
+          #   |+----- IsInternal (bit 31)
+          #   +------ reserved for 32bit integer
+          bits: 26
+          include_attributes:
+            - identifier: IsInternal
+              # This determines the bit we will use for this attribute.
+              bit: 31
+            - identifier: IsUserAgent
+              bit: 30
+            - identifier: IsConfidentialUserAgent
+              bit: 29
       ref_key:
         # This is a directive to include some attributes into the ref-keys.
         # Only final attributes can be included in ref keys.
         include_attributes:
-          - name: IsInternal
+          - identifier: IsInternal
       creation:
         allow_cross_process_callers: true
       mixins:
@@ -91,6 +112,12 @@ symbols:
         - identifier: IsInternal
           kind: bool
           final: true
+        - identifier: IsUserAgent
+          kind: bool
+          final: true
+        - identifier: IsConfidentialUserAgent
+          kind: bool
+          final: true
 
   - identifier: ApplicationAccessKey
     kind: adjunct
@@ -106,7 +133,22 @@ symbols:
         id:
           kind: integer
           parameters:
-            bits: 48
+            bits: 56
+            include_attributes:
+              # This is similar to entity ID, but instead of encode own
+              # attributes, we encode host's attributes.
+              #
+              # For this specific case, we want to able to quickly determine
+              # some of the Application's attributes based on information
+              # embedded in this access key ID without the need
+              # to fetch the complete data of the Application.
+              - identifier: hosts.0.IsInternal
+                bit: 63
+              - identifier: hosts.0.IsUserAgent
+                bit: 62
+              - identifier: hosts.0.IsConfidentialUserAgent
+                bit: 61
+              
         attributes:
           - identifier: Secret
             kind: ApplicationAccessKeySecret
@@ -145,16 +187,23 @@ symbols:
         id:
           kind: integer
           parameters:
-            bits: 48
+            bits: 56
+          include_attributes:
+            - identifier: hosts.0.IsInternal
+              bit: 63
+            - identifier: hosts.0.IsUserAgent
+              bit: 62
+            - identifier: hosts.0.IsConfidentialUserAgent
+              bit: 61
         mixins:
           - kind: Deletion
             parameters:
         attributes:
-          represented_user:
+          - identifier: RepresentedUser
             kind: ref
             parameters:
               kind: User
-          request:
+          - identifier: RegistrationIdentifier
             # TODO: union or interface
             # we need to refer to TerminalRegistrationPhoneNumber and
             # other methods of authentication.
@@ -181,6 +230,7 @@ symbols:
       An access token represents a instance of Session.
     kind: adjunct
     parameters:
+      name_is_prepared: true
       kind: entity
       hosts:
         - name: Terminal

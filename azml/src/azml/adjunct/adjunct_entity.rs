@@ -2,13 +2,14 @@
 
 use std::{convert, result};
 
-use crate::azml::adjunct::adjunct;
+use crate::azml::{adjunct::adjunct, attribute};
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
     pub id: AdjunctEntityId,
     pub scope: AdjunctEntityScope,
+    pub attributes: Vec<attribute::Attribute>,
 }
 
 impl adjunct::AdjuctDefinition for AdjunctEntity {}

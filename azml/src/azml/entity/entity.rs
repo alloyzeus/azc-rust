@@ -1,12 +1,13 @@
 //
 
-use crate::azml::{attribute, entity::entity_id, mixin, symbol};
+use crate::azml::{attribute, entity::entity_id, mixin, ref_key, symbol};
 
 //region Entity
 
 #[derive(Clone, Debug)]
 pub struct Entity {
     pub id: entity_id::EntityId,
+    pub ref_key: ref_key::RefKey,
     pub creation: EntityCreation,
     pub mixins: Vec<mixin::Mixin>,
     pub service: Option<EntityService>,

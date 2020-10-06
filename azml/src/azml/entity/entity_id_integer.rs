@@ -21,6 +21,11 @@ pub struct EntityIdInteger {
     // * For example, 0 in the context of user ID could be used to indicate
     //   nobody.
     pub bits: i8,
+    //TODO: additional attributes (flags) encoding. these attributes are
+    // part of the identity for the entity's lifetime. For example,
+    // there's two types of application: internal and third-party. this
+    // information could be included in the ID as bit flag.
+    // the number of attributes could be included is strictly limited.
 }
 
 impl entity_id::EntityIdDefinition for EntityIdInteger {}

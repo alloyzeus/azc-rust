@@ -10,6 +10,7 @@ use azml::azml::{adjunct::adjunct, entity::entity, module, value_object::value_o
 mod render_macros;
 
 mod adjunct_go;
+mod attribute_go;
 mod entity_go;
 mod symbol_go;
 mod template;

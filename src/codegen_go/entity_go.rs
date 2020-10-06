@@ -2,7 +2,9 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{symbol_go, BaseContext, GoCodeGenerator, ImportContext};
+use crate::codegen_go::{
+    attribute_go::AttributeContext, BaseContext, GoCodeGenerator, ImportContext,
+};
 
 use azml::azml::{
     entity::{entity, entity_id_integer},
@@ -34,9 +36,9 @@ impl GoCodeGenerator {
             let service_name = format!("{}Service", type_name);
             let type_doc_lines: Vec<String> =
                 symbol.documentation.lines().map(|x| x.to_owned()).collect();
-            let attributes: Vec<EntityAttributeContext> = (&ent.attributes)
+            let attributes: Vec<AttributeContext> = (&ent.attributes)
                 .into_iter()
-                .map(|x| EntityAttributeContext {
+                .map(|x| AttributeContext {
                     identifier: x.identifier.to_owned(),
                     type_name: (&x.kind).into(),
                     kind: (&x.kind).into(),
@@ -156,17 +158,10 @@ struct EntityContext {
     id_type_primitive: String,
     ref_key_type_name: String,
     attributes_type_name: String,
-    attributes: Vec<EntityAttributeContext>,
+    attributes: Vec<AttributeContext>,
     event_interface_name: String,
     service_name: String,
     creation: EntityCreationContext,
-}
-
-#[derive(Clone, Gtmpl)]
-struct EntityAttributeContext {
-    identifier: String,
-    type_name: String,
-    kind: symbol_go::SymbolRefContext,
 }
 
 #[derive(Clone, Gtmpl)]

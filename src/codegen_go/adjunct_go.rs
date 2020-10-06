@@ -2,7 +2,7 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{BaseContext, GoCodeGenerator};
+use crate::codegen_go::{attribute_go::AttributeContext, BaseContext, GoCodeGenerator};
 
 use azml::azml::{
     adjunct::{adjunct, adjunct_entity, adjunct_value_object},
@@ -70,6 +70,14 @@ impl GoCodeGenerator {
             let id_type_primitive = format!("int{}", id_size);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
+            let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
+                .into_iter()
+                .map(|x| AttributeContext {
+                    identifier: x.identifier.to_owned(),
+                    type_name: (&x.kind).into(),
+                    kind: (&x.kind).into(),
+                })
+                .collect();
             let service_name = format!("{}Service", type_name);
             let type_doc_lines: Vec<String> =
                 sym.documentation.lines().map(|x| x.to_owned()).collect();
@@ -83,6 +91,7 @@ impl GoCodeGenerator {
                 id_type_primitive: id_type_primitive.to_owned(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
+                attributes: attributes,
                 service_name: service_name.to_owned(),
                 hosts: hosts_names.clone(),
                 global_scope: global_scope,
@@ -202,6 +211,7 @@ struct AdjunctEntityContext {
     id_type_primitive: String,
     ref_key_type_name: String,
     attributes_type_name: String,
+    attributes: Vec<AttributeContext>,
     service_name: String,
     hosts: Vec<String>,
     global_scope: bool,

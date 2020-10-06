@@ -30,6 +30,10 @@ pub struct Symbol {
     // options will be useful for conformance with language's
     // naming convention, e.g., HttpRequest in contrast to HTTPRequest,
     // HttpRequest.java in contrast to http_request.rs .
+    //TODO: singular and plural. but we'll only need to define the
+    // term for singular and the other for collection. e.g., entity and
+    // entities. the collection option will be used for, e.g., url path
+    // and table names.
 }
 
 //endregion
