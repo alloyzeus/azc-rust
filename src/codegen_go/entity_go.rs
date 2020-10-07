@@ -38,11 +38,7 @@ impl GoCodeGenerator {
                 symbol.documentation.lines().map(|x| x.to_owned()).collect();
             let attributes: Vec<AttributeContext> = (&ent.attributes)
                 .into_iter()
-                .map(|x| AttributeContext {
-                    identifier: x.identifier.to_owned(),
-                    type_name: (&x.kind).into(),
-                    kind: (&x.kind).into(),
-                })
+                .map(|attr| attr.into())
                 .collect();
             let imports = symbol
                 .definition

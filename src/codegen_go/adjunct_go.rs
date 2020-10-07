@@ -72,11 +72,7 @@ impl GoCodeGenerator {
             let attrs_type_name = format!("{}Attributes", type_name);
             let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
                 .into_iter()
-                .map(|x| AttributeContext {
-                    identifier: x.identifier.to_owned(),
-                    type_name: (&x.kind).into(),
-                    kind: (&x.kind).into(),
-                })
+                .map(|attr| attr.into())
                 .collect();
             let service_name = format!("{}Service", type_name);
             let type_doc_lines: Vec<String> =
