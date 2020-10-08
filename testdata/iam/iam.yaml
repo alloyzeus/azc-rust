@@ -74,26 +74,73 @@ symbols:
           # 0b00000000000000000000000000000000
           #   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
           #   ||||||||||||||||||||||||||||||||
-          #   |||||| determines uniqueness (bit 1-26)
+          #   ||||||++++++++++++++++++++++++++- significants (index 0-25)
           #   ||||++- reserved 
-          #   |||+--- IsConfidentialUserAgent (bit 29)
-          #   ||+---- IsUserAgent (bit 30)
-          #   |+----- IsInternal (bit 31)
+          #   |||+--- depends on index 29 (index 28)
+          #   ||+---- Service/UserAgent (index 29)
+          #   |+----- IsFirstParty (index 30)
           #   +------ reserved for 32bit integer
           bits: 26
           flags:
-            - identifier: IsInternal
+            - identifier: IsFirstParty
+              documentation: |
+                IsFirstParty indicates that the application is a first-party
+                application.
+
+                Internal or first-party applications, in contrast to third party
+                applications, are those of official applications, officially
+                supported applications, or internal-use only applications.
+                Internal application could be in various forms, e.g.,
+                official mobile app, web app, or system dashboard.
               # This determines the bit we will use for this attribute.
-              bit: 31
+              bits:
+                - index: 30
+                  set: true
+            - identifier: IsService
+              documentation: |
+                A service is an application which doesn't represent any user.
+              bits:
+                - index: 29
+                  set: false
+                - index: 28
+                  set: true
             - identifier: IsUserAgent
-              bit: 30
+              documentation: |
+                An user-agent is an application which represents the user it got
+                authorized by.
+
+                There are two types of user agent: public and confidential.
+              bits:
+                - index: 29
+                  set: true
+            - identifier: IsPublicUserAgent
+              documentation: |
+                A public user agent application is an application which unable
+                to secure its credentials. A user is authenticating through
+                the application. By authenticating through an application
+                instance, the user is assumed to give authorization to the
+                said instance of application. Access control checks should be
+                focused on testing the user's authorization.
+              bits:
+                - index: 29
+                  set: true
+                - index: 28
+                  set: false
             - identifier: IsConfidentialUserAgent
-              bit: 29
+              documentation: |
+                A confidential user agent application is an application which
+                able to secure its credentials. The authorization process is
+                performed through 3-legged flow.
+              bits:
+                - index: 29
+                  set: true
+                - index: 28
+                  set: true
       ref_key:
         # This is a directive to include some attributes into the ref-keys.
         # Only final attributes can be included in ref keys.
         include_attributes:
-          - identifier: IsInternal
+          - identifier: IsFirstParty
       creation:
         allow_cross_process_callers: true
       mixins:
@@ -109,10 +156,10 @@ symbols:
                 min: 1
                 max: 4
       attributes:
-        - identifier: IsInternal
+        - identifier: IsFirstParty
           kind: bool
           final: true
-        - identifier: IsUserAgent
+        - identifier: IsPublicUserAgent
           kind: bool
           final: true
         - identifier: IsConfidentialUserAgent
@@ -142,9 +189,9 @@ symbols:
               # some of the Application's attributes based on information
               # embedded in this access key ID without the need
               # to fetch the complete data of the Application.
-              - identifier: hosts.0.IsInternal
+              - identifier: hosts.0.IsFirstParty
                 bit: 63
-              - identifier: hosts.0.IsUserAgent
+              - identifier: hosts.0.IsPublicUserAgent
                 bit: 62
               - identifier: hosts.0.IsConfidentialUserAgent
                 bit: 61
@@ -189,9 +236,9 @@ symbols:
           parameters:
             bits: 56
             flags:
-            - identifier: hosts.0.IsInternal
+            - identifier: hosts.0.IsFirstParty
               bit: 63
-            - identifier: hosts.0.IsUserAgent
+            - identifier: hosts.0.IsPublicUserAgent
               bit: 62
             - identifier: hosts.0.IsConfidentialUserAgent
               bit: 61

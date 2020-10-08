@@ -59,6 +59,14 @@ impl IntegerId {
 pub struct IntegerIdBitFlag {
     pub bit: i8,
     pub identifier: String,
+    pub documentation: String,
+    pub bits: Vec<IntegerIdBitFlagBit>,
+}
+
+#[derive(Clone, Debug)]
+pub struct IntegerIdBitFlagBit {
+    pub index: i8,
+    pub set: bool,
 }
 
 //endregion

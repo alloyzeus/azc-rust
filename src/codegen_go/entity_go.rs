@@ -3,7 +3,8 @@
 use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
-    attribute_go::AttributeContext, BaseContext, GoCodeGenerator, ImportContext,
+    attribute_go::AttributeContext, eid_go::IntegerIdContext, BaseContext, GoCodeGenerator,
+    ImportContext,
 };
 
 use azml::azml::{
@@ -26,10 +27,7 @@ impl GoCodeGenerator {
         let id_def = &ent.id.definition;
 
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
-            let id_size = Self::int_id_size_from_bits(id_int.bits);
-
             let id_type_name = format!("{}ID", type_name);
-            let id_type_primitive = format!("int{}", id_size);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let event_interface_name = format!("{}Event", type_name);
@@ -59,7 +57,7 @@ impl GoCodeGenerator {
                 type_name: type_name.to_owned(),
                 type_doc_lines: type_doc_lines.clone(),
                 id_type_name: id_type_name.to_owned(),
-                id_type_primitive: id_type_primitive.to_owned(),
+                id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
@@ -151,7 +149,7 @@ struct EntityContext {
     type_name: String,
     type_doc_lines: Vec<String>,
     id_type_name: String,
-    id_type_primitive: String,
+    id_def: IntegerIdContext,
     ref_key_type_name: String,
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
