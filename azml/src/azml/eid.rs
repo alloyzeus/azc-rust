@@ -24,6 +24,8 @@ pub struct IntegerId {
     //   nobody.
     pub significant_bits: i8,
 
+    pub bitfield: IntegerIdBitfield,
+
     //TODO: additional attributes (flags) encoding. these attributes are
     // part of the identity for the entity's lifetime. For example,
     // there's two types of application: internal and third-party. this
@@ -59,7 +61,7 @@ impl IntegerId {
 
 //endregion
 
-//region IntegerBitFlag
+//region IntegerIdBitFlag
 
 #[derive(Clone, Debug)]
 pub struct IntegerIdBitFlag {
@@ -71,6 +73,38 @@ pub struct IntegerIdBitFlag {
 
 #[derive(Clone, Debug)]
 pub struct IntegerIdBitFlagBit {
+    pub index: i8,
+    pub set: bool,
+}
+
+//endregion
+
+//region IntegerIdBitfield
+
+#[derive(Clone, Debug)]
+pub struct IntegerIdBitfield {
+    pub size: i8,
+    pub sub_fields: Vec<IntegerIdBitfieldSubField>,
+}
+
+impl Default for IntegerIdBitfield {
+    fn default() -> IntegerIdBitfield {
+        IntegerIdBitfield {
+            size: -1,
+            sub_fields: Vec::new(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct IntegerIdBitfieldSubField {
+    pub identifier: String,
+    pub documentation: String,
+    pub bits: Vec<IntegerIdBitfieldSubFieldBit>,
+}
+
+#[derive(Clone, Debug)]
+pub struct IntegerIdBitfieldSubFieldBit {
     pub index: i8,
     pub set: bool,
 }
