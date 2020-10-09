@@ -65,6 +65,22 @@ func (id {{.id_type_name}}) IDString() string {
 }
 
 {{$uid_type := print "uint" .id_def.primitive_size}}
+{{range .id_def.bitfield.sub_fields}}
+// Is{{.identifier}} returns true if the {{$.type_name}} instance
+// this ID is for is a {{.identifier}} {{$.type_name}}.
+//
+{{range .doc_lines}}// {{.}}
+{{end -}}
+func (id ApplicationID) Is{{.identifier}}() bool {
+	const mask = {{$uid_type}}(0) {{- range .bits}} |
+		({{$uid_type}}(1) << {{.index}}){{end}}
+	const flags = {{$uid_type}}(0) {{- range .bits}} |
+		({{$uid_type}}({{if .set}}1{{else}}0{{end}}) << {{.index}}){{end}}
+	return ({{$uid_type}}(id) & mask) == flags
+}
+{{end}}
+
+{{$uid_type := print "uint" .id_def.primitive_size}}
 {{range .id_def.flags}}
 {{range .doc_lines}}// {{.}}
 {{end -}}

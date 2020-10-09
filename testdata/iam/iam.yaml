@@ -146,12 +146,15 @@ symbols:
                   official mobile app, web app, or system dashboard.
                 bits:
                   # Index starts from 0. The maximum index is bitfield size - 1.
+                  # An index is scoped within the bitfield, i.e., the first
+                  # bit of a bitfield is always index 0.
                   - index: 0
                     set: true
               - identifier: Service
                 documentation: |
                   Service application is an application which does not
-                  represent user.
+                  represent user. Note that this is different from, e.g.,
+                  bot, where it's a specialization of User; a bot is a User.
                 bits:
                   - index: 1
                     set: false
