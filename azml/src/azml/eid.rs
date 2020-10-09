@@ -4,6 +4,8 @@
 
 #[derive(Clone, Debug)]
 pub struct IntegerId {
+    pub total_bits: i8,
+
     // The number of bits. Note that the actual types used are rounded up
     // to the power of 2. to ensure compatibility, we use signed 64bit integers,
     // so the actual space is limited to up to 63.
@@ -20,7 +22,7 @@ pub struct IntegerId {
     //
     // * For example, 0 in the context of user ID could be used to indicate
     //   nobody.
-    pub bits: i8,
+    pub significant_bits: i8,
 
     //TODO: additional attributes (flags) encoding. these attributes are
     // part of the identity for the entity's lifetime. For example,
@@ -39,14 +41,18 @@ pub struct IntegerId {
 
 impl IntegerId {
     pub fn primitive_size(&self) -> i8 {
-        match self.bits {
-            d if d < 16 => 16,
-            d if d < 32 => 32,
-            d if d < 64 => 64,
-            _ => panic!(
-                "Unsupported bits value {} (bits value must be smaller than 64)",
-                self.bits
-            ),
+        if self.total_bits > 0 {
+            self.total_bits
+        } else {
+            match self.significant_bits {
+                d if d < 16 => 16,
+                d if d < 32 => 32,
+                d if d < 64 => 64,
+                _ => panic!(
+                    "Unsupported bits value {} (bits value must be smaller than 64)",
+                    self.significant_bits
+                ),
+            }
         }
     }
 }

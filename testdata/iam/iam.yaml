@@ -11,10 +11,27 @@ symbols:
       lifecycle:
         creation:
       id:
-        # Options: integer(bits), uuid(version), string
+        # Options: integer(bits), uuid(version), string (encoded bytes; similar
+        # to integer but it doesn't have to be valid integer)
         kind: integer
         parameters:
-          bits: 48
+          # Only significant_bits is required but here, we also define the
+          # value of total_bits.
+          #
+          # This field is used to ensure that the IDs fit in the stated value;
+          # the compiler will return error if the IDs doesn't fit in
+          # total_bits.
+          #
+          # Valid value is any of 16 (analogous to int16_t in C/C++,
+          # smallint in SQL), 32 (analogous to int32_t in C/C++,
+          # int in SQL) and 64 (analogous to int64_t in C/C++, bigint in SQL).
+          #
+          # If not provided, total_bits will be determined by picking the
+          # option value a step larger than the value provided to
+          # significant_bits.
+          total_bits: 64
+          # Max 63
+          significant_bits: 48
         generator:
           # Other options: ShardedRandomIntegerGenerator
           # The option for generator is defined by the registered generators
@@ -28,7 +45,7 @@ symbols:
       mixins:
         - kind: Deletion
           parameters:
-            event_hooks:
+            event_emission:
               enabled: true
             api:
       # Declares the creation rules. This defines how and who can create
@@ -52,7 +69,7 @@ symbols:
     parameters:
       hosts:
         - name: User
-      kind: value-object
+      kind: value_object
       parameters:
         kind: telephony.PhoneNumber
         unique: true
@@ -67,6 +84,7 @@ symbols:
       id:
         kind: integer
         parameters:
+          total_bits: 32
           #TODO: reserve range?
           #
           # How this will be laid out:
@@ -80,7 +98,72 @@ symbols:
           #   ||+---- Service/UserAgent (index 29)
           #   |+----- IsFirstParty (index 30)
           #   +------ reserved for 32bit integer
-          bits: 26
+          significant_bits: 26
+          # Bitfield is used to embed limited information to the IDs. This
+          # information will be part of the identity of an instance;
+          # information can not be changed without changing the identity of
+          # the instance.
+          #
+          # NOTE: changing the schema of bitfields is naturally more
+          # difficult than changing the value of entity attributes or adjuncts.
+          # Use bitfield only for optimization of a well-defined, stable
+          # practice, and the information is part of the identity of each
+          # instance.
+          #
+          # An example use case for bitfield is to allow resource servers to
+          # quickly determine if an access will be allowed or not based on the
+          # type of the application embedded into the ID of the application
+          # which made the request. By quickly here we mean that this check
+          # doesn't required to get this type information from the
+          # database. The limitation in this use case is that the type of the
+          # application can not be changed without changing the
+          # identity of the application.
+          #
+          # If we have 26bit significants, and we want the identifier to fit
+          # in 32bit integers, first, we substract it by 1 (for ensuring it
+          # fits in 32bit signed integers), then substract it with the number
+          # of significants, in this case 26. So it will be: 32 - 1 - 26 = 5.
+          # Five is the maximum size of the bitfield if we have 26bit
+          # significants and we want it to fit in 32bit integers.
+          bitfield:
+            # The size of the bitfield, i.e., the number of bits we reserve for
+            # this bitfield. This field is optional as the compiler will
+            # infer this value by substracting total_bits with
+            # significant_bits.
+            size: 5
+            #TODO: copied sub_fields
+            sub_fields:
+              - identifier: FirstParty
+                documentation: |
+                  FirstParty indicates ....
+                bits:
+                  # Index starts from 0. The maximum index is bitfield size - 1.
+                  - index: 0
+                    set: true
+              - identifier: Service
+                documentation: |
+                  Service ....
+                bits:
+                  - index: 1
+                    set: false
+                  - index: 2
+                    set: true
+              - identifier: UserAgent
+                bits:
+                  - index: 1
+                    set: true
+              - identifier: PublicUserAgent
+                bits:
+                  - index: 1
+                    set: true
+                  - index: 2
+                    set: false
+              - identifier: ConfidentialUserAgent
+                bits:
+                  - index: 1
+                    set: true
+                  - index: 2
+                    set: true
           flags:
             - identifier: IsFirstParty
               documentation: |
@@ -180,7 +263,8 @@ symbols:
         id:
           kind: integer
           parameters:
-            bits: 56
+            total_bits: 64
+            significant_bits: 56
             flags:
               # This is similar to entity ID, but instead of encode own
               # attributes, we encode host's attributes.
@@ -234,7 +318,8 @@ symbols:
         id:
           kind: integer
           parameters:
-            bits: 56
+            total_bits: 64
+            significant_bits: 56
             flags:
             - identifier: hosts.0.IsFirstParty
               bit: 63
@@ -293,7 +378,8 @@ symbols:
         id:
           kind: integer
           parameters:
-            bits: 24
+            total_bits: 32
+            significant_bits: 24
         service:
           enabled: true
           description: |
@@ -341,7 +427,8 @@ symbols:
       id:
         kind: integer
         parameters:
-          bits: 48
+          total_bits: 64
+          significant_bits: 48
           encodings:
             text:
               prefix: ""

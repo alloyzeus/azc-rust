@@ -8,7 +8,10 @@ use crate::azml::{eid, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct IntegerIdYaml {
-    bits: i8,
+    #[serde(default)]
+    total_bits: i8,
+
+    significant_bits: i8,
 
     #[serde(default)]
     flags: Vec<IntegerIdBitFlagYaml>,
@@ -19,7 +22,8 @@ impl convert::TryFrom<IntegerIdYaml> for eid::IntegerId {
 
     fn try_from(x: IntegerIdYaml) -> Result<Self, Self::Error> {
         Ok(eid::IntegerId {
-            bits: x.bits,
+            total_bits: x.total_bits,
+            significant_bits: x.significant_bits,
             flags: x
                 .flags
                 .iter()

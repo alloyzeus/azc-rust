@@ -40,7 +40,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     name_is_prepared: x.name_is_prepared,
                 })
             }
-            "value-object" => {
+            "value_object" => {
                 let def: adjunct_value_object_yaml::AdjunctValueObjectYaml =
                     yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
