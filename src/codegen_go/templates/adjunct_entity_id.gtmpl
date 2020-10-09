@@ -1,7 +1,7 @@
 // {{.id_type_name}} is a scoped identifier
 // used to identify an instance of adjunct entity {{.type_name}}
 // scoped within its host entity(s).
-type {{.id_type_name}} {{.id_type_primitive}}
+type {{.id_type_name}} {{.id_def.type_name}}
 
 var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{.id_type_name}}Zero
 
@@ -10,14 +10,14 @@ const {{.id_type_name}}Zero = {{.id_type_name}}(0)
 
 // {{.id_type_name}}FromPrimitiveValue creates an instance
 // of {{.id_type_name}} from its primitive value.
-func {{.id_type_name}}FromPrimitiveValue(v {{.id_type_primitive}}) {{.id_type_name}} {
+func {{.id_type_name}}FromPrimitiveValue(v {{.id_def.type_name}}) {{.id_type_name}} {
 	return {{.id_type_name}}(v)
 }
 
 // PrimitiveValue returns the ID in its primitive type. Prefer to use
 // this method instead of casting directly.
-func (id {{.id_type_name}}) PrimitiveValue() {{.id_type_primitive}} {
-	return {{.id_type_primitive}}(id)
+func (id {{.id_type_name}}) PrimitiveValue() {{.id_def.type_name}} {
+	return {{.id_def.type_name}}(id)
 }
 
 // AZID is required

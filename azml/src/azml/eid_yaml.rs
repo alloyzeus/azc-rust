@@ -2,7 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{oid, yaml};
+use crate::azml::{eid, yaml};
 
 //region IntegerIdYaml
 
@@ -14,17 +14,17 @@ pub struct IntegerIdYaml {
     flags: Vec<IntegerIdBitFlagYaml>,
 }
 
-impl convert::TryFrom<IntegerIdYaml> for oid::IntegerId {
+impl convert::TryFrom<IntegerIdYaml> for eid::IntegerId {
     type Error = yaml::Error;
 
     fn try_from(x: IntegerIdYaml) -> Result<Self, Self::Error> {
-        Ok(oid::IntegerId {
+        Ok(eid::IntegerId {
             bits: x.bits,
             flags: x
                 .flags
                 .iter()
                 .map(|x| x.try_into())
-                .collect::<Result<Vec<oid::IntegerIdBitFlag>, _>>()?,
+                .collect::<Result<Vec<eid::IntegerIdBitFlag>, _>>()?,
         })
     }
 }
@@ -47,11 +47,11 @@ pub struct IntegerIdBitFlagYaml {
     bits: Vec<IntegerIdBitFlagBitYaml>,
 }
 
-impl convert::TryFrom<&IntegerIdBitFlagYaml> for oid::IntegerIdBitFlag {
+impl convert::TryFrom<&IntegerIdBitFlagYaml> for eid::IntegerIdBitFlag {
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdBitFlagYaml) -> Result<Self, Self::Error> {
-        Ok(oid::IntegerIdBitFlag {
+        Ok(eid::IntegerIdBitFlag {
             identifier: x.identifier.to_owned(),
             documentation: x.documentation.to_owned(),
             bit: x.bit,
@@ -59,12 +59,12 @@ impl convert::TryFrom<&IntegerIdBitFlagYaml> for oid::IntegerIdBitFlag {
                 .bits
                 .iter()
                 .map(|x| x.try_into())
-                .collect::<Result<Vec<oid::IntegerIdBitFlagBit>, _>>()?,
+                .collect::<Result<Vec<eid::IntegerIdBitFlagBit>, _>>()?,
         })
     }
 }
 
-impl convert::TryFrom<IntegerIdBitFlagYaml> for oid::IntegerIdBitFlag {
+impl convert::TryFrom<IntegerIdBitFlagYaml> for eid::IntegerIdBitFlag {
     type Error = yaml::Error;
 
     fn try_from(x: IntegerIdBitFlagYaml) -> Result<Self, Self::Error> {
@@ -82,18 +82,18 @@ pub struct IntegerIdBitFlagBitYaml {
     set: bool,
 }
 
-impl convert::TryFrom<&IntegerIdBitFlagBitYaml> for oid::IntegerIdBitFlagBit {
+impl convert::TryFrom<&IntegerIdBitFlagBitYaml> for eid::IntegerIdBitFlagBit {
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdBitFlagBitYaml) -> Result<Self, Self::Error> {
-        Ok(oid::IntegerIdBitFlagBit {
+        Ok(eid::IntegerIdBitFlagBit {
             index: x.index,
             set: x.set,
         })
     }
 }
 
-impl convert::TryFrom<IntegerIdBitFlagBitYaml> for oid::IntegerIdBitFlagBit {
+impl convert::TryFrom<IntegerIdBitFlagBitYaml> for eid::IntegerIdBitFlagBit {
     type Error = yaml::Error;
 
     fn try_from(x: IntegerIdBitFlagBitYaml) -> Result<Self, Self::Error> {

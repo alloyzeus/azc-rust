@@ -1,8 +1,13 @@
 //
 
-use std::{convert, result};
+use std::{
+    convert::{self, TryInto},
+    result,
+};
 
-use crate::azml::{adjunct::adjunct, attribute};
+use crate::azml::{adjunct::adjunct, attribute, eid};
+
+//region AdjunctEntity
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntity {
@@ -14,7 +19,9 @@ pub struct AdjunctEntity {
 
 impl adjunct::AdjuctDefinition for AdjunctEntity {}
 
-//----
+//endregion
+
+//region AdjunctEntiyScope
 
 // This is used to determine whether an instance can be addressed directly
 // or that it requires going through its hosts.
@@ -26,6 +33,8 @@ impl adjunct::AdjuctDefinition for AdjunctEntity {}
 // instead of https://example.com/stores/345/items/12345678
 //
 // The Global scope requires the ordering to be Unordered.
+//
+//TODO: find a better terms as what we have here now will create confusions for federated system.
 #[derive(Clone, PartialEq, Debug)]
 pub enum AdjunctEntityScope {
     Local,
@@ -42,7 +51,16 @@ impl convert::TryFrom<String> for AdjunctEntityScope {
     type Error = String;
 
     fn try_from(s: String) -> result::Result<Self, Self::Error> {
-        match s.as_ref() {
+        let sr: &str = s.as_ref();
+        sr.try_into()
+    }
+}
+
+impl convert::TryFrom<&str> for AdjunctEntityScope {
+    type Error = String;
+
+    fn try_from(s: &str) -> result::Result<Self, Self::Error> {
+        match s {
             "local" | "" => Ok(AdjunctEntityScope::Local),
             "global" => Ok(AdjunctEntityScope::Global),
             _ => Err(format!("Unrecognized AdjunctEntityScope value {}", s).to_owned()),
@@ -50,14 +68,18 @@ impl convert::TryFrom<String> for AdjunctEntityScope {
     }
 }
 
-//----
+//endregion
+
+//region AdjunctEntityId
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntityId {
     pub definition: Box<dyn AdjunctEntityIdDefinition>,
 }
 
-//----
+//endregion
+
+//region AdjunctEntityIdDefinition
 
 pub trait AdjunctEntityIdDefinition:
     mopa::Any + AdjunctEntityIdDefinitionClone + std::fmt::Debug
@@ -85,13 +107,11 @@ impl Clone for Box<dyn AdjunctEntityIdDefinition> {
     }
 }
 
-//----
+//endregion
 
-#[derive(Clone, Debug)]
-pub struct AdjunctEntityIdInteger {
-    // See EntityIdInteger for information
-    pub bits: i8,
-}
+//region AdjunctEntityIdInteger
+
+pub type AdjunctEntityIdInteger = eid::IntegerId;
 
 impl AdjunctEntityIdDefinition for AdjunctEntityIdInteger {}
 
@@ -99,7 +119,9 @@ pub trait AdjunctEntityIdIntegerEncoding: mopa::Any + std::fmt::Debug {}
 
 mopafy!(AdjunctEntityIdIntegerEncoding);
 
-//----
+//endregion
+
+//region AdjunctEntityOrdering
 
 #[derive(Clone, Debug)]
 pub enum AdjunctEntityOrdering {
@@ -124,3 +146,5 @@ impl convert::TryFrom<String> for AdjunctEntityOrdering {
         }
     }
 }
+
+//endregion

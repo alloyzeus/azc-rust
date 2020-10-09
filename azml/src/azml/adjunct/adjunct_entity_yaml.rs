@@ -2,7 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{adjunct::adjunct_entity, attribute, attribute_yaml, yaml};
+use crate::azml::{adjunct::adjunct_entity, attribute, attribute_yaml, eid_yaml, yaml};
 
 //----
 
@@ -72,15 +72,4 @@ impl convert::TryFrom<AdjunctEntityIdYaml> for adjunct_entity::AdjunctEntityId {
 
 //----
 
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct AdjunctEntityIdIntegerYaml {
-    bits: i8,
-}
-
-impl convert::TryFrom<AdjunctEntityIdIntegerYaml> for adjunct_entity::AdjunctEntityIdInteger {
-    type Error = yaml::Error;
-
-    fn try_from(x: AdjunctEntityIdIntegerYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_entity::AdjunctEntityIdInteger { bits: x.bits })
-    }
-}
+pub type AdjunctEntityIdIntegerYaml = eid_yaml::IntegerIdYaml;

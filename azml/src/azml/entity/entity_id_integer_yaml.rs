@@ -1,5 +1,5 @@
 //
 
-use crate::azml::oid_yaml;
+use crate::azml::eid_yaml;
 
-pub type EntityIdIntegerYaml = oid_yaml::IntegerIdYaml;
+pub type EntityIdIntegerYaml = eid_yaml::IntegerIdYaml;

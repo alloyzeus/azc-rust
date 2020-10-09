@@ -49,15 +49,6 @@ impl GoCodeGenerator {
         }
     }
 
-    fn int_id_size_from_bits(id_space: i8) -> i8 {
-        match id_space {
-            d if d < 16 => 16,
-            d if d < 32 => 32,
-            d if d < 64 => 64,
-            _ => -1, //TODO: error. we won't need this here. generators receive clean data.
-        }
-    }
-
     fn resolve_import(&self, pkg: &String) -> String {
         match self.package_urls.get(pkg) {
             Some(s) => s.to_owned(),

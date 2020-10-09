@@ -1,6 +1,6 @@
 //
 
-use azml::azml::oid;
+use azml::azml::eid;
 
 //region IntegerIdContext
 
@@ -11,8 +11,8 @@ pub struct IntegerIdContext {
     flags: Vec<IntegerIdBitFlagContext>,
 }
 
-impl From<&oid::IntegerId> for IntegerIdContext {
-    fn from(x: &oid::IntegerId) -> IntegerIdContext {
+impl From<&eid::IntegerId> for IntegerIdContext {
+    fn from(x: &eid::IntegerId) -> IntegerIdContext {
         IntegerIdContext {
             primitive_size: x.primitive_size(),
             type_name: format!("int{}", x.primitive_size()),
@@ -32,8 +32,8 @@ pub struct IntegerIdBitFlagContext {
     pub bits: Vec<IntegerIdBitFlagBitContext>,
 }
 
-impl From<&oid::IntegerIdBitFlag> for IntegerIdBitFlagContext {
-    fn from(x: &oid::IntegerIdBitFlag) -> IntegerIdBitFlagContext {
+impl From<&eid::IntegerIdBitFlag> for IntegerIdBitFlagContext {
+    fn from(x: &eid::IntegerIdBitFlag) -> IntegerIdBitFlagContext {
         IntegerIdBitFlagContext {
             identifier: x.identifier.to_owned(),
             doc_lines: x.documentation.lines().map(|x| x.to_owned()).collect(),
@@ -52,8 +52,8 @@ pub struct IntegerIdBitFlagBitContext {
     pub set: bool,
 }
 
-impl From<&oid::IntegerIdBitFlagBit> for IntegerIdBitFlagBitContext {
-    fn from(x: &oid::IntegerIdBitFlagBit) -> IntegerIdBitFlagBitContext {
+impl From<&eid::IntegerIdBitFlagBit> for IntegerIdBitFlagBitContext {
+    fn from(x: &eid::IntegerIdBitFlagBit) -> IntegerIdBitFlagBitContext {
         IntegerIdBitFlagBitContext {
             index: x.index,
             set: x.set,

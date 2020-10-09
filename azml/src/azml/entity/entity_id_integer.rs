@@ -1,8 +1,8 @@
 //
 
-use crate::azml::{entity::entity_id, oid};
+use crate::azml::{eid, entity::entity_id};
 
-pub type EntityIdInteger = oid::IntegerId;
+pub type EntityIdInteger = eid::IntegerId;
 
 impl entity_id::EntityIdDefinition for EntityIdInteger {}
 
