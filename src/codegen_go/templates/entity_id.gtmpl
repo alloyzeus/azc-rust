@@ -79,16 +79,3 @@ func (id ApplicationID) Is{{.identifier}}() bool {
 	return ({{$uid_type}}(id) & mask) == flags
 }
 {{end}}
-
-{{$uid_type := print "uint" .id_def.primitive_size}}
-{{range .id_def.flags}}
-{{range .doc_lines}}// {{.}}
-{{end -}}
-func (id ApplicationID) {{.identifier}}() bool {
-	const mask = {{$uid_type}}(0) {{- range .bits}} |
-		({{$uid_type}}(1) << {{.index}}){{end}}
-	const flags = {{$uid_type}}(0) {{- range .bits}} |
-		({{$uid_type}}({{if .set}}1{{else}}0{{end}}) << {{.index}}){{end}}
-	return ({{$uid_type}}(id) & mask) == flags
-}
-{{end}}

@@ -15,7 +15,7 @@ symbols:
         # to integer but it doesn't have to be valid integer)
         kind: integer
         parameters:
-          # Only significant_bits is required but here, we also define the
+          # Only significant_bits is required, but here, we also define the
           # value of total_bits.
           #
           # This field is used to ensure that the IDs fit in the stated value;
@@ -32,6 +32,14 @@ symbols:
           total_bits: 64
           # Max 63
           significant_bits: 48
+          bitfield:
+            sub_fields:
+              - identifier: Bot
+                documentation: |
+                  Bot account is ....
+                bits:
+                  - index: 1
+                    set: true
         generator:
           # Other options: ShardedRandomIntegerGenerator
           # The option for generator is defined by the registered generators
@@ -198,61 +206,6 @@ symbols:
                     set: true
                   - index: 2
                     set: true
-          flags:
-            - identifier: IsFirstParty
-              documentation: |
-                IsFirstParty indicates that the application is a first-party
-                application.
-
-                Internal or first-party applications, in contrast to third party
-                applications, are those of official applications, officially
-                supported applications, or internal-use only applications.
-                Internal application could be in various forms, e.g.,
-                official mobile app, web app, or system dashboard.
-              # This determines the bit we will use for this attribute.
-              bits:
-                - index: 30
-                  set: true
-            - identifier: IsService
-              documentation: |
-                A service is an application which doesn't represent any user.
-              bits:
-                - index: 29
-                  set: false
-                - index: 28
-                  set: true
-            - identifier: IsUserAgent
-              documentation: |
-                An user-agent is an application which represents the user it got
-                authorized by.
-
-                There are two types of user agent: public and confidential.
-              bits:
-                - index: 29
-                  set: true
-            - identifier: IsPublicUserAgent
-              documentation: |
-                A public user agent application is an application which unable
-                to secure its credentials. A user is authenticating through
-                the application. By authenticating through an application
-                instance, the user is assumed to give authorization to the
-                said instance of application. Access control checks should be
-                focused on testing the user's authorization.
-              bits:
-                - index: 29
-                  set: true
-                - index: 28
-                  set: false
-            - identifier: IsConfidentialUserAgent
-              documentation: |
-                A confidential user agent application is an application which
-                able to secure its credentials. The authorization process is
-                performed through 3-legged flow.
-              bits:
-                - index: 29
-                  set: true
-                - index: 28
-                  set: true
       ref_key:
         # This is a directive to include some attributes into the ref-keys.
         # Only final attributes can be included in ref keys.
@@ -299,6 +252,8 @@ symbols:
           parameters:
             total_bits: 64
             significant_bits: 56
+            embed:
+              - identifier: hosts.0
             flags:
               # This is similar to entity ID, but instead of encode own
               # attributes, we encode host's attributes.
