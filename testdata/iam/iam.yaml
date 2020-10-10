@@ -252,8 +252,14 @@ symbols:
           parameters:
             total_bits: 64
             significant_bits: 56
-            embed:
-              - identifier: hosts.0
+            bitfield:
+              # An adjunct can inherit its hosts' bitfields.
+              inherits:
+                - host: 0
+                  # The size of the inherited bitfield from this host. This
+                  # value must be exactly same as host's. This is required
+                  # for ensuring consistency.
+                  size: 5
             flags:
               # This is similar to entity ID, but instead of encode own
               # attributes, we encode host's attributes.

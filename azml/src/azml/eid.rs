@@ -81,6 +81,7 @@ impl IntegerId {
 pub struct IntegerIdBitfield {
     pub size: i8,
     pub sub_fields: Vec<IntegerIdBitfieldSubField>,
+    pub inherits: Vec<IntegerIdBitfieldInherit>,
 }
 
 impl IntegerIdBitfield {
@@ -95,6 +96,7 @@ impl Default for IntegerIdBitfield {
         IntegerIdBitfield {
             size: IntegerIdBitfield::size_default(),
             sub_fields: Vec::new(),
+            inherits: Vec::new(),
         }
     }
 }
@@ -118,6 +120,31 @@ pub struct IntegerIdBitfieldSubField {
 pub struct IntegerIdBitfieldSubFieldBit {
     pub index: i8,
     pub set: bool,
+}
+
+impl Default for IntegerIdBitfieldSubFieldBit {
+    fn default() -> IntegerIdBitfieldSubFieldBit {
+        IntegerIdBitfieldSubFieldBit {
+            index: -1,
+            set: false,
+        }
+    }
+}
+
+//endregion
+
+//region IntegerIdBitfieldInherit
+
+#[derive(Clone, Debug)]
+pub struct IntegerIdBitfieldInherit {
+    pub host: i8,
+    pub size: i8,
+}
+
+impl Default for IntegerIdBitfieldInherit {
+    fn default() -> IntegerIdBitfieldInherit {
+        IntegerIdBitfieldInherit { host: -1, size: -1 }
+    }
 }
 
 //endregion
