@@ -1,12 +1,11 @@
 //
 
-use azml::azml::module;
+use azml::azml::compiler;
 
 //TODO: custom error type
 pub trait CodeGenerator {
-    fn generate_module_codes(
+    fn generate_codes(
         &self,
-        module_name: &String,
-        module_def: &module::ModuleDefinition,
+        compilation_state: &compiler::CompilationState,
     ) -> Result<(), Box<dyn std::error::Error>>;
 }

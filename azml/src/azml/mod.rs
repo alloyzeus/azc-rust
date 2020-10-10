@@ -5,6 +5,7 @@ pub mod arity;
 pub mod arity_yaml;
 pub mod attribute;
 pub mod attribute_yaml;
+pub mod compiler;
 pub mod data_type;
 pub mod eid;
 pub mod eid_yaml;

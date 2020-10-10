@@ -14,11 +14,17 @@ impl Default for ArityConstraintYaml {
     }
 }
 
-impl From<ArityConstraintYaml> for arity::ArityConstraint {
-    fn from(x: ArityConstraintYaml) -> arity::ArityConstraint {
+impl From<&ArityConstraintYaml> for arity::ArityConstraint {
+    fn from(x: &ArityConstraintYaml) -> arity::ArityConstraint {
         arity::ArityConstraint {
             min: x.min,
             max: x.max,
         }
+    }
+}
+
+impl From<ArityConstraintYaml> for arity::ArityConstraint {
+    fn from(x: ArityConstraintYaml) -> arity::ArityConstraint {
+        (&x).into()
     }
 }

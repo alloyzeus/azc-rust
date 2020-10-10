@@ -5,7 +5,7 @@ extern crate gtmpl_derive;
 
 use std::{collections::HashMap, env, io, io::Write, process};
 
-use azml::azml::{adjunct::adjunct, entity::entity, error, module, source_file};
+use azml::azml::{adjunct::adjunct, compiler, entity::entity, error, module};
 
 mod codegen;
 mod codegen_go;
@@ -18,48 +18,59 @@ fn main() {
         process::exit(-1)
     }
 
-    let source_file_result = source_file::load_from_file(args[1].to_owned());
-    match &source_file_result {
-        Ok(src) => println!("{:?}", src),
+    let c = compiler::Compiler::new();
+    let compilation_state = c.compile_file(args[1].to_owned());
+
+    match &compilation_state {
+        Ok(compilation_state) => {
+            println!("{:?}", compilation_state);
+            let mut package_urls = HashMap::new();
+            package_urls.insert(
+                "telephony".to_owned(),
+                "github.com/alloyzeus/go-modules/telephony".to_owned(),
+            );
+
+            use codegen::CodeGenerator;
+            let go_codegen = codegen_go::GoCodeGenerator {
+                base_dir: "testdata/output/go".to_owned(),
+                module_identifier: "github.com/alloyzeus/go-examples".to_owned(),
+                file_per_struct: false,
+                package_urls: package_urls,
+                azlib_prefix: "AZx".to_owned(),
+                azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
+                azcore_pkg: "azcore".to_owned(),
+            };
+
+            let entry_module = compilation_state
+                .modules
+                .get(&compilation_state.entry_module);
+            match entry_module {
+                Some(entry_module) => {
+                    let mut buf = io::BufWriter::new(Vec::new());
+                    write_dot(
+                        &mut buf,
+                        compilation_state.entry_module.to_owned(),
+                        entry_module,
+                    )
+                    .unwrap();
+                    io::stdout().write_all(buf.buffer()).unwrap();
+                }
+                _ => panic!("No entry module"),
+            }
+
+            go_codegen.generate_codes(&compilation_state).unwrap();
+        }
         Err(err) => println!("Error! {:?}", err),
-    }
-
-    if let Ok(src) = source_file_result {
-        let mut buf = io::BufWriter::new(Vec::new());
-        write_dot(&mut buf, &src).unwrap();
-        io::stdout().write_all(buf.buffer()).unwrap();
-
-        let mut package_urls = HashMap::new();
-        package_urls.insert(
-            "telephony".to_owned(),
-            "github.com/alloyzeus/go-modules/telephony".to_owned(),
-        );
-
-        use codegen::CodeGenerator;
-        let go_codegen = codegen_go::GoCodeGenerator {
-            base_dir: "testdata/output/go".to_owned(),
-            module_identifier: "github.com/alloyzeus/go-examples".to_owned(),
-            file_per_struct: false,
-            package_urls: package_urls,
-            azlib_prefix: "AZx".to_owned(),
-            azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
-            azcore_pkg: "azcore".to_owned(),
-        };
-
-        go_codegen
-            .generate_module_codes(
-                &src.module,
-                &module::ModuleDefinition {
-                    symbols: src.symbols.to_vec(),
-                },
-            )
-            .unwrap();
     }
 }
 
-fn write_dot(w: &mut impl io::Write, src: &source_file::SourceFile) -> Result<(), error::Error> {
-    w.write(format!("digraph {} {{\n", src.module).as_bytes())?;
-    for symbol in &src.symbols {
+fn write_dot(
+    w: &mut impl io::Write,
+    module_name: String,
+    module_def: &module::ModuleDefinition,
+) -> Result<(), error::Error> {
+    w.write(format!("digraph {} {{\n", module_name).as_bytes())?;
+    for symbol in &module_def.symbols {
         let params = &symbol.definition;
         if let Some(ent) = params.downcast_ref::<entity::Entity>() {
             ent.write_dot_identifier(w, symbol.identifier.clone())?;
@@ -68,7 +79,7 @@ fn write_dot(w: &mut impl io::Write, src: &source_file::SourceFile) -> Result<()
         }
     }
     w.write_all(b"\n")?;
-    for symbol in &src.symbols {
+    for symbol in &module_def.symbols {
         let params = &symbol.definition;
         if let Some(ent) = params.downcast_ref::<entity::Entity>() {
             ent.write_dot_relationships(w, symbol.identifier.clone())?;

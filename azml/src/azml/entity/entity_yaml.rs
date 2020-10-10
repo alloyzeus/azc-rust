@@ -40,7 +40,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
                 .into_iter()
                 .map(|x| mixin::Mixin::try_from(x))
                 .collect::<Result<Vec<mixin::Mixin>, _>>()?,
-            service: if let Some(service) = x.service {
+            service: if let Some(service) = x.service.clone() {
                 Some(service.into())
             } else {
                 None
@@ -58,9 +58,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
 
 impl Default for ref_key_yaml::RefKeyYaml {
     fn default() -> ref_key_yaml::RefKeyYaml {
-        ref_key_yaml::RefKeyYaml {
-            included_attributes: Vec::new(),
-        }
+        ref_key_yaml::RefKeyYaml {}
     }
 }
 
@@ -74,20 +72,30 @@ struct EntityCreationYaml {
     allow_cross_process_callers: bool,
 }
 
-impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
+impl convert::TryFrom<&EntityCreationYaml> for entity::EntityCreation {
     type Error = yaml::Error;
 
-    fn try_from(x: EntityCreationYaml) -> Result<Self, Self::Error> {
+    fn try_from(x: &EntityCreationYaml) -> Result<Self, Self::Error> {
         Ok(entity::EntityCreation {
-            documentation: x.documentation,
+            documentation: x.documentation.to_owned(),
             allow_cross_process_callers: x.allow_cross_process_callers,
         })
     }
 }
 
+impl convert::TryFrom<EntityCreationYaml> for entity::EntityCreation {
+    type Error = yaml::Error;
+
+    fn try_from(x: EntityCreationYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
 //endregion
 
-#[derive(serde::Deserialize, serde::Serialize, Debug)]
+//region EntityServiceYaml
+
+#[derive(Clone, serde::Deserialize, serde::Serialize, Debug)]
 struct EntityServiceYaml {
     #[serde(default)]
     documentation: String,
@@ -96,11 +104,19 @@ struct EntityServiceYaml {
     enabled: bool,
 }
 
-impl From<EntityServiceYaml> for entity::EntityService {
-    fn from(x: EntityServiceYaml) -> entity::EntityService {
+impl From<&EntityServiceYaml> for entity::EntityService {
+    fn from(x: &EntityServiceYaml) -> entity::EntityService {
         entity::EntityService {
-            documentation: x.documentation,
+            documentation: x.documentation.to_owned(),
             enabled: x.enabled,
         }
     }
 }
+
+impl From<EntityServiceYaml> for entity::EntityService {
+    fn from(x: EntityServiceYaml) -> entity::EntityService {
+        (&x).into()
+    }
+}
+
+//endregion

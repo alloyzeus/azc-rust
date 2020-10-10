@@ -1,11 +1,15 @@
 //
 
+//region EntityId
+
 #[derive(Clone, Debug)]
 pub struct EntityId {
     pub definition: Box<dyn EntityIdDefinition>,
 }
 
-//----
+//endregion
+
+//region EntityIdDefinition
 
 pub trait EntityIdDefinition: mopa::Any + EntityIdDefinitionClone + std::fmt::Debug {}
 
@@ -29,3 +33,5 @@ impl Clone for Box<dyn EntityIdDefinition> {
         self.clone_box()
     }
 }
+
+//endregion

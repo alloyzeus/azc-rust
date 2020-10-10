@@ -206,11 +206,6 @@ symbols:
                     set: true
                   - index: 2
                     set: true
-      ref_key:
-        # This is a directive to include some attributes into the ref-keys.
-        # Only final attributes can be included in ref keys.
-        include_attributes:
-          - identifier: IsFirstParty
       creation:
         allow_cross_process_callers: true
       mixins:
@@ -225,16 +220,6 @@ symbols:
               value:
                 min: 1
                 max: 4
-      attributes:
-        - identifier: IsFirstParty
-          kind: bool
-          final: true
-        - identifier: IsPublicUserAgent
-          kind: bool
-          final: true
-        - identifier: IsConfidentialUserAgent
-          kind: bool
-          final: true
 
   - identifier: ApplicationAccessKey
     kind: adjunct
@@ -254,13 +239,6 @@ symbols:
             significant_bits: 56
             bitfield:
               # An adjunct can inherit its hosts' bitfields.
-              inherits:
-                - host: 0
-                  # The size of the inherited bitfield from this host. This
-                  # value must be exactly same as host's. This is required
-                  # for ensuring consistency.
-                  size: 5
-            flags:
               # This is similar to entity ID, but instead of encode own
               # attributes, we encode host's attributes.
               #
@@ -268,12 +246,12 @@ symbols:
               # some of the Application's attributes based on information
               # embedded in this access key ID without the need
               # to fetch the complete data of the Application.
-              - identifier: hosts.0.IsFirstParty
-                bit: 63
-              - identifier: hosts.0.IsPublicUserAgent
-                bit: 62
-              - identifier: hosts.0.IsConfidentialUserAgent
-                bit: 61
+              inherits:
+                - host: 0
+                  # The size of the inherited bitfield from this host. This
+                  # value must be exactly same as host's. This is required
+                  # for ensuring consistency.
+                  size: 5
               
         attributes:
           - identifier: Secret
@@ -315,13 +293,10 @@ symbols:
           parameters:
             total_bits: 64
             significant_bits: 56
-            flags:
-            - identifier: hosts.0.IsFirstParty
-              bit: 63
-            - identifier: hosts.0.IsPublicUserAgent
-              bit: 62
-            - identifier: hosts.0.IsConfidentialUserAgent
-              bit: 61
+            bitfield:
+              inherits:
+                - host: 0
+                  size: 5
         mixins:
           - kind: Deletion
             parameters:

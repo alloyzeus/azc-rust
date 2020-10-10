@@ -4,7 +4,7 @@ use std::{collections::HashMap, error, fs, io::Write};
 
 use crate::codegen;
 
-use azml::azml::{adjunct::adjunct, entity::entity, module, value_object::value_object};
+use azml::azml::{adjunct::adjunct, compiler, entity::entity, module, value_object::value_object};
 
 #[macro_use]
 mod render_macros;
@@ -23,7 +23,7 @@ pub struct GoCodeGenerator {
     // Go module identifier. This is the one defined in the go.mod file.
     pub module_identifier: String,
 
-    // A flag to render every struct on its own file. Currently unused.
+    // A flag to render every Go struct to its own file. Currently unused.
     pub file_per_struct: bool,
 
     pub package_urls: HashMap<String, String>,
@@ -57,7 +57,7 @@ impl GoCodeGenerator {
     }
 }
 
-impl codegen::CodeGenerator for GoCodeGenerator {
+impl GoCodeGenerator {
     fn generate_module_codes(
         &self,
         module_name: &String,
@@ -98,6 +98,28 @@ impl codegen::CodeGenerator for GoCodeGenerator {
             }
         }
         Ok(())
+    }
+}
+
+impl codegen::CodeGenerator for GoCodeGenerator {
+    fn generate_codes(
+        &self,
+        compilation_state: &compiler::CompilationState,
+    ) -> Result<(), Box<dyn error::Error>> {
+        let entry_module = compilation_state
+            .modules
+            .get(&compilation_state.entry_module);
+        match entry_module {
+            Some(entry_module) => self.generate_module_codes(
+                &compilation_state.entry_module,
+                &module::ModuleDefinition {
+                    symbols: entry_module.symbols.to_vec(),
+                },
+            ),
+            _ => Err(Box::new(azml::azml::Error::Msg(
+                "invalid compilation state".to_owned(),
+            ))),
+        }
     }
 }
 
