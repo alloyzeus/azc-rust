@@ -77,6 +77,11 @@ impl GoCodeGenerator {
             let type_doc_lines: Vec<String> =
                 sym.documentation.lines().map(|x| x.to_owned()).collect();
 
+            if !id_int.bitfield.inherits.is_empty() {
+                // let host = self.get_entity(module_name.to_owned(), adj.hosts[0].name.to_owned());
+                // println!("Adjunct {} host {:?}", type_name, host);
+            }
+
             let tpl_ctx = AdjunctEntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),

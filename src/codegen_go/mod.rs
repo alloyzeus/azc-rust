@@ -36,6 +36,7 @@ pub struct GoCodeGenerator {
     // AZStd is a collection of well-thought, stable library
     // AZExt contains additional libraries which are generally optional
     // or they are in an experimental stage.
+    pub compilation_state: Option<compiler::CompilationState>,
 }
 
 impl GoCodeGenerator {
@@ -55,6 +56,13 @@ impl GoCodeGenerator {
             _ => "???".to_owned(),
         }
     }
+
+    // fn get_entity(&self, module: String, entity_name: String) -> Option<&entity::Entity> {
+    //     match &self.compilation_state {
+    //         Some(compilation_state) => compilation_state.get_entity(module, entity_name),
+    //         _ => None,
+    //     }
+    // }
 }
 
 impl GoCodeGenerator {
@@ -103,9 +111,10 @@ impl GoCodeGenerator {
 
 impl codegen::CodeGenerator for GoCodeGenerator {
     fn generate_codes(
-        &self,
+        &mut self,
         compilation_state: &compiler::CompilationState,
     ) -> Result<(), Box<dyn error::Error>> {
+        self.compilation_state = Some(compilation_state.clone());
         let entry_module = compilation_state
             .modules
             .get(&compilation_state.entry_module);

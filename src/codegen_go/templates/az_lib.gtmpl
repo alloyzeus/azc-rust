@@ -6,6 +6,19 @@ import (
 
 // This file contains specializations of azcore types.
 
+//region ServiceServerBase
+
+type {{.base.azlib_prefix}}ServiceServerBase struct {
+	realmName string
+}
+
+// RealmName returns configured realm name of this server.
+func (srv {{.base.azlib_prefix}}ServiceServerBase) RealmName() string {
+	return srv.realmName
+}
+
+//endregion
+
 //region EntityAttributesBase
 
 // {{.base.azlib_prefix}}EntityAttributesBase is
@@ -41,11 +54,11 @@ type {{.base.azlib_prefix}}EntityServiceBase struct {
 	{{.base.azcore_pkg}}.EntityServiceBase
 }
 
-var _ {{.base.azlib_prefix}}EntityService = {{.base.azlib_prefix}}EntityServiceBase{}
+var _ {{.base.azlib_prefix}}EntityService = &{{.base.azlib_prefix}}EntityServiceBase{}
 
 // AZEntityService is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
-func (svc {{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {}
+func (svc *{{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {}
 
 //endregion
 
@@ -60,11 +73,11 @@ type {{.base.azlib_prefix}}EntityServiceClientBase struct {
 	{{.base.azlib_prefix}}EntityServiceBase
 }
 
-var _ {{.base.azlib_prefix}}EntityServiceClient = {{.base.azlib_prefix}}EntityServiceClientBase{}
+var _ {{.base.azlib_prefix}}EntityServiceClient = &{{.base.azlib_prefix}}EntityServiceClientBase{}
 
 // AZEntityServiceClient is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
-func (svc {{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {}
+func (svc *{{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {}
 
 //endregion
 
@@ -76,14 +89,15 @@ type {{.base.azlib_prefix}}EntityServiceServer interface {
 }
 
 type {{.base.azlib_prefix}}EntityServiceServerBase struct {
-	{{.base.azlib_prefix}}EntityServiceBase
+	*{{.base.azlib_prefix}}EntityServiceBase
+	*{{.base.azlib_prefix}}ServiceServerBase
 }
 
-var _ {{.base.azlib_prefix}}EntityServiceServer = {{.base.azlib_prefix}}EntityServiceServerBase{}
+var _ {{.base.azlib_prefix}}EntityServiceServer = &{{.base.azlib_prefix}}EntityServiceServerBase{}
 
 // AZEntityServiceServer is required for conformance
 // with {{.base.azcore_pkg}}.EntityService.
-func (svc {{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {}
+func (srv *{{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {}
 
 //endregion
 

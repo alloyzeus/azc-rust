@@ -31,7 +31,7 @@ fn main() {
             );
 
             use codegen::CodeGenerator;
-            let go_codegen = codegen_go::GoCodeGenerator {
+            let mut go_codegen = codegen_go::GoCodeGenerator {
                 base_dir: "testdata/output/go".to_owned(),
                 module_identifier: "github.com/alloyzeus/go-examples".to_owned(),
                 file_per_struct: false,
@@ -39,6 +39,7 @@ fn main() {
                 azlib_prefix: "AZx".to_owned(),
                 azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
                 azcore_pkg: "azcore".to_owned(),
+                compilation_state: None,
             };
 
             let entry_module = compilation_state

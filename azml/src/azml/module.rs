@@ -2,7 +2,7 @@
 
 use crate::azml::symbol;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ModuleDefinition {
     pub symbols: Vec<symbol::Symbol>,
 }

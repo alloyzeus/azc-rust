@@ -2,12 +2,28 @@
 
 use std::{collections::HashMap, convert::TryFrom, fs, io, path};
 
-use crate::azml::{module, result, source_file, source_file_yaml, yaml};
+use crate::azml::{entity::entity, module, result, source_file, source_file_yaml, yaml};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct CompilationState {
     pub entry_module: String,
     pub modules: HashMap<String, module::ModuleDefinition>,
+}
+
+impl CompilationState {
+    pub fn get_entity(&self, module: String, entity_name: String) -> Option<&entity::Entity> {
+        let module = self.modules.get(&module);
+        match module {
+            Some(module) => {
+                let sym = module.symbols.iter().find(|&x| x.identifier == entity_name);
+                match sym {
+                    Some(sym) => sym.definition.downcast_ref::<entity::Entity>(),
+                    _ => None,
+                }
+            }
+            _ => None,
+        }
+    }
 }
 
 pub struct Compiler {}
