@@ -7,13 +7,14 @@ type {{.service_name}} interface {
 		{{.type_name}}EventsObserveInput,
 	) {{.type_name}}EventsObserveOutput
 
-	{{if .creation.allow_cross_process_callers}}
+	{{if .creation.allow_cross_process_callers -}}
 	Create{{.type_name}}(
-		{{.type_name}}CreateInput,
-	) {{.type_name}}CreateOutput
-	{{end}}
+		{{.type_name}}CreateRequest,
+	) {{.type_name}}CreateResponse
 
-	// TODO: other stuff from the mixins
+	{{end -}}
+
+	{{- /* TODO: this interface should be dynamically filled by mixins */}}
 }
 
 // {{.type_name}}EventsObserveInput is the input
@@ -46,22 +47,22 @@ func (evt {{.type_name}}CreateEvent) {{.type_name}}Event() {{.type_name}}Event {
 
 {{if .creation.allow_cross_process_callers}}
 
-// {{.type_name}}CreateInput is for use in Create{{.type_name}} method of {{.service_name}}.
-type {{.type_name}}CreateInput struct {
+// {{.type_name}}CreateRequest is for use in Create{{.type_name}} method of {{.service_name}}.
+type {{.type_name}}CreateRequest struct {
 	Context {{.base.azlib_prefix}}EntityCreationRequestContext
-	Parameters {{.type_name}}CreateInputParameters
+	Parameters {{.type_name}}CreateRequestParameters
 }
 
-type {{.type_name}}CreateInputParameters struct {
+type {{.type_name}}CreateRequestParameters struct {
 	// TODO
 }
 
-type {{.type_name}}CreateOutput struct {
+type {{.type_name}}CreateResponse struct {
 	Context {{.base.azlib_prefix}}EntityCreationResponseContext
-	Parameters {{.type_name}}CreateOutputParameters
+	Parameters {{.type_name}}CreateResponseParameters
 }
 
-type {{.type_name}}CreateOutputParameters struct {
+type {{.type_name}}CreateResponseParameters struct {
 	ID {{.id_type_name}}
 	CreationInfo *{{.base.azlib_prefix}}EntityCreationInfo
 

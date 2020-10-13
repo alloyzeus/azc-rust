@@ -32,7 +32,7 @@ func (srv *{{.service_name}}Server) Observe{{.type_name}}Events(
 	return {{.pkg_name}}.{{.type_name}}EventsObserveOutput{}
 }
 
-{{if .creation.allow_cross_process_callers}}
+{{if .creation.allow_cross_process_callers -}}
 
 // Create{{.type_name}} creates a new {{.type_name}}.
 //
@@ -40,24 +40,62 @@ func (srv *{{.service_name}}Server) Observe{{.type_name}}Events(
 // from the inter-process API layer. For the intra-process version,
 // see Create{{.type_name}}Internal.
 func (srv *{{.service_name}}Server) Create{{.type_name}}(
-	input {{.pkg_name}}.{{.type_name}}CreateInput,
-) {{.pkg_name}}.{{.type_name}}CreateOutput {
+	input {{.pkg_name}}.{{.type_name}}CreateRequest,
+) {{.pkg_name}}.{{.type_name}}CreateResponse {
 	//TODO: access control. after it's been cleared, continue with internal.
+
 	return srv.Create{{.type_name}}Internal(input)
 }
 
-{{end}}
+type {{.type_name}}CreateRequest = {{.pkg_name}}.{{.type_name}}CreateRequest
+type {{.type_name}}CreateRequestParameters = {{.pkg_name}}.{{.type_name}}CreateRequestParameters
+
+type {{.type_name}}CreateResponse = {{.pkg_name}}.{{.type_name}}CreateResponse
+type {{.type_name}}CreateResponseParameters = {{.pkg_name}}.{{.type_name}}CreateResponseParameters
+
+{{else -}}
+
+// {{.type_name}}CreateRequest is for use in Create{{.type_name}} method of {{.service_name}}.
+type {{.type_name}}CreateRequest struct {
+	Context {{.pkg_name}}.{{.base.azlib_prefix}}EntityCreationRequestContext
+	Parameters {{.type_name}}CreateRequestParameters
+}
+
+type {{.type_name}}CreateRequestParameters struct {
+	// TODO
+}
+
+type {{.type_name}}CreateResponse struct {
+	Context {{.pkg_name}}.{{.base.azlib_prefix}}EntityCreationResponseContext
+	Parameters {{.type_name}}CreateResponseParameters
+}
+
+type {{.type_name}}CreateResponseParameters struct {
+	ID {{.pkg_name}}.{{.id_type_name}}
+	CreationInfo *{{.pkg_name}}.{{.base.azlib_prefix}}EntityCreationInfo
+
+	// TODO
+}
+
+{{end -}}
 
 // Create{{.type_name}}Internal is for intra-process. It doesn't enforce any
 // access control.
 //
 //TODO: create internal input-output as the non-internal might be not available.
 func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
-	input {{.pkg_name}}.{{.type_name}}CreateInput,
-) {{.pkg_name}}.{{.type_name}}CreateOutput {
+	input {{.type_name}}CreateRequest,
+) {{.type_name}}CreateResponse {
 	//TODO
-	return {{.pkg_name}}.{{.type_name}}CreateOutput{}
+	return {{.type_name}}CreateResponse{}
+
+	// return {{.type_name}}CreateResponseWithError(
+	//	input.{{.type_name}}CreateRequestContext(),
+	//	azcore.ErrMethodNotImplemented,
+	//)
 }
+
+// instantiate{{.type_name}}
 
 // new{{.id_type_name}} generates a new ID which can be assigned
 // to a new entity.
