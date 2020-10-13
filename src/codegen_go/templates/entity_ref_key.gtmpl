@@ -3,18 +3,18 @@
 type {{.ref_key_type_name}} {{.id_type_name}}
 
 // To ensure that it conforms the interfaces
-var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
-var _ {{.base.azcore_pkg}}.EntityRefKey = _{{.ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.EntityRefKey = {{unexported_global .ref_key_type_name}}Zero
 {{if .implements -}}
-var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = _{{.ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- end}}
 
-const _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero)
+const {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero)
 
 // {{.ref_key_type_name}}Zero returns
 // a zero-valued instance of {{.ref_key_type_name}}.
 func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
-	return _{{.ref_key_type_name}}Zero
+	return {{unexported_global .ref_key_type_name}}Zero
 }
 
 // AZRefKey is required for conformance with {{.base.azcore_pkg}}.RefKey.

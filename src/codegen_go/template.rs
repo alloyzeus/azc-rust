@@ -6,6 +6,7 @@ pub fn render_template<T: Into<gtmpl_value::Value>>(
 ) -> Result<String, String> {
     let mut tmpl = gtmpl::Template::default();
     tmpl.add_func("unexported_field", unexported_field);
+    tmpl.add_func("unexported_global", unexported_global);
     tmpl.add_func("arg_name", arg_name);
     tmpl.add_func("sym_name", sym_name);
     tmpl.parse(template_str)?;
@@ -19,6 +20,15 @@ fn unexported_field(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, S
             r.make_ascii_lowercase();
         }
         Ok(gtmpl_value::Value::String(r))
+    } else {
+        Err(format!("String required, got: {:?}", args))
+    }
+}
+
+fn unexported_global(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+    if let gtmpl_value::Value::String(ref o) = &args[0] {
+        let r: String = o.to_owned();
+        Ok(gtmpl_value::Value::String(format!("_{}", r)))
     } else {
         Err(format!("String required, got: {:?}", args))
     }

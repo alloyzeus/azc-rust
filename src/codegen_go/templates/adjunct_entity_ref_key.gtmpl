@@ -2,21 +2,37 @@
 // an instance of adjunct entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} struct {
 	{{if not .global_scope -}}{{range .hosts -}}
-	{{.}} {{.}}RefKey
+	{{unexported_field .}} {{.}}RefKey
 	{{end}}{{- end -}}
 	id {{.id_type_name}}
 }
 
+// New{{.ref_key_type_name}} returns a new instance
+// of {{.ref_key_type_name}} with the provided attribute values.
+func New{{.ref_key_type_name}}(
+	{{if not .global_scope -}}{{- range .hosts}}
+	{{arg_name .}} {{.}}RefKey,
+	{{end}}{{end -}}
+	id {{.id_type_name}},
+) {{.ref_key_type_name}} {
+	return {{.ref_key_type_name}}{
+		{{if not .global_scope -}}{{- range .hosts}}
+		{{unexported_field .}}: {{arg_name .}},
+		{{end}}{{end -}}
+		id: id,
+	}
+}
+
 // To ensure that it conforms the interfaces
-var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
-var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = _{{.ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = {{unexported_global .ref_key_type_name}}Zero
 {{if .implements -}}
-var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = _{{.ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- end}}
 
-var _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}{
+var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
 	{{if not .global_scope -}}{{range .hosts -}}
-	{{.}}: {{.}}RefKeyZero(),
+	{{unexported_field .}}: {{.}}RefKeyZero(),
 	{{end}}{{- end -}}
 	id: {{.id_type_name}}Zero,
 }
@@ -24,7 +40,7 @@ var _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}{
 // {{.ref_key_type_name}}Zero returns
 // a zero-valued instance of {{.ref_key_type_name}}.
 func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
-	return _{{.ref_key_type_name}}Zero
+	return {{unexported_global .ref_key_type_name}}Zero
 }
 
 // AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
@@ -49,18 +65,18 @@ func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
-	return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.IsZero() &&
+	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.IsZero() &&
 		{{end}}{{- end -}} refKey.id == {{.id_type_name}}Zero
 }
 
 // Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
 func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
-		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
+		return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.Equals{{.}}RefKey(x.{{unexported_field .}}) &&
 			{{end}}{{- end -}} refKey.id == x.id
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
-		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
+		return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.Equals{{.}}RefKey(x.{{unexported_field .}}) &&
 			{{end}}{{- end -}} refKey.id == x.id
 	}
 	return false
@@ -76,7 +92,7 @@ func (refKey {{.ref_key_type_name}}) Equal(other interface{}) bool {
 func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {
-	return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(other.{{.}}) &&
+	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.Equals{{.}}RefKey(other.{{unexported_field .}}) &&
 		{{end}}{{- end -}} refKey.id == other.id
 }
 
@@ -94,3 +110,26 @@ func (refKey {{.ref_key_type_name}}) RefKeyString() string {
 	// to accomodate such structure.
 	return "TODO"
 }
+
+{{if not .global_scope}}{{range .hosts -}}
+
+// {{.}} returns instance's {{.}} value.
+func (refKey {{$.ref_key_type_name}}) {{.}}() {{.}}RefKey {
+	return refKey.{{unexported_field .}}
+}
+
+// With{{.}} returns a copy
+// of {{$.ref_key_type_name}}
+// with its {{unexported_field .}} attribute set to the provided value.
+func (refKey {{$.ref_key_type_name}}) With{{.}}(
+	{{arg_name .}} {{.}}RefKey,
+) {{$.ref_key_type_name}} {
+	{{- $p := .}}
+	return {{$.ref_key_type_name}}{
+		{{- range $.hosts}}{{if eq . $p}}
+		{{unexported_field .}}: {{arg_name .}},{{else}}
+		{{unexported_field .}}: attrs.{{unexported_field .}},{{end}}{{- end}}
+	}
+}
+
+{{end}}{{end -}}

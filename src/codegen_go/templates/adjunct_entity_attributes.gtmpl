@@ -19,7 +19,7 @@ func New{{.attributes_type_name}}(
 	}
 }
 
-{{- range .attributes}}
+{{range .attributes -}}
 
 // {{.identifier}} returns instance's {{.identifier}} value.
 func (attrs {{$.attributes_type_name}}) {{.identifier}}() {{.kind}} {
@@ -39,7 +39,8 @@ func (attrs {{$.attributes_type_name}}) With{{.identifier}}(
 		{{unexported_field .identifier}}: attrs.{{unexported_field .identifier}},{{end}}{{- end}}
 	}
 }
-{{- end}}
+
+{{end -}}
 
 func (attrs {{.attributes_type_name}}) Equals(
 	other interface{},
