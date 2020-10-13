@@ -1,0 +1,26 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// This file contains specializations of azcore types.
+
+//region EntityServiceClient
+
+type {{.base.azlib_prefix}}EntityServiceClient interface {
+	{{.base.azlib_prefix}}EntityService
+	{{.base.azcore_pkg}}.EntityServiceClient
+}
+
+type {{.base.azlib_prefix}}EntityServiceClientBase struct {
+	*{{.base.azlib_prefix}}EntityServiceBase
+}
+
+var _ {{.base.azlib_prefix}}EntityServiceClient = &{{.base.azlib_prefix}}EntityServiceClientBase{}
+
+// AZEntityServiceClient is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc *{{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {}
+
+//endregion

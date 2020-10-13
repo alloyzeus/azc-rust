@@ -14,6 +14,9 @@ pub struct AdjunctEntityYaml {
     id: AdjunctEntityIdYaml,
 
     #[serde(default)]
+    implements: String,
+
+    #[serde(default)]
     scope: String,
 
     #[serde(default)]
@@ -25,9 +28,10 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
 
     fn try_from(x: AdjunctEntityYaml) -> Result<Self, Self::Error> {
         Ok(adjunct_entity::AdjunctEntity {
-            ordering: x.ordering.try_into().unwrap_or_default(),
-            id: x.id.try_into().unwrap(),
-            scope: x.scope.try_into().unwrap_or_default(),
+            ordering: x.ordering.try_into()?,
+            id: x.id.try_into()?,
+            implements: x.implements,
+            scope: x.scope.try_into()?,
             attributes: x
                 .attributes
                 .iter()

@@ -8,6 +8,7 @@ use crate::azml::{attribute, entity::entity_id, mixin, ref_key, symbol};
 pub struct Entity {
     pub id: entity_id::EntityId,
     pub ref_key: ref_key::RefKey,
+    pub implements: String, //TODO: enum
     pub creation: EntityCreation,
     pub mixins: Vec<mixin::Mixin>,
     pub service: Option<EntityService>,

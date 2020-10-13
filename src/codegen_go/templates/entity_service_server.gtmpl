@@ -61,7 +61,7 @@ func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
 
 // new{{.id_type_name}} generates a new ID which can be assigned
 // to a new entity.
-func (srv *{{.service_name}}Server) new{{.id_type_name}}() ({{.id_type_name}}, error) {
+func (srv *{{.service_name}}Server) new{{.id_type_name}}() ({{.pkg_name}}.{{.id_type_name}}, error) {
 	//TODO
-	return {{.id_type_name}}Zero, nil
+	return {{.pkg_name}}.{{.id_type_name}}Zero, nil
 }

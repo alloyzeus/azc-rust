@@ -3,7 +3,11 @@
 // scoped within its host entity(s).
 type {{.id_type_name}} {{.id_def.type_name}}
 
+var _ {{.base.azcore_pkg}}.EID = {{.id_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{.id_type_name}}Zero
+{{if .implements -}}
+var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero
+{{- end}}
 
 // {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
 const {{.id_type_name}}Zero = {{.id_type_name}}(0)
@@ -20,13 +24,19 @@ func (id {{.id_type_name}}) PrimitiveValue() {{.id_def.type_name}} {
 	return {{.id_def.type_name}}(id)
 }
 
-// AZID is required
-// for conformance with {{.base.azcore_pkg}}.ID.
-func (id {{.id_type_name}}) AZID() {}
+// AZEID is required
+// for conformance with {{.base.azcore_pkg}}.EID.
+func ({{.id_type_name}}) AZEID() {}
 
 // AZAdjunctEntityID is required
 // for conformance with {{.base.azcore_pkg}}.AdjunctEntityID.
-func (id {{.id_type_name}}) AZAdjunctEntityID() {}
+func ({{.id_type_name}}) AZAdjunctEntityID() {}
+
+{{if .implements -}}
+// AZ{{.implements}}ID is required for conformance with {{.base.azcore_pkg}}.{{.implements}}ID.
+func ({{.id_type_name}}) AZ{{.implements}}ID() {}
+
+{{end -}}
 
 // Equals is required as {{.id_type_name}} is a value-object.
 //

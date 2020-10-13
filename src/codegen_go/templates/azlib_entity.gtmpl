@@ -1,0 +1,74 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// This file contains specializations of azcore types.
+
+//region EntityAttributesBase
+
+// {{.base.azlib_prefix}}EntityAttributesBase is
+// a partial implementation of {{.base.azcore_pkg}}.EntityAttributes.
+// This struct was designed to be embedded in other
+// {{.base.azcore_pkg}}.EntityAttributes implementations.
+type {{.base.azlib_prefix}}EntityAttributesBase struct {
+}
+
+// AZAttributes is required
+// for conformance with {{.base.azcore_pkg}}.Attributes
+func (attrs {{.base.azlib_prefix}}EntityAttributesBase) AZAttributes() {}
+
+// AZEntityAttributes is required
+// for conformance with {{.base.azcore_pkg}}.EntityAttributes
+func (attrs {{.base.azlib_prefix}}EntityAttributesBase) AZEntityAttributes() {}
+
+//endregion
+
+//region EntityService
+
+type {{.base.azlib_prefix}}EntityService interface {
+	{{.base.azcore_pkg}}.EntityService
+}
+
+// {{.base.azlib_prefix}}EntityServiceBase is the base implementation of
+// {{.base.azlib_prefix}}EntityService designed to be embedded into application's
+// entity services.
+//
+// A base is stub which contains some 'nice default' implementations and
+// some utilities.
+type {{.base.azlib_prefix}}EntityServiceBase struct {
+	{{.base.azcore_pkg}}.EntityServiceBase
+}
+
+var _ {{.base.azlib_prefix}}EntityService = &{{.base.azlib_prefix}}EntityServiceBase{}
+
+// AZEntityService is required for conformance
+// with {{.base.azcore_pkg}}.EntityService.
+func (svc *{{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {}
+
+//endregion
+
+//region EntityCreation
+
+type {{.base.azlib_prefix}}EntityCreationRequestContext struct {
+	{{.base.azcore_pkg}}.EntityCreationRequestContextBase
+}
+
+type {{.base.azlib_prefix}}EntityCreationResponseContext struct {
+	{{.base.azcore_pkg}}.EntityCreationResponseContextBase
+}
+
+type {{.base.azlib_prefix}}EntityCreationEventBase struct {
+	{{.base.azcore_pkg}}.EntityCreationEventBase
+}
+
+func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEntityEvent() {}
+
+func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEvent() {}
+
+type {{.base.azlib_prefix}}EntityCreationInfo struct {
+	{{.base.azcore_pkg}}.EntityCreationInfoBase
+}
+
+//endregion

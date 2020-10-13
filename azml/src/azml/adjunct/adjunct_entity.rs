@@ -13,6 +13,7 @@ use crate::azml::{adjunct::adjunct, attribute, eid};
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
     pub id: AdjunctEntityId,
+    pub implements: String, //TODO: enum
     pub scope: AdjunctEntityScope,
     pub attributes: Vec<attribute::Attribute>,
 }

@@ -1,0 +1,37 @@
+package {{.pkg_name}}
+
+import (
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+)
+
+// This file contains specializations of azcore types.
+
+//region ServiceServerBase
+
+type {{.base.azlib_prefix}}ServiceServerBase struct {
+}
+
+var _ azcore.ServiceServer = &{{.base.azlib_prefix}}ServiceServerBase{}
+
+// AZServiceServer is required for conformance with {{.base.azlib_prefix}}.ServiceServer.
+func ({{.base.azlib_prefix}}ServiceServerBase) AZServiceServer() {}
+
+// AZService is required for conformance with {{.base.azlib_prefix}}.Service.
+func ({{.base.azlib_prefix}}ServiceServerBase) AZService() {}
+
+//endregion
+
+//region RealmServiceServerBase
+
+type {{.base.azlib_prefix}}RealmServiceServerBase struct {
+	realmName string
+}
+
+//var _ azcore.RealmServiceServer = &{{.base.azlib_prefix}}RealmServiceServerBase{}
+
+// RealmName returns configured realm name of this server.
+func (srv {{.base.azlib_prefix}}RealmServiceServerBase) RealmName() string {
+	return srv.realmName
+}
+
+//endregion

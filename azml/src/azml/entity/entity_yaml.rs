@@ -17,6 +17,9 @@ pub struct EntityYaml {
     #[serde(default)]
     ref_key: ref_key_yaml::RefKeyYaml,
 
+    #[serde(default)]
+    implements: String,
+
     creation: EntityCreationYaml,
     mixins: Vec<mixin_yaml::MixinYaml>,
 
@@ -34,6 +37,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
         Ok(entity::Entity {
             id: x.id.try_into()?,
             ref_key: x.ref_key.try_into()?,
+            implements: x.implements,
             creation: x.creation.try_into()?,
             mixins: x
                 .mixins

@@ -4,6 +4,8 @@ use std::{collections::HashMap, error, fs, io::Write};
 
 use crate::codegen;
 
+use crate::codegen_go::template::render_template;
+
 use azml::azml::{adjunct::adjunct, compiler, entity::entity, module, value_object::value_object};
 
 #[macro_use]
@@ -76,19 +78,49 @@ impl GoCodeGenerator {
             base: self.render_base_context(),
             pkg_name: module_name.to_owned(),
         };
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
-        let out_name = format!("{}/{}/AZLib.go", base_dir, module_name,);
-        let out_tpl_bytes = include_bytes!("templates/az_lib.gtmpl");
-        let out_code = gtmpl::template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
-        let mut out_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(out_name)?;
-        out_file.write_all(out_code.as_bytes())?;
-        drop(out_file);
+
+        let target_dir = &format!("{}/{}", base_dir, module_name);
+        let filename_prefix = self.azlib_prefix.to_lowercase();
+
+        render_file!(
+            target_dir,
+            format!("{}_service", filename_prefix),
+            "templates/azlib_service.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
+        render_file!(
+            target_dir,
+            format!("{}_entity", filename_prefix),
+            "templates/azlib_entity.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
+        render_file!(
+            target_dir,
+            format!("{}_entity_service_client", filename_prefix),
+            "templates/azlib_entity_service_client.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
+        render_file!(
+            target_dir,
+            format!("{}_entity_service_server", filename_prefix),
+            "templates/azlib_entity_service_server.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
+        render_file!(
+            target_dir,
+            format!("{}_adjunct", filename_prefix),
+            "templates/azlib_adjunct.gtmpl",
+            tpl_ctx,
+            ""
+        );
 
         for symbol in &module_def.symbols {
             let params = &symbol.definition;

@@ -4,18 +4,21 @@ type {{.ref_key_type_name}} struct {
 	{{if not .global_scope -}}{{range .hosts -}}
 	{{.}} {{.}}RefKey
 	{{end}}{{- end -}}
-	ID {{.id_type_name}}
+	id {{.id_type_name}}
 }
 
 // To ensure that it conforms the interfaces
 var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = _{{.ref_key_type_name}}Zero
+{{if .implements -}}
+var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = _{{.ref_key_type_name}}Zero
+{{- end}}
 
 var _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}{
 	{{if not .global_scope -}}{{range .hosts -}}
 	{{.}}: {{.}}RefKeyZero(),
 	{{end}}{{- end -}}
-	ID: {{.id_type_name}}Zero,
+	id: {{.id_type_name}}Zero,
 }
 
 // {{.ref_key_type_name}}Zero returns
@@ -25,27 +28,40 @@ func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 }
 
 // AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
-func (refKey {{.ref_key_type_name}}) AZRefKey() {}
+func ({{.ref_key_type_name}}) AZRefKey() {}
 
 // AZAdjunctEntityRefKey is required
 // by {{.base.azcore_pkg}}.AdjunctEntityRefKey interface.
-func (refKey {{.ref_key_type_name}}) AZAdjunctEntityRefKey() {}
+func ({{.ref_key_type_name}}) AZAdjunctEntityRefKey() {}
+
+// ID is required for conformance with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) ID() {{.base.azcore_pkg}}.EID {
+	return refKey.id
+}
+
+{{if .implements -}}
+// {{.implements}}ID is required for conformance with {{.base.azcore_pkg}}.{{.implements}}RefKey.
+func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{.implements}}ID {
+	return refKey.id
+}
+
+{{end -}}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
 	return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.IsZero() &&
-		{{end}}{{- end -}} refKey.ID == {{.id_type_name}}Zero
+		{{end}}{{- end -}} refKey.id == {{.id_type_name}}Zero
 }
 
 // Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
 func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
 		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
-			{{end}}{{- end -}} refKey.ID == x.ID
+			{{end}}{{- end -}} refKey.id == x.id
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
 		return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(x.{{.}}) &&
-			{{end}}{{- end -}} refKey.ID == x.ID
+			{{end}}{{- end -}} refKey.id == x.id
 	}
 	return false
 }
@@ -61,7 +77,7 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {
 	return {{if not .global_scope -}}{{range .hosts}}refKey.{{.}}.Equals{{.}}RefKey(other.{{.}}) &&
-		{{end}}{{- end -}} refKey.ID == other.ID
+		{{end}}{{- end -}} refKey.id == other.id
 }
 
 // RefKeyString returns an encoded representation of this instance.

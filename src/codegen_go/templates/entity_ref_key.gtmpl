@@ -5,6 +5,9 @@ type {{.ref_key_type_name}} {{.id_type_name}}
 // To ensure that it conforms the interfaces
 var _ {{.base.azcore_pkg}}.RefKey = _{{.ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.EntityRefKey = _{{.ref_key_type_name}}Zero
+{{if .implements -}}
+var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = _{{.ref_key_type_name}}Zero
+{{- end}}
 
 const _{{.ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero)
 
@@ -14,12 +17,25 @@ func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 	return _{{.ref_key_type_name}}Zero
 }
 
-// AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
-func (refKey {{.ref_key_type_name}}) AZRefKey() {}
+// AZRefKey is required for conformance with {{.base.azcore_pkg}}.RefKey.
+func ({{.ref_key_type_name}}) AZRefKey() {}
 
-// AZEntityRefKey is required
-// by {{.base.azcore_pkg}}.EntityRefKey interface.
-func (refKey {{.ref_key_type_name}}) AZEntityRefKey() {}
+// AZEntityRefKey is required for conformance
+// with {{.base.azcore_pkg}}.EntityRefKey.
+func ({{.ref_key_type_name}}) AZEntityRefKey() {}
+
+// ID is required for conformance with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) ID() {{.base.azcore_pkg}}.EID {
+	return {{.id_type_name}}(refKey)
+}
+
+{{if .implements -}}
+// {{.implements}}ID is required for conformance with {{.base.azcore_pkg}}.{{.implements}}RefKey.
+func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{.implements}}ID {
+	return {{.id_type_name}}(refKey)
+}
+
+{{end -}}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {

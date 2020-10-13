@@ -2,12 +2,12 @@ module: iam
 symbols:
 
   - identifier: User
-    # This defines what this entity's role in the system. In a system, a role
-    # can have only one concrete. Not to be confused with 'role' in access
-    # control.
-    abstract: User
     kind: entity
     parameters:
+      # This defines what this entity's role in the system. In a system, a role
+      # can have only one concrete. Not to be confused with 'role' in access
+      # control.
+      implements: User
       lifecycle:
         creation:
       id:
@@ -280,6 +280,7 @@ symbols:
       hosts:
         - name: Application
       parameters:
+        implements: Terminal
         # An adjunct entity with global scope will make it more similar to
         # Entity. It's still an adjunct of other entity but an instance
         # is directly addressable instead of through its entities.
@@ -341,6 +342,7 @@ symbols:
         min: 0
         max: -1
       parameters:
+        implements: Session
         # a flag to indicate that a session is scoped within its host entities.
         # An instance of local adjunct entity might have a same id with other
         # instance under different hosts.
