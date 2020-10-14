@@ -22,9 +22,14 @@ mod value_object_go;
 pub struct GoCodeGenerator {
     // The target directory path
     pub base_dir: String,
+    pub base_pkg: String,
+
     // Go module identifier. This is the one defined in the go.mod file.
     pub module_identifier: String,
 
+    // A flag to make the generator generates server package(s) and application(s).
+    // Curently unused.
+    pub generate_servers: bool,
     // A flag to render every Go struct to its own file. Currently unused.
     pub file_per_struct: bool,
 
@@ -39,6 +44,9 @@ pub struct GoCodeGenerator {
     // AZExt contains additional libraries which are generally optional
     // or they are in an experimental stage.
     pub compilation_state: Option<compiler::CompilationState>,
+    // Full package identifier including module and entry package name
+    pub package_identifier: String,
+    pub package_dir_base_name: String,
 }
 
 impl GoCodeGenerator {
@@ -73,13 +81,12 @@ impl GoCodeGenerator {
         module_name: &String,
         module_def: &module::ModuleDefinition,
     ) -> Result<(), Box<dyn error::Error>> {
-        let base_dir = self.base_dir.to_owned();
         let tpl_ctx = LibraryContext {
             base: self.render_base_context(),
             pkg_name: module_name.to_owned(),
         };
 
-        let target_dir = &format!("{}/{}", base_dir, module_name);
+        let target_dir = &self.package_dir_base_name;
         let filename_prefix = self.azlib_prefix.to_lowercase();
 
         render_file!(
@@ -147,6 +154,21 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         compilation_state: &compiler::CompilationState,
     ) -> Result<(), Box<dyn error::Error>> {
         self.compilation_state = Some(compilation_state.clone());
+        self.package_identifier = if self.base_pkg.is_empty() {
+            format!(
+                "{}/{}",
+                self.module_identifier,
+                compilation_state.entry_module
+            )
+        } else {
+            format!(
+                "{}/{}/{}",
+                self.module_identifier,
+                self.base_pkg,
+                compilation_state.entry_module
+            )
+        };
+        self.package_dir_base_name = format!("{}/{}", self.base_dir, self.package_identifier);
         let entry_module = compilation_state
             .modules
             .get(&compilation_state.entry_module);

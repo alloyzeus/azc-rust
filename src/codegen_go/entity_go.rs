@@ -21,9 +21,7 @@ impl GoCodeGenerator {
         ent: &entity::Entity,
         symbol: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
-        let base_dir = &self.base_dir;
         let type_name = symbol.identifier.to_owned();
-        let pkg_path = format!("{}/{}", self.module_identifier, module_name);
         let id_def = &ent.id.definition;
 
         if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
@@ -52,7 +50,7 @@ impl GoCodeGenerator {
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),
-                pkg_path: pkg_path.to_owned(),
+                pkg_path: self.package_identifier.to_owned(),
                 imports: imports,
                 type_name: type_name.to_owned(),
                 type_doc_lines: type_doc_lines.clone(),
@@ -76,7 +74,7 @@ impl GoCodeGenerator {
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
-                .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+                .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
             out_file.write_all(header_code.as_bytes())?;
             out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
             if !type_doc_lines.is_empty() {
@@ -116,7 +114,7 @@ impl GoCodeGenerator {
 
             // ServiceClient
             render_file!(
-                format!("{}/{}/client", base_dir, module_name,),
+                format!("{}/client", self.package_dir_base_name),
                 format!("{}ClientBase", service_name),
                 "templates/entity_service_client_base.gtmpl",
                 tpl_ctx,
@@ -125,7 +123,7 @@ impl GoCodeGenerator {
 
             // ServiceServer
             render_file!(
-                format!("{}/{}server", base_dir, module_name,),
+                format!("{}server", self.package_dir_base_name),
                 format!("{}Server", service_name),
                 "templates/entity_service_server.gtmpl",
                 tpl_ctx,

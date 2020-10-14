@@ -30,16 +30,22 @@ fn main() {
                 "github.com/alloyzeus/go-modules/telephony".to_owned(),
             );
 
+            let module_identifier = "github.com/alloyzeus/go-examples".to_owned();
+
             use codegen::CodeGenerator;
             let mut go_codegen = codegen_go::GoCodeGenerator {
                 base_dir: "testdata/output/go".to_owned(),
-                module_identifier: "github.com/alloyzeus/go-examples".to_owned(),
+                base_pkg: "pkg".to_owned(),
+                module_identifier: module_identifier,
+                generate_servers: true,
                 file_per_struct: false,
                 package_urls: package_urls,
                 azlib_prefix: "AZx".to_owned(),
                 azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
                 azcore_pkg: "azcore".to_owned(),
                 compilation_state: None,
+                package_identifier: "".to_owned(),
+                package_dir_base_name: "".to_owned(),
             };
 
             let entry_module = compilation_state

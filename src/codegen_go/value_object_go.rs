@@ -13,7 +13,6 @@ impl GoCodeGenerator {
         symbol: &symbol::Symbol,
         vo: &value_object::ValueObject,
     ) -> Result<(), Box<dyn error::Error>> {
-        let base_dir = &self.base_dir;
         let type_name = symbol.identifier.to_owned();
 
         let mut tpl_ctx = ValueObjectContext {
@@ -56,11 +55,11 @@ impl GoCodeGenerator {
             tpl_ctx.to_owned(),
         )?;
 
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
+        fs::create_dir_all(self.package_dir_base_name.to_owned())?;
         let mut service_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
-            .open(format!("{}/{}/{}.go", base_dir, module_name, type_name,))?;
+            .open(format!("{}/{}.go", self.package_dir_base_name, type_name,))?;
         service_file.write_all(out_code.as_bytes())?;
 
         Ok(())

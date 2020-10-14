@@ -44,9 +44,7 @@ impl GoCodeGenerator {
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
-        let base_dir = &self.base_dir;
         let type_name = sym.identifier.to_owned();
-        let pkg_path = format!("{}/{}", self.module_identifier, module_name);
         let hosts_names = (&adj.hosts)
             .into_iter()
             .map(|x| x.name.to_owned())
@@ -85,7 +83,7 @@ impl GoCodeGenerator {
             let tpl_ctx = AdjunctEntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),
-                pkg_path: pkg_path.to_owned(),
+                pkg_path: self.package_identifier.to_owned(),
                 type_name: type_name.to_owned(),
                 id_type_name: id_type_name.to_owned(),
                 id_def: id_int.into(),
@@ -107,7 +105,7 @@ impl GoCodeGenerator {
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
-                .open(format!("{}/{}/{}.go", base_dir, module_name, type_name))?;
+                .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
             out_file.write_all(header_code.as_bytes())?;
             out_file.write_all(
                 format!(
@@ -161,7 +159,6 @@ impl GoCodeGenerator {
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
-        let base_dir = &self.base_dir;
         let type_name = sym.identifier.to_owned();
         let hosts_names = (&adj.hosts)
             .into_iter()
@@ -191,11 +188,11 @@ impl GoCodeGenerator {
             tpl_ctx.to_owned(),
         )?;
 
-        fs::create_dir_all(format!("{}/{}", base_dir, module_name,))?;
+        fs::create_dir_all(self.package_dir_base_name.to_owned())?;
         let mut service_file = fs::OpenOptions::new()
             .write(true)
             .create_new(true)
-            .open(format!("{}/{}/{}.go", base_dir, module_name, type_name,))?;
+            .open(format!("{}/{}.go", self.package_dir_base_name, type_name,))?;
         service_file.write_all(out_code.as_bytes())?;
 
         Ok(())

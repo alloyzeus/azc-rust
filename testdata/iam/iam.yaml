@@ -1,4 +1,8 @@
 module: iam
+
+server:
+  #TODO: directives for generating server packages and applications.
+
 symbols:
 
   - identifier: User
