@@ -2,7 +2,9 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{adjunct::adjunct_entity, attribute, attribute_yaml, eid_yaml, yaml};
+use crate::azml::{
+    abstract_yaml, adjunct::adjunct_entity, attribute, attribute_yaml, eid_yaml, yaml,
+};
 
 //----
 
@@ -14,7 +16,7 @@ pub struct AdjunctEntityYaml {
     id: AdjunctEntityIdYaml,
 
     #[serde(default)]
-    implements: String,
+    implements: abstract_yaml::AbstractImplementationYaml,
 
     #[serde(default)]
     scope: String,
@@ -30,7 +32,7 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
         Ok(adjunct_entity::AdjunctEntity {
             ordering: x.ordering.try_into()?,
             id: x.id.try_into()?,
-            implements: x.implements,
+            implements: x.implements.try_into()?,
             scope: x.scope.try_into()?,
             attributes: x
                 .attributes

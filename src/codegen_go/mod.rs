@@ -157,15 +157,12 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         self.package_identifier = if self.base_pkg.is_empty() {
             format!(
                 "{}/{}",
-                self.module_identifier,
-                compilation_state.entry_module
+                self.module_identifier, compilation_state.entry_module
             )
         } else {
             format!(
                 "{}/{}/{}",
-                self.module_identifier,
-                self.base_pkg,
-                compilation_state.entry_module
+                self.module_identifier, self.base_pkg, compilation_state.entry_module
             )
         };
         self.package_dir_base_name = format!("{}/{}", self.base_dir, self.package_identifier);

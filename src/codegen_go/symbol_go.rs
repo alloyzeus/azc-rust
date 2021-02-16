@@ -14,7 +14,12 @@ impl From<&symbol::SymbolRef> for SymbolRefContext {
     fn from(r: &symbol::SymbolRef) -> SymbolRefContext {
         SymbolRefContext {
             package_identifier: r.package_identifier.to_owned(),
-            symbol_name: r.symbol_name.to_owned(),
+            //TODO: should be RefObject instead of RefKey.
+            symbol_name: if r.is_reference {
+                format!("{}RefKey", r.symbol_name)
+            } else {
+                r.symbol_name.to_owned()
+            },
         }
     }
 }

@@ -41,7 +41,8 @@ func (vo {{.type_name}}) Equal(other interface{}) bool {
 	return vo.Equals(other)
 }
 
-// Equals{{.type_name}} returns true if the other value is equal to this instance.
+// Equals{{.type_name}} returns true
+// if the other value is equal to this instance.
 func (vo {{.type_name}}) Equals{{.type_name}}(
 	other {{.type_name}},
 ) bool {

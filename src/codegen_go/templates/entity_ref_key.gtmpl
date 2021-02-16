@@ -75,5 +75,5 @@ func (refKey {{.ref_key_type_name}}) RefKeyString() string {
 	// /<type_name><separator><id>
 	//
 	// might need to include version information (actually, use prefix option instead.).
-	return "/{{.type_name}}/" + {{.id_type_name}}(refKey).IDString()
+	return "{{.type_name}}(" + {{.id_type_name}}(refKey).AZEIDString() + ")"
 }

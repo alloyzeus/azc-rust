@@ -5,7 +5,7 @@ use std::{
     result,
 };
 
-use crate::azml::{adjunct::adjunct, attribute, eid};
+use crate::azml::{abstract_, adjunct::adjunct, attribute, eid};
 
 //region AdjunctEntity
 
@@ -13,7 +13,7 @@ use crate::azml::{adjunct::adjunct, attribute, eid};
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
     pub id: AdjunctEntityId,
-    pub implements: String, //TODO: enum
+    pub implements: abstract_::AbstractImplementation,
     pub scope: AdjunctEntityScope,
     pub attributes: Vec<attribute::Attribute>,
 }

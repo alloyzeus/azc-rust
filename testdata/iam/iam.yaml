@@ -11,7 +11,8 @@ symbols:
       # This defines what this entity's role in the system. In a system, a role
       # can have only one concrete. Not to be confused with 'role' in access
       # control.
-      implements: User
+      implements:
+        kind: User
       lifecycle:
         creation:
       id:
@@ -118,9 +119,9 @@ symbols:
           #
           # NOTE: changing the schema of bitfields is naturally more
           # difficult than changing the value of entity attributes or adjuncts.
-          # Use bitfield only for optimization of a well-defined, stable
-          # practice, and the information is part of the identity of each
-          # instance.
+          # Use bitfield only if the information is part of the identity of each
+          # instance and for optimization of a well-defined, stable
+          # practice.
           #
           # An example use case for bitfield is to allow resource servers to
           # quickly determine if an access will be allowed or not based on the
@@ -161,6 +162,8 @@ symbols:
                   # An index is scoped within the bitfield, i.e., the first
                   # bit of a bitfield is always index 0.
                   - index: 0
+                    # Indicates that this field represents the value if the
+                    # bit is set.
                     set: true
               - identifier: Service
                 documentation: |
@@ -181,6 +184,8 @@ symbols:
                 bits:
                   - index: 1
                     set: true
+              # Consider renaming. Either renaming this to something like 'implicit',
+              # or rename the the other to something like 'Realm'
               - identifier: DirectUserAgent
                 documentation: |
                   A direct user-agent application is an application which
@@ -284,7 +289,11 @@ symbols:
       hosts:
         - name: Application
       parameters:
-        implements: Terminal
+        implements:
+          kind: Terminal
+          attributes:
+            - identifier: PrincipalUser
+              kind: User
         # An adjunct entity with global scope will make it more similar to
         # Entity. It's still an adjunct of other entity but an instance
         # is directly addressable instead of through its entities.
@@ -306,22 +315,43 @@ symbols:
           - kind: Deletion
             parameters:
         attributes:
-          - identifier: RepresentedUser
-            kind: ref
-            parameters:
-              kind: User
+          - identifier: PrincipalUser
+            kind: "@User"
           - identifier: RegistrationIdentifier
             # TODO: union or interface
             # we need to refer to TerminalRegistrationPhoneNumber and
             # other methods of authentication.
-            kind: ref
+            kind: "@TerminalRegistrationIdentifierVerification"
         creation:
           allow_cross_process_callers: false
           authorization:
             - kind: intraprocess
               allow: always
         service:
+          # TODO: this is runtime/deployment configs. there should be 
+          # various ways for defining configurations.
+          #
+          # Configs based on priority, from lowest to highest in priority:
+          # - hard-coded: this file (common or safe values)
+          # - hard-coded: override file (useful for site-specific defaults)
+          # - runtime: local files
+          # - runtime: environment variables
+          # - runtime: program arguments
+          # - runtime: config server (remote config)
+          configs:
+            - key: registration_verification_services
+              value:
+                - identifier: TerminalRegistrationIdentifierVerification
+                  configs:
           methods:
+
+  # Interface
+  - identifier: TerminalRegistrationIdentifierVerification
+    kind: entity_abstraction
+    parameters:
+      attributes:
+        - identifier: Status
+          kind: TerminalRegistrationIdentifierVerificationStatus
 
   - identifier: Session
     documentation: |
@@ -346,7 +376,8 @@ symbols:
         min: 0
         max: -1
       parameters:
-        implements: Session
+        implements:
+          kind: Session
         # a flag to indicate that a session is scoped within its host entities.
         # An instance of local adjunct entity might have a same id with other
         # instance under different hosts.
@@ -374,8 +405,8 @@ symbols:
   # TODO: concept of something, which is required to create an instance of
   # an entity. One instance of this something can only be used for exactly one
   # process.
-  # This something might or might not contain part which will be included in
-  # the product entity.
+  # This something might or might not contain part which will be included as
+  # product entity's attributes.
   # Idea for the term: substrate, material, artifact, mold, aid, assist,
   # scaffold, proto.
   # TODO: we could just use prebuilt functionality,
@@ -388,6 +419,8 @@ symbols:
       associated to a user.
     kind: entity
     parameters:
+      implements:
+        - TerminalRegistrationIdentifierVerification
       # The idea is that this entity is built upon a component. We are
       # encapsulating the component as an entity in this domain. A component
       # deals only with the value it contained.

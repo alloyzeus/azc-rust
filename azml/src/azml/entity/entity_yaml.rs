@@ -3,7 +3,7 @@
 use std::convert::{self, TryInto};
 
 use crate::azml::{
-    attribute, attribute_yaml,
+    abstract_yaml, attribute, attribute_yaml,
     entity::{entity, entity_id_yaml},
     mixin, mixin_yaml, ref_key_yaml, yaml,
 };
@@ -18,7 +18,7 @@ pub struct EntityYaml {
     ref_key: ref_key_yaml::RefKeyYaml,
 
     #[serde(default)]
-    implements: String,
+    implements: abstract_yaml::AbstractImplementationYaml,
 
     creation: EntityCreationYaml,
     mixins: Vec<mixin_yaml::MixinYaml>,
@@ -37,7 +37,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
         Ok(entity::Entity {
             id: x.id.try_into()?,
             ref_key: x.ref_key.try_into()?,
-            implements: x.implements,
+            implements: x.implements.try_into()?,
             creation: x.creation.try_into()?,
             mixins: x
                 .mixins

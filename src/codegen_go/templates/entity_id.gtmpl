@@ -8,8 +8,10 @@ var _ {{.base.azcore_pkg}}.EntityID = {{.id_type_name}}Zero
 var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero
 {{- end}}
 
-// {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
-const {{.id_type_name}}Zero = {{.id_type_name}}(0)
+// {{.id_type_name}}Zero is the zero value
+// for {{.id_type_name}}.
+const {{.id_type_name}}Zero =
+	{{.id_type_name}}(0)
 
 // {{.id_type_name}}FromPrimitiveValue creates an instance
 // of {{.id_type_name}} from its primitive value.
@@ -23,14 +25,17 @@ func (id {{.id_type_name}}) PrimitiveValue() {{.id_def.type_name}} {
 	return {{.id_def.type_name}}(id)
 }
 
-// AZEID is required for conformance with {{.base.azcore_pkg}}.EID.
+// AZEID is required for conformance
+// with {{.base.azcore_pkg}}.EID.
 func ({{.id_type_name}}) AZEID() {}
 
-// AZEntityID is required for conformance with {{.base.azcore_pkg}}.EntityID.
+// AZEntityID is required for conformance
+// with {{.base.azcore_pkg}}.EntityID.
 func ({{.id_type_name}}) AZEntityID() {}
 
 {{if .implements -}}
-// AZ{{.implements}}ID is required for conformance with {{.base.azcore_pkg}}.{{.implements}}ID.
+// AZ{{.implements}}ID is required for conformance
+// with {{.base.azcore_pkg}}.{{.implements}}ID.
 func ({{.id_type_name}}) AZ{{.implements}}ID() {}
 
 {{end -}}
@@ -70,6 +75,12 @@ func (id {{.id_type_name}}) Equals{{.id_type_name}}(
 
 // IDString returns a string representation of this instance.
 func (id {{.id_type_name}}) IDString() string {
+	return id.AZEIDString()
+}
+
+// AZEIDString returns a string representation
+// of the instance as an EID.
+func (id {{.id_type_name}}) AZEIDString() string {
 	//TODO: custom encoding
 	return strconv.FormatInt(int64(id), 10)
 }

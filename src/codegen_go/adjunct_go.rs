@@ -88,7 +88,7 @@ impl GoCodeGenerator {
                 id_type_name: id_type_name.to_owned(),
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
-                implements: adj_ent.implements.to_owned(),
+                implements: adj_ent.implements.kind.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
                 service_name: service_name.to_owned(),
@@ -208,7 +208,7 @@ struct AdjunctEntityContext {
     id_type_name: String,
     id_def: IntegerIdContext,
     ref_key_type_name: String,
-    implements: String,
+    implements: String, //TODO: attributes
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
     service_name: String,
