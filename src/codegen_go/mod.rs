@@ -60,6 +60,7 @@ impl GoCodeGenerator {
         }
     }
 
+    //TODO: contextual and scoped resolver
     fn resolve_import(&self, pkg: &String) -> String {
         match self.package_urls.get(pkg) {
             Some(s) => s.to_owned(),

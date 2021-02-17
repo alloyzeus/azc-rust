@@ -39,6 +39,14 @@ func ({{.id_type_name}}) AZ{{.implements}}ID() {}
 
 {{end -}}
 
+// AZEIDBinary returns a binary representation
+// of the instance as an EID.
+func (id {{.id_type_name}}) AZEIDBinary() []byte {
+	buf := make([]byte, binary.MaxVarintLen{{.id_def.primitive_size}})
+	n := binary.PutUvarint(buf, uint64(id))
+	return buf[:n]
+}
+
 // AZEIDString returns a string representation
 // of the instance as an EID.
 func (id {{.id_type_name}}) AZEIDString() string {
@@ -48,8 +56,11 @@ func (id {{.id_type_name}}) AZEIDString() string {
 // AZAdjunctEntityIDString returns a string representation
 // of the instance as an AdjunctEntityID. 
 func (id {{.id_type_name}}) AZAdjunctEntityIDString() string {
-	//TODO: custom encoding
-	return strconv.FormatInt(int64(id), 10)
+	{{if eq .id_def.text_encoding.encoding "" -}}
+	return "{{.id_def.text_encoding.prefix}}" + strconv.FormatInt(int64(id), 10)
+	{{- else -}}
+	return "{{.id_def.text_encoding.prefix}}" + {{.id_def.text_encoding.encoding}}.EncodeInt64(id)
+	{{- end}}
 }
 
 // Equals is required as {{.id_type_name}} is a value-object.

@@ -1,5 +1,7 @@
 //
 
+use crate::azml::symbol;
+
 //region IntegerId
 
 #[derive(Clone, Debug)]
@@ -48,6 +50,8 @@ pub struct IntegerId {
     //
     // The number of attributes could be included is strictly limited.
     pub bitfield: IntegerIdBitfield,
+
+    pub text_encoding: IntegerIdTextEncoding,
 }
 
 impl IntegerId {
@@ -69,6 +73,17 @@ impl IntegerId {
                     self.significant_bits
                 ),
             }
+        }
+    }
+    pub fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        if self.text_encoding.encoding.is_empty() {
+            Vec::new()
+        } else {
+            vec![symbol::SymbolRef {
+                package_identifier: self.text_encoding.encoding.to_owned(),
+                symbol_name: "".to_owned(),
+                is_reference: false,
+            }]
         }
     }
 }
@@ -144,6 +159,28 @@ pub struct IntegerIdBitfieldInherit {
 impl Default for IntegerIdBitfieldInherit {
     fn default() -> IntegerIdBitfieldInherit {
         IntegerIdBitfieldInherit { host: -1, size: -1 }
+    }
+}
+
+//endregion
+
+//region IntegerIdTextEncoding
+
+// See https://en.wikipedia.org/wiki/Binary-to-text_encoding
+//
+//TODO: limit the characters we can use.
+#[derive(Clone, Debug)]
+pub struct IntegerIdTextEncoding {
+    pub prefix: String,
+    pub encoding: String, //TODO: resolved or reference?
+}
+
+impl Default for IntegerIdTextEncoding {
+    fn default() -> IntegerIdTextEncoding {
+        IntegerIdTextEncoding {
+            prefix: "".to_owned(),
+            encoding: "".to_owned(),
+        }
     }
 }
 

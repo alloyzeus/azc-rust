@@ -1,5 +1,7 @@
 //
 
+use crate::azml::symbol;
+
 //region EntityId
 
 #[derive(Clone, Debug)]
@@ -11,7 +13,11 @@ pub struct EntityId {
 
 //region EntityIdDefinition
 
-pub trait EntityIdDefinition: mopa::Any + EntityIdDefinitionClone + std::fmt::Debug {}
+pub trait EntityIdDefinition: mopa::Any + EntityIdDefinitionClone + std::fmt::Debug {
+    //NOTE: should simply add symbol::SymbolDefinition but we have some
+    // conflict for the clone_box.
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef>;
+}
 
 mopafy!(EntityIdDefinition);
 

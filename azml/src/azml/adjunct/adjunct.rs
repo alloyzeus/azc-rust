@@ -21,8 +21,7 @@ pub struct Adjunct {
 
 impl symbol::SymbolDefinition for Adjunct {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
-        //TODO: collect from definition
-        Vec::new()
+        self.definition.collect_symbol_refs()
     }
 }
 
@@ -30,7 +29,11 @@ impl symbol::SymbolDefinition for Adjunct {
 
 //region AdjunctDefinition
 
-pub trait AdjuctDefinition: mopa::Any + AdjuctDefinitionClone + std::fmt::Debug {}
+pub trait AdjuctDefinition: mopa::Any + AdjuctDefinitionClone + std::fmt::Debug {
+    //NOTE: should simply add symbol::SymbolDefinition but we have some
+    // conflict for the clone_box.
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef>;
+}
 
 // Used to implement Clone for AdjunctDefinition
 pub trait AdjuctDefinitionClone {

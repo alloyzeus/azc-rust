@@ -9,6 +9,7 @@ pub struct IntegerIdContext {
     primitive_size: i8,
     type_name: String,
     bitfield: IntegerIdBitfieldContext,
+    text_encoding: IntegerIdTextEncodingContext,
 }
 
 impl From<&eid::IntegerId> for IntegerIdContext {
@@ -18,6 +19,7 @@ impl From<&eid::IntegerId> for IntegerIdContext {
             type_name: format!("int{}", x.primitive_size()),
             // Minus 2: one for making it zero-based index, one for skipping the most-significant bit (the sign bit)
             bitfield: IntegerIdBitfieldContext::from(&x.bitfield, x.primitive_size() - 2),
+            text_encoding: IntegerIdTextEncodingContext::from(&x.text_encoding),
         }
     }
 }
@@ -121,3 +123,18 @@ impl From<&eid::IntegerIdBitfieldSubFieldBit> for IntegerIdBitfieldSubFieldBitCo
 }
 
 //endregion
+
+#[derive(Clone, Gtmpl)]
+pub struct IntegerIdTextEncodingContext {
+    pub prefix: String,
+    pub encoding: String,
+}
+
+impl From<&eid::IntegerIdTextEncoding> for IntegerIdTextEncodingContext {
+    fn from(x: &eid::IntegerIdTextEncoding) -> IntegerIdTextEncodingContext {
+        IntegerIdTextEncodingContext {
+            prefix: x.prefix.to_owned(),
+            encoding: x.encoding.to_owned(),
+        }
+    }
+}

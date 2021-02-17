@@ -57,6 +57,11 @@ impl GoCodeGenerator {
                 id_type_name: id_type_name.to_owned(),
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
+                ref_key_string_identifier: if ent.ref_key.identifier.is_empty() {
+                    type_name.to_owned()
+                } else {
+                    ent.ref_key.identifier.to_owned()
+                },
                 implements: ent.implements.kind.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
@@ -150,6 +155,7 @@ struct EntityContext {
     id_type_name: String,
     id_def: IntegerIdContext,
     ref_key_type_name: String,
+    ref_key_string_identifier: String,
     implements: String, //TODO: attributes
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,

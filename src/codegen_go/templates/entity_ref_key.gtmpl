@@ -70,10 +70,5 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 //
 // RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
 func (refKey {{.ref_key_type_name}}) RefKeyString() string {
-	// TODO:
-	// something like /<pluralized type_name>/<id> or
-	// /<type_name><separator><id>
-	//
-	// might need to include version information (actually, use prefix option instead.).
-	return "{{.type_name}}(" + {{.id_type_name}}(refKey).AZEIDString() + ")"
+	return "{{.ref_key_string_identifier}}(" + {{.id_type_name}}(refKey).AZEIDString() + ")"
 }

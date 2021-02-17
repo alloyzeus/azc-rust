@@ -29,6 +29,10 @@ fn main() {
                 "telephony".to_owned(),
                 "github.com/alloyzeus/go-modules/telephony".to_owned(),
             );
+            package_urls.insert(
+                "crockford32".to_owned(),
+                "github.com/alloyzeus/go-azcore/azcore/eid/integer/textencodings/crockford32".to_owned(),
+            );
 
             let module_identifier = "github.com/alloyzeus/go-examples".to_owned();
 

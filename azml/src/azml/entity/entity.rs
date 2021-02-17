@@ -17,13 +17,16 @@ pub struct Entity {
 
 impl symbol::SymbolDefinition for Entity {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
-        self.attributes
+        let a_syms = self
+            .attributes
             .iter()
             .fold(Vec::<symbol::SymbolRef>::new(), |a, b| {
                 a.into_iter()
                     .chain(b.collect_symbol_refs())
                     .collect::<Vec<_>>()
-            })
+            });
+        let id_syms = self.id.definition.collect_symbol_refs();
+        a_syms.into_iter().chain(id_syms.into_iter()).collect()
     }
 }
 

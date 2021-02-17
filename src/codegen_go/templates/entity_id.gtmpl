@@ -19,6 +19,14 @@ func {{.id_type_name}}FromPrimitiveValue(v {{.id_def.type_name}}) {{.id_type_nam
 	return {{.id_type_name}}(v)
 }
 
+func {{.id_type_name}}FromAZEIDBinary(b []byte) ({{.id_type_name}}, error) {
+	e, n := binary.Uvarint(b)
+	if n > 0 {
+		return {{.id_type_name}}(e), nil
+	}
+	return {{.id_type_name}}Zero, {{.id_type_name}}BinaryDecodingArgumentError{}
+}
+
 // PrimitiveValue returns the ID in its primitive type. Prefer to use
 // this method instead of casting directly.
 func (id {{.id_type_name}}) PrimitiveValue() {{.id_def.type_name}} {
@@ -78,11 +86,22 @@ func (id {{.id_type_name}}) IDString() string {
 	return id.AZEIDString()
 }
 
+// AZEIDBinary returns a binary representation
+// of the instance as an EID.
+func (id {{.id_type_name}}) AZEIDBinary() []byte {
+	buf := make([]byte, binary.MaxVarintLen{{.id_def.primitive_size}})
+	n := binary.PutUvarint(buf, uint64(id))
+	return buf[:n]
+}
+
 // AZEIDString returns a string representation
 // of the instance as an EID.
 func (id {{.id_type_name}}) AZEIDString() string {
-	//TODO: custom encoding
-	return strconv.FormatInt(int64(id), 10)
+	{{if eq .id_def.text_encoding.encoding "" -}}
+	return "{{.id_def.text_encoding.prefix}}" + strconv.FormatInt(int64(id), 10)
+	{{- else -}}
+	return "{{.id_def.text_encoding.prefix}}" + {{.id_def.text_encoding.encoding}}.EncodeInt64(int64(id))
+	{{- end}}
 }
 
 {{$uid_type := print "uint" .id_def.primitive_size}}
@@ -92,7 +111,7 @@ func (id {{.id_type_name}}) AZEIDString() string {
 //
 {{range .doc_lines}}// {{.}}
 {{end -}}
-func (id ApplicationID) Is{{.identifier}}() bool {
+func (id {{$.id_type_name}}) Is{{.identifier}}() bool {
 	const mask = {{$uid_type}}(0) {{- range .bits}} |
 		({{$uid_type}}(1) << {{.index}}){{end}}
 	const flags = {{$uid_type}}(0) {{- range .bits}} |
@@ -100,3 +119,17 @@ func (id ApplicationID) Is{{.identifier}}() bool {
 	return ({{$uid_type}}(id) & mask) == flags
 }
 {{end}}
+
+type {{.id_type_name}}BinaryDecodingArgumentError struct {}
+
+var _ errors.ArgumentError = {{.id_type_name}}BinaryDecodingArgumentError{}
+
+func ({{.id_type_name}}BinaryDecodingArgumentError) ArgumentName() string {
+	return ""
+}
+
+func ({{.id_type_name}}BinaryDecodingArgumentError) Error() string {
+	return "{{.id_type_name}}BinaryDecodingArgumentError"
+}
+
+//TODO: FromString, (Un)MarshalText, (Un)MarshalJSON

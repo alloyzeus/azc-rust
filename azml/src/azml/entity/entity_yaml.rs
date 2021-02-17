@@ -62,7 +62,9 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
 
 impl Default for ref_key_yaml::RefKeyYaml {
     fn default() -> ref_key_yaml::RefKeyYaml {
-        ref_key_yaml::RefKeyYaml {}
+        ref_key_yaml::RefKeyYaml {
+            identifier: "".to_owned(),
+        }
     }
 }
 

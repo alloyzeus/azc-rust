@@ -5,7 +5,7 @@ use std::{
     result,
 };
 
-use crate::azml::{abstract_, adjunct::adjunct, attribute, eid};
+use crate::azml::{abstract_, adjunct::adjunct, attribute, eid, ref_key, symbol};
 
 //region AdjunctEntity
 
@@ -13,12 +13,26 @@ use crate::azml::{abstract_, adjunct::adjunct, attribute, eid};
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
     pub id: AdjunctEntityId,
+    pub ref_key: ref_key::RefKey,
     pub implements: abstract_::AbstractImplementation,
     pub scope: AdjunctEntityScope,
     pub attributes: Vec<attribute::Attribute>,
 }
 
-impl adjunct::AdjuctDefinition for AdjunctEntity {}
+impl adjunct::AdjuctDefinition for AdjunctEntity {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        let a_syms = self
+            .attributes
+            .iter()
+            .fold(Vec::<symbol::SymbolRef>::new(), |a, b| {
+                a.into_iter()
+                    .chain(b.collect_symbol_refs())
+                    .collect::<Vec<_>>()
+            });
+        let id_syms = self.id.definition.collect_symbol_refs();
+        a_syms.into_iter().chain(id_syms.into_iter()).collect()
+    }
+}
 
 //endregion
 
@@ -85,6 +99,9 @@ pub struct AdjunctEntityId {
 pub trait AdjunctEntityIdDefinition:
     mopa::Any + AdjunctEntityIdDefinitionClone + std::fmt::Debug
 {
+    //NOTE: should simply add symbol::SymbolDefinition but we have some
+    // conflict for the clone_box.
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef>;
 }
 
 mopafy!(AdjunctEntityIdDefinition);
@@ -114,11 +131,11 @@ impl Clone for Box<dyn AdjunctEntityIdDefinition> {
 
 pub type AdjunctEntityIdInteger = eid::IntegerId;
 
-impl AdjunctEntityIdDefinition for AdjunctEntityIdInteger {}
-
-pub trait AdjunctEntityIdIntegerEncoding: mopa::Any + std::fmt::Debug {}
-
-mopafy!(AdjunctEntityIdIntegerEncoding);
+impl AdjunctEntityIdDefinition for AdjunctEntityIdInteger {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        self.collect_symbol_refs()
+    }
+}
 
 //endregion
 

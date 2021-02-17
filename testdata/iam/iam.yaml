@@ -45,6 +45,9 @@ symbols:
                 bits:
                   - index: 1
                     set: true
+          text_encoding:
+            prefix: "ix-"
+            encoding: crockford32
         generator:
           # Other options: ShardedRandomIntegerGenerator
           # The option for generator is defined by the registered generators
@@ -52,9 +55,6 @@ symbols:
           # Root entities can only use random generators.
           name: LocalRandomIntegerIDGenerator
           parameters:
-            encodings:
-              text:
-                prefix: "ix-"
       mixins:
         - kind: Deletion
           parameters:
@@ -170,6 +170,9 @@ symbols:
                   Service application is an application which does not
                   represent user. Note that this is different from, e.g.,
                   bot, where it's a specialization of User; a bot is a User.
+
+                  All service applications are confidential as defined by
+                  OAuth 2.0.
                 bits:
                   - index: 1
                     set: false
@@ -180,13 +183,12 @@ symbols:
                   A user-agent application is an application which represents
                   the user it got authorized by.
 
-                  There are two types of user agent: direct and confidential.
+                  There are two types of user agent: public and confidential.
+                  These types align with OAuth 2.0's.
                 bits:
                   - index: 1
                     set: true
-              # Consider renaming. Either renaming this to something like 'implicit',
-              # or rename the the other to something like 'Realm'
-              - identifier: DirectUserAgent
+              - identifier: PublicAuthorizationUserAgent
                 documentation: |
                   A direct user-agent application is an application which
                   can be used by users to authenticate themselves to the system.
@@ -203,18 +205,23 @@ symbols:
                     set: true
                   - index: 2
                     set: false
-              - identifier: ConfidentialUserAgent
+              - identifier: ConfidentialAuthorizationUserAgent
                 documentation: |
                   A confidential user-agent application is a user-agent
                   application which could receive authorization from a
                   consenting user through 3-legged authorization flow. A
-                  confidential user-agent can not be used for performing
-                  user authentication.
+                  confidential user-agent can not be used for directly
+                  performing user authentication.
                 bits:
                   - index: 1
                     set: true
                   - index: 2
                     set: true
+          text_encoding:
+            prefix: "ap-"
+            encoding: crockford32
+      ref_key:
+        identifier: App
       creation:
         allow_cross_process_callers: true
       mixins:
@@ -270,11 +277,12 @@ symbols:
     documentation: |
       A Terminal is an authorized instance of application. As long the the
       authorization is still valid, a terminal could be used to access the
-      service. An authorization of a Terminal will become invalid when it
-      is expired or revoked by the user, if the terminal is associated to
-      a user, or those who have the permission to revoke the authorization.
+      service within the limit of the granted authorization. An
+      authorization of a Terminal will become invalid when it is expired, or
+      revoked by the user, if the terminal is associated to a user, or those
+      who have the permission to revoke the authorization.
 
-      After a Terminal authorization is invalid, the user must re-authorize
+      After a Terminal authorization is invalid, their user must re-authorize
       their instance of Application if they wish to continue using their
       instance of Application to access the service. Re-authorization of an
       instance of an Application will generate a new Terminal. A
@@ -297,11 +305,11 @@ symbols:
         # An adjunct entity with global scope will make it more similar to
         # Entity. It's still an adjunct of other entity but an instance
         # is directly addressable instead of through its entities.
-        # A global adjunct entity can only have unordered ordering, i.e.,
-        # instance IDs are required to be random.
+        # A global adjunct entity can only have unordered ordering. Its
+        # instances' IDs are random and globally unique.
         scope: global
         ref_key:
-          prefix: "T0:"
+          identifier: "Tx"
         id:
           kind: integer
           parameters:
@@ -345,13 +353,13 @@ symbols:
                   configs:
           methods:
 
-  # Interface
-  - identifier: TerminalRegistrationIdentifierVerification
-    kind: entity_abstraction
-    parameters:
-      attributes:
-        - identifier: Status
-          kind: TerminalRegistrationIdentifierVerificationStatus
+  # # Interface
+  # - identifier: TerminalRegistrationIdentifierVerification
+  #   kind: entity_abstraction
+  #   parameters:
+  #     attributes:
+  #       - identifier: Status
+  #         kind: TerminalRegistrationIdentifierVerificationStatus
 
   - identifier: Session
     documentation: |
@@ -387,6 +395,9 @@ symbols:
           parameters:
             total_bits: 32
             significant_bits: 24
+            text_encoding:
+              prefix: "s1o"
+              encoding: crockford32
         service:
           enabled: true
           description: |

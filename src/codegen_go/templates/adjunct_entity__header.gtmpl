@@ -1,10 +1,12 @@
 package {{.pkg_name}}
 
 import (
+	"encoding/binary"
 	"strconv"
 
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
+var _ = strconv.IntSize
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
