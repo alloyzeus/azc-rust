@@ -1,16 +1,19 @@
 package {{.pkg_name}}
 
 import (
-	"encoding/binary"
+	"encoding/hex"
 	"strconv"
 
+	errors "{{.base.azcore_import}}/errors"
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-	"{{.base.azcore_import}}/errors"
+	protowire "google.golang.org/protobuf/encoding/protowire"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"
 	{{- end}}
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = strconv.IntSize
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
+var _ = hex.ErrLength
+var _ = strconv.IntSize
+var _ = protowire.MinValidNumber

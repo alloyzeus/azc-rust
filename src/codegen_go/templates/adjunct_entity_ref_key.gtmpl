@@ -96,15 +96,42 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 		{{end}}{{- end -}} refKey.id == other.id
 }
 
-// RefKeyString returns an encoded representation of this instance.
+// AZWire is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (refKey {{.ref_key_type_name}}) AZWire() []byte {
+	return refKey.AZWireField(1)
+}
+
+// AZWireField is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (refKey {{.ref_key_type_name}}) AZWireField(fieldNum int) []byte {
+	{{if not .global_scope -}}{{if .hosts -}}
+	buf := &bytes.Buffer{}
+	var fieldWire []byte
+	{{range $i, $h := .hosts -}}
+	fieldWire = refKey.application.AZWireField({{$i}} + 1)
+	buf.Write(fieldWire)
+	{{- end}}
+	fieldWire = refKey.id.AZWireField({{len .hosts}} + 1)
+	buf.Write(fieldWire)
+	var outBuf []byte
+	outBuf = protowire.AppendTag(outBuf,
+		protowire.Number(fieldNum), protowire.BytesType)
+	outBuf = protowire.AppendBytes(outBuf, buf.Bytes())
+	return outBuf
+	{{- end}}{{- else -}}
+	return refKey.id.AZWireField(fieldNum)
+	{{- end}}
+}
+
+// AZString returns an encoded representation of this instance.
 //
-// RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) RefKeyString() string {
-	// TODO: refkeystring encoding/format should be defined in the source as it needs
-	// to be strictly consistent across implementations.
-	return "{{.ref_key_string_identifier}}(" {{- if not .global_scope -}}{{if .hosts}} + {{end}}{{range .hosts}}
-		refKey.{{unexported_field .}}.RefKeyString(){{end}}{{- end}} +
-		refKey.id.AZAdjunctEntityIDString() + ")"
+// AZString is required for conformance
+// with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZString() string {
+	wire := refKey.AZWire()
+	//TODO: configurable encoding
+	return "{{.ref_key_def.string_prefix}}-" + hex.EncodeToString(wire)
 }
 
 {{if not .global_scope}}{{range .hosts -}}

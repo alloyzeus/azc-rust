@@ -3,8 +3,8 @@
 use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
-    attribute_go::AttributeContext, eid_go::IntegerIdContext, BaseContext, GoCodeGenerator,
-    ImportContext,
+    attribute_go::AttributeContext, eid_go::IntegerIdContext, ref_key_go::RefKeyContext,
+    BaseContext, GoCodeGenerator, ImportContext,
 };
 
 use azml::azml::{
@@ -57,10 +57,12 @@ impl GoCodeGenerator {
                 id_type_name: id_type_name.to_owned(),
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
-                ref_key_string_identifier: if ent.ref_key.identifier.is_empty() {
-                    type_name.to_owned()
-                } else {
-                    ent.ref_key.identifier.to_owned()
+                ref_key_def: RefKeyContext {
+                    string_prefix: if ent.ref_key.identifier.is_empty() {
+                        type_name.to_owned()
+                    } else {
+                        ent.ref_key.identifier.to_owned()
+                    },
                 },
                 implements: ent.implements.kind.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
@@ -155,7 +157,7 @@ struct EntityContext {
     id_type_name: String,
     id_def: IntegerIdContext,
     ref_key_type_name: String,
-    ref_key_string_identifier: String,
+    ref_key_def: RefKeyContext,
     implements: String, //TODO: attributes
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,

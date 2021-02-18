@@ -19,12 +19,19 @@ func {{.id_type_name}}FromPrimitiveValue(v {{.id_def.type_name}}) {{.id_type_nam
 	return {{.id_type_name}}(v)
 }
 
-func {{.id_type_name}}FromAZEIDBinary(b []byte) ({{.id_type_name}}, error) {
-	e, n := binary.Uvarint(b)
-	if n > 0 {
-		return {{.id_type_name}}(e), nil
+func {{.id_type_name}}FromAZWire(b []byte) ({{.id_type_name}}, error) {
+	_, typ, n := protowire.ConsumeTag(b)
+	if n <= 0 {
+		return {{.id_type_name}}Zero, {{.id_type_name}}WireDecodingArgumentError{}
 	}
-	return {{.id_type_name}}Zero, {{.id_type_name}}BinaryDecodingArgumentError{}
+	if typ != protowire.VarintType {
+		return {{.id_type_name}}Zero, {{.id_type_name}}WireDecodingArgumentError{}
+	}
+	e, n := protowire.ConsumeVarint(b)
+	if n <= 0 {
+		return {{.id_type_name}}Zero, {{.id_type_name}}WireDecodingArgumentError{}
+	}
+	return {{.id_type_name}}(e), nil
 }
 
 // PrimitiveValue returns the ID in its primitive type. Prefer to use
@@ -81,22 +88,37 @@ func (id {{.id_type_name}}) Equals{{.id_type_name}}(
 	return id == other
 }
 
-// IDString returns a string representation of this instance.
-func (id {{.id_type_name}}) IDString() string {
-	return id.AZEIDString()
+// AZWire returns a binary representation of the instance.
+//
+// AZWire is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (id {{.id_type_name}}) AZWire() []byte {
+	return id.AZWireField(1)
 }
 
-// AZEIDBinary returns a binary representation
-// of the instance as an EID.
-func (id {{.id_type_name}}) AZEIDBinary() []byte {
-	buf := make([]byte, binary.MaxVarintLen{{.id_def.primitive_size}})
-	n := binary.PutUvarint(buf, uint64(id))
-	return buf[:n]
+// AZWireField encode this instance as azwire with a specified field number.
+//
+// AZWire is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (id {{.id_type_name}}) AZWireField(fieldNum int) []byte {
+	var buf []byte
+	buf = protowire.AppendTag(buf, protowire.Number(fieldNum), protowire.VarintType)
+	buf = protowire.AppendVarint(buf, uint64(id))
+	return buf
 }
 
-// AZEIDString returns a string representation
-// of the instance as an EID.
-func (id {{.id_type_name}}) AZEIDString() string {
+// UnmarshalAZWire is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (id *{{.id_type_name}}) UnmarshalAZWire(b []byte) error {
+	i, err := {{.id_type_name}}FromAZWire(b)
+	if err == nil {
+		*id = i
+	}
+	return err
+}
+
+// AZString returns a string representation of the instance.
+func (id {{.id_type_name}}) AZString() string {
 	{{if eq .id_def.text_encoding.encoding "" -}}
 	return "{{.id_def.text_encoding.prefix}}" + strconv.FormatInt(int64(id), 10)
 	{{- else -}}
@@ -120,16 +142,16 @@ func (id {{$.id_type_name}}) Is{{.identifier}}() bool {
 }
 {{end}}
 
-type {{.id_type_name}}BinaryDecodingArgumentError struct {}
+type {{.id_type_name}}WireDecodingArgumentError struct {}
 
-var _ errors.ArgumentError = {{.id_type_name}}BinaryDecodingArgumentError{}
+var _ errors.ArgumentError = {{.id_type_name}}WireDecodingArgumentError{}
 
-func ({{.id_type_name}}BinaryDecodingArgumentError) ArgumentName() string {
+func ({{.id_type_name}}WireDecodingArgumentError) ArgumentName() string {
 	return ""
 }
 
-func ({{.id_type_name}}BinaryDecodingArgumentError) Error() string {
-	return "{{.id_type_name}}BinaryDecodingArgumentError"
+func ({{.id_type_name}}WireDecodingArgumentError) Error() string {
+	return "{{.id_type_name}}WireDecodingArgumentError"
 }
 
 //TODO: FromString, (Un)MarshalText, (Un)MarshalJSON

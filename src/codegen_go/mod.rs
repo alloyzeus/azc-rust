@@ -15,6 +15,7 @@ mod adjunct_go;
 mod attribute_go;
 mod eid_go;
 mod entity_go;
+mod ref_key_go;
 mod symbol_go;
 mod template;
 mod value_object_go;

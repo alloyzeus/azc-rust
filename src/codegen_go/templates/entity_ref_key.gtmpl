@@ -66,9 +66,34 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	return other == refKey
 }
 
-// RefKeyString returns an encoded representation of this instance.
+// AZWire is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (refKey {{.ref_key_type_name}}) AZWire() []byte {
+	return refKey.AZWireField(1)
+}
+
+// AZWireField is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (refKey {{.ref_key_type_name}}) AZWireField(fieldNum int) []byte {
+	return {{.id_type_name}}(refKey).AZWireField(fieldNum)
+}
+
+// UnmarshalAZWire is required for conformance
+// with {{.base.azcore_pkg}}.AZWireObject.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) error {
+	i, err := {{.id_type_name}}FromAZWire(b)
+	if err == nil {
+		*refKey = {{.ref_key_type_name}}(i)
+	}
+	return err
+}
+
+// AZString returns an encoded representation of this instance.
 //
-// RefKeyString is required by {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) RefKeyString() string {
-	return "{{.ref_key_string_identifier}}(" + {{.id_type_name}}(refKey).AZEIDString() + ")"
+// AZString is required for conformance
+// with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZString() string {
+	wire := refKey.AZWire()
+	//TODO: configurable encoding
+	return "{{.ref_key_def.string_prefix}}-" + hex.EncodeToString(wire)
 }

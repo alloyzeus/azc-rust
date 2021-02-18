@@ -3,7 +3,8 @@
 use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
-    attribute_go::AttributeContext, eid_go::IntegerIdContext, BaseContext, GoCodeGenerator,
+    attribute_go::AttributeContext, eid_go::IntegerIdContext, ref_key_go::RefKeyContext,
+    BaseContext, GoCodeGenerator, ImportContext,
 };
 
 use azml::azml::{
@@ -67,13 +68,23 @@ impl GoCodeGenerator {
             let id_type_name = format!("{}ID", type_name);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
+            let service_name = format!("{}Service", type_name);
+            let type_doc_lines: Vec<String> =
+                sym.documentation.lines().map(|x| x.to_owned()).collect();
             let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
                 .into_iter()
                 .map(|attr| attr.into())
                 .collect();
-            let service_name = format!("{}Service", type_name);
-            let type_doc_lines: Vec<String> =
-                sym.documentation.lines().map(|x| x.to_owned()).collect();
+            let imports = sym
+                .definition
+                .collect_symbol_refs()
+                .iter()
+                .filter(|x| !x.package_identifier.is_empty())
+                .map(|x| ImportContext {
+                    alias: x.package_identifier.to_owned(),
+                    url: self.resolve_import(&x.package_identifier),
+                })
+                .collect();
 
             if !id_int.bitfield.inherits.is_empty() {
                 // let host = self.get_entity(module_name.to_owned(), adj.hosts[0].name.to_owned());
@@ -85,13 +96,16 @@ impl GoCodeGenerator {
                 pkg_name: module_name.to_lowercase(),
                 pkg_path: self.package_identifier.to_owned(),
                 type_name: type_name.to_owned(),
+                imports: imports,
                 id_type_name: id_type_name.to_owned(),
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
-                ref_key_string_identifier: if adj_ent.ref_key.identifier.is_empty() {
-                    type_name.to_owned()
-                } else {
-                    adj_ent.ref_key.identifier.to_owned()
+                ref_key_def: RefKeyContext {
+                    string_prefix: if adj_ent.ref_key.identifier.is_empty() {
+                        type_name.to_owned()
+                    } else {
+                        adj_ent.ref_key.identifier.to_owned()
+                    },
                 },
                 implements: adj_ent.implements.kind.to_owned(),
                 attributes_type_name: attrs_type_name.to_owned(),
@@ -209,11 +223,12 @@ struct AdjunctEntityContext {
     base: BaseContext,
     pkg_name: String,
     pkg_path: String,
+    imports: Vec<ImportContext>,
     type_name: String,
     id_type_name: String,
     id_def: IntegerIdContext,
     ref_key_type_name: String,
-    ref_key_string_identifier: String,
+    ref_key_def: RefKeyContext,
     implements: String, //TODO: attributes
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
