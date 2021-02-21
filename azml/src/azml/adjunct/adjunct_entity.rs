@@ -15,6 +15,7 @@ pub struct AdjunctEntity {
     pub id: AdjunctEntityId,
     pub ref_key: ref_key::RefKey,
     pub implements: abstract_::AbstractImplementation,
+    // This affects RefKey structure.
     pub scope: AdjunctEntityScope,
     pub attributes: Vec<attribute::Attribute>,
 }
@@ -53,6 +54,12 @@ impl adjunct::AdjuctDefinition for AdjunctEntity {
 #[derive(Clone, PartialEq, Debug)]
 pub enum AdjunctEntityScope {
     Local,
+
+    // An adjunct entity with global scope will make it more similar to
+    // Entity. It's still an adjunct of other entity but an instance
+    // is directly addressable instead of through its entities.
+    // A global adjunct entity can only have unordered ordering. Its
+    // instances' IDs are random and globally unique.
     Global,
 }
 

@@ -2,7 +2,10 @@
 
 #[derive(Clone, Debug)]
 pub struct RefKey {
-    //TODO: encoding directives
-    //TODO: ensure that identifier is unique within a module.
-    pub identifier: String,
+    pub azis: RefKeyAzis,
+}
+
+#[derive(Clone, Debug)]
+pub struct RefKeyAzis {
+    pub prefix: String,
 }

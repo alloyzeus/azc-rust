@@ -3,15 +3,26 @@
 // scoped within its host entity(s).
 type {{.id_type_name}} {{.id_def.type_name}}
 
+// To ensure that it conforms the interfaces. If any of these is failing,
+// there's a bug in the generator.
 var _ {{.base.azcore_pkg}}.EID = {{.id_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{.id_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .id_type_name}}ZeroVar
 {{if .implements -}}
 var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero
 {{- end}}
 
+// In binary: {{.id_def.significant_bits_mask_bin}}
+const {{unexported_global .id_type_name}}SignificantBitsMask uint{{.id_def.primitive_size}} = {{.id_def.significant_bits_mask}}
+
 // {{.id_type_name}}Zero is the zero value for {{.id_type_name}}.
 const {{.id_type_name}}Zero =
 	{{.id_type_name}}(0)
+
+// {{unexported_global .id_type_name}}ZeroVar is used for testing
+// pointer-based interfaces conformance.
+var {{unexported_global .id_type_name}}ZeroVar =
+	{{.id_type_name}}Zero
 
 // {{.id_type_name}}FromPrimitiveValue creates an instance
 // of {{.id_type_name}} from its primitive value.
@@ -19,19 +30,23 @@ func {{.id_type_name}}FromPrimitiveValue(v {{.id_def.type_name}}) {{.id_type_nam
 	return {{.id_type_name}}(v)
 }
 
-func {{.id_type_name}}FromAZWire(b []byte) ({{.id_type_name}}, error) {
+// {{.id_type_name}}FromAZWire creates {{.id_type_name}} from
+// its azwire-encoded form.
+func {{.id_type_name}}FromAZWire(b []byte) (id {{.id_type_name}}, readLen int, err error) {
 	_, typ, n := protowire.ConsumeTag(b)
 	if n <= 0 {
-		return {{.id_type_name}}Zero, {{.id_type_name}}WireDecodingArgumentError{}
+		return {{.id_type_name}}Zero, n, {{.id_type_name}}AZWireDecodingArgumentError{}
 	}
+	readLen = n
 	if typ != protowire.VarintType {
-		return {{.id_type_name}}Zero, {{.id_type_name}}WireDecodingArgumentError{}
+		return {{.id_type_name}}Zero, readLen, {{.id_type_name}}AZWireDecodingArgumentError{}
 	}
-	e, n := protowire.ConsumeVarint(b)
+	e, n := protowire.ConsumeVarint(b[readLen:])
 	if n <= 0 {
-		return {{.id_type_name}}Zero, {{.id_type_name}}WireDecodingArgumentError{}
+		return {{.id_type_name}}Zero, readLen, {{.id_type_name}}AZWireDecodingArgumentError{}
 	}
-	return {{.id_type_name}}(e), nil
+	readLen += n
+	return {{.id_type_name}}(e), readLen, nil
 }
 
 // PrimitiveValue returns the ID in its primitive type. Prefer to use
@@ -54,6 +69,18 @@ func ({{.id_type_name}}) AZ{{.implements}}ID() {}
 
 {{end -}}
 
+// IsZero is required as {{.id_type_name}} is a value-object.
+func (id {{.id_type_name}}) IsZero() bool {
+	return id == {{.id_type_name}}Zero
+}
+
+// IsValid returns true if this instance is valid independently as an ID.
+// It doesn't tell whether it refers to a valid instance of {{.type_name}}.
+func (id {{.id_type_name}}) IsValid() bool {
+	return int{{.id_def.primitive_size}}(id) > 0 &&
+		(uint{{.id_def.primitive_size}}(id) & {{unexported_global .id_type_name}}SignificantBitsMask) != 0
+}
+
 // AZWire returns a binary representation of the instance.
 //
 // AZWire is required for conformance
@@ -74,22 +101,14 @@ func (id {{.id_type_name}}) AZWireField(fieldNum int) []byte {
 }
 
 // UnmarshalAZWire is required for conformance
-// with {{.base.azcore_pkg}}.AZWireObject.
-func (id *{{.id_type_name}}) UnmarshalAZWire(b []byte) error {
-	i, err := {{.id_type_name}}FromAZWire(b)
+// with {{.base.azcore_pkg}}.AZWireUnmarshalable.
+func (id *{{.id_type_name}}) UnmarshalAZWire(b []byte) (readLen int, err error) {
+	var i {{.id_type_name}}
+	i, readLen, err = {{.id_type_name}}FromAZWire(b)
 	if err == nil {
 		*id = i
 	}
-	return err
-}
-
-// AZString returns a string representation of the instance.
-func (id {{.id_type_name}}) AZString() string {
-	{{if eq .id_def.text_encoding.encoding "" -}}
-	return "{{.id_def.text_encoding.prefix}}" + strconv.FormatInt(int64(id), 10)
-	{{- else -}}
-	return "{{.id_def.text_encoding.prefix}}" + {{.id_def.text_encoding.encoding}}.EncodeInt64(id)
-	{{- end}}
+	return readLen, err
 }
 
 // Equals is required as {{.id_type_name}} is a value-object.
@@ -120,14 +139,14 @@ func (id {{.id_type_name}}) Equals{{.id_type_name}}(
 	return id == other
 }
 
-type {{.id_type_name}}WireDecodingArgumentError struct {}
+type {{.id_type_name}}AZWireDecodingArgumentError struct {}
 
-var _ errors.ArgumentError = {{.id_type_name}}WireDecodingArgumentError{}
+var _ errors.ArgumentError = {{.id_type_name}}AZWireDecodingArgumentError{}
 
-func ({{.id_type_name}}WireDecodingArgumentError) ArgumentName() string {
+func ({{.id_type_name}}AZWireDecodingArgumentError) ArgumentName() string {
 	return ""
 }
 
-func ({{.id_type_name}}WireDecodingArgumentError) Error() string {
-	return "{{.id_type_name}}WireDecodingArgumentError"
+func ({{.id_type_name}}AZWireDecodingArgumentError) Error() string {
+	return "{{.id_type_name}}AZWireDecodingArgumentError"
 }

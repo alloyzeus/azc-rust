@@ -15,9 +15,6 @@ pub struct IntegerIdYaml {
 
     #[serde(default)]
     bitfield: Option<IntegerIdBitfieldYaml>,
-
-    #[serde(default)]
-    text_encoding: IntegerIdTextEncodingYaml,
 }
 
 impl convert::TryFrom<IntegerIdYaml> for eid::IntegerId {
@@ -32,7 +29,6 @@ impl convert::TryFrom<IntegerIdYaml> for eid::IntegerId {
             } else {
                 eid::IntegerIdBitfield::default()
             },
-            text_encoding: x.text_encoding.try_into()?,
         })
     }
 }

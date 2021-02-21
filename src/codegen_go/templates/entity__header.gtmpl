@@ -3,6 +3,7 @@ package {{.pkg_name}}
 import (
 	"encoding/hex"
 	"strconv"
+	"strings"
 
 	errors "{{.base.azcore_import}}/errors"
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
@@ -16,4 +17,5 @@ import (
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 var _ = hex.ErrLength
 var _ = strconv.IntSize
+var _ = strings.Compare
 var _ = protowire.MinValidNumber

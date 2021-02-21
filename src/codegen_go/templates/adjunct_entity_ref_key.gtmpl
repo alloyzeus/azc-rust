@@ -16,16 +16,19 @@ func New{{.ref_key_type_name}}(
 	id {{.id_type_name}},
 ) {{.ref_key_type_name}} {
 	return {{.ref_key_type_name}}{
-		{{if not .global_scope -}}{{- range .hosts}}
+		{{if not .global_scope -}}{{- range .hosts -}}
 		{{unexported_field .}}: {{arg_name .}},
 		{{end}}{{end -}}
 		id: id,
 	}
 }
 
-// To ensure that it conforms the interfaces
+// To ensure that it conforms the interfaces. If any of these is failing,
+// there's a bug in the generator.
 var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AZISUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
 {{if .implements -}}
 var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- end}}
@@ -69,6 +72,13 @@ func (refKey {{.ref_key_type_name}}) IsZero() bool {
 		{{end}}{{- end -}} refKey.id == {{.id_type_name}}Zero
 }
 
+// IsValid returns true if this instance is valid independently as a ref-key.
+// It doesn't tell whether it refers to a valid instance of {{.type_name}}.
+func (refKey {{.ref_key_type_name}}) IsValid() bool {
+	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.IsValid() &&
+		{{end}}{{- end -}} refKey.id.IsValid()
+}
+
 // Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
 func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
@@ -108,10 +118,12 @@ func (refKey {{.ref_key_type_name}}) AZWireField(fieldNum int) []byte {
 	{{if not .global_scope -}}{{if .hosts -}}
 	buf := &bytes.Buffer{}
 	var fieldWire []byte
+
 	{{range $i, $h := .hosts -}}
 	fieldWire = refKey.application.AZWireField({{$i}} + 1)
 	buf.Write(fieldWire)
 	{{- end}}
+	
 	fieldWire = refKey.id.AZWireField({{len .hosts}} + 1)
 	buf.Write(fieldWire)
 	var outBuf []byte
@@ -124,14 +136,108 @@ func (refKey {{.ref_key_type_name}}) AZWireField(fieldNum int) []byte {
 	{{- end}}
 }
 
-// AZString returns an encoded representation of this instance.
+// {{.ref_key_type_name}}FromAZWire creates {{.ref_key_type_name}} from
+// its azwire-encoded form.
+func {{.ref_key_type_name}}FromAZWire(
+	b []byte,
+) (
+	refKey {{.ref_key_type_name}},
+	readLen int,
+	err error,
+) {
+	var readOffset int = 0
+	_, typ, n := protowire.ConsumeTag(b)
+	if n <= 0 {
+		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+	}
+	readOffset += n
+	if typ != protowire.BytesType {
+		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+	}
+	_, n = protowire.ConsumeVarint(b[readOffset:])
+	if n <= 0 {
+		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+	}
+	readOffset += n
+
+	{{if not .global_scope -}}{{range .hosts -}}
+	{{unexported_field .}}, fieldLen, err := {{.}}RefKeyFromAZWire(b[readOffset:])
+	if err != nil {
+		return {{$.ref_key_type_name}}Zero(), readOffset, {{$.ref_key_type_name}}AZWireDecodingArgumentError{}
+	}
+	readOffset += fieldLen
+
+	{{end}}{{- end -}}
+
+	id, fieldLen, err := {{.id_type_name}}FromAZWire(b[readOffset:])
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+	}
+	readOffset += fieldLen
+
+	return {{.ref_key_type_name}}{
+		{{if not .global_scope -}}{{- range .hosts -}}
+		{{unexported_field .}}: {{arg_name .}},
+		{{end}}{{end -}}
+		id:          id,
+	}, readOffset, nil
+}
+
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) (readLen int, err error) {
+	var r {{.ref_key_type_name}}
+	r, readLen, err = {{.ref_key_type_name}}FromAZWire(b)
+	if err == nil {
+		*refKey = r
+	}
+	return readLen, err
+}
+
+const {{unexported_global .ref_key_type_name}}AZISPrefix = "{{.ref_key_def.azis.prefix}}"
+
+// {{.ref_key_type_name}}FromAZIS creates {{.ref_key_type_name}} from
+// its AZIS-encoded form.
+func {{.ref_key_type_name}}FromAZIS(s string) ({{.ref_key_type_name}}, error) {
+	if s == "" {
+		return {{.ref_key_type_name}}Zero(), nil
+	}
+	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZISPrefix) {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	}
+	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZISPrefix)
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	}
+	refKey, _, err := {{.ref_key_type_name}}FromAZWire(b)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	}
+	return refKey, nil
+}
+
+// AZIS returns an encoded representation of this instance. It returns empty
+// if IsValid returned false.
 //
-// AZString is required for conformance
+// AZIS is required for conformance
 // with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZString() string {
+func (refKey {{.ref_key_type_name}}) AZIS() string {
+	if !refKey.IsValid() {
+		return ""
+	}
 	wire := refKey.AZWire()
 	//TODO: configurable encoding
-	return "{{.ref_key_def.string_prefix}}-" + hex.EncodeToString(wire)
+	return {{unexported_global .ref_key_type_name}}AZISPrefix +
+		hex.EncodeToString(wire)
+}
+
+// UnmarshalAZIS is required for conformance
+// with {{.base.azcore_pkg}}.AZISUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZIS(s string) error {
+	r, err := {{.ref_key_type_name}}FromAZIS(s)
+	if err == nil {
+		*refKey = r
+	}
+	return err
 }
 
 {{if not .global_scope}}{{range .hosts -}}
@@ -156,3 +262,32 @@ func (refKey {{$.ref_key_type_name}}) With{{.}}(
 }
 
 {{end}}{{end -}}
+
+type {{.ref_key_type_name}}Error interface {
+	error
+	{{.ref_key_type_name}}Error()
+}
+
+type {{.ref_key_type_name}}AZWireDecodingArgumentError struct {}
+
+var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+var _ errors.ArgumentError = {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+
+func ({{.ref_key_type_name}}AZWireDecodingArgumentError) {{.ref_key_type_name}}Error() {}
+func ({{.ref_key_type_name}}AZWireDecodingArgumentError) ArgumentName() string { return "" }
+
+func ({{.ref_key_type_name}}AZWireDecodingArgumentError) Error() string {
+	return "{{.ref_key_type_name}}AZWireDecodingArgumentError"
+}
+
+type {{.ref_key_type_name}}AZISDecodingArgumentError struct {}
+
+var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZISDecodingArgumentError{}
+var _ errors.ArgumentError = {{.ref_key_type_name}}AZISDecodingArgumentError{}
+
+func ({{.ref_key_type_name}}AZISDecodingArgumentError) {{.ref_key_type_name}}Error() {}
+func ({{.ref_key_type_name}}AZISDecodingArgumentError) ArgumentName() string { return "" }
+
+func ({{.ref_key_type_name}}AZISDecodingArgumentError) Error() string {
+	return "{{.ref_key_type_name}}AZISDecodingArgumentError"
+}

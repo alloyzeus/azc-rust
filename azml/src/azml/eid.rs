@@ -50,8 +50,6 @@ pub struct IntegerId {
     //
     // The number of attributes could be included is strictly limited.
     pub bitfield: IntegerIdBitfield,
-
-    pub text_encoding: IntegerIdTextEncoding,
 }
 
 impl IntegerId {
@@ -76,15 +74,7 @@ impl IntegerId {
         }
     }
     pub fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
-        if self.text_encoding.encoding.is_empty() {
-            Vec::new()
-        } else {
-            vec![symbol::SymbolRef {
-                package_identifier: self.text_encoding.encoding.to_owned(),
-                symbol_name: "".to_owned(),
-                is_reference: false,
-            }]
-        }
+        Vec::new()
     }
 }
 

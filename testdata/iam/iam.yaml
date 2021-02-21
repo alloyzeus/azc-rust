@@ -6,6 +6,7 @@ server:
 symbols:
 
   - identifier: User
+    # An entity is a root object in a whole realm.
     kind: entity
     parameters:
       # This defines what this entity's role in the system. In a system, a role
@@ -45,9 +46,6 @@ symbols:
                 bits:
                   - index: 1
                     set: true
-          text_encoding:
-            prefix: "ix-"
-            encoding: crockford32
         generator:
           # Other options: ShardedRandomIntegerGenerator
           # The option for generator is defined by the registered generators
@@ -55,6 +53,9 @@ symbols:
           # Root entities can only use random generators.
           name: LocalRandomIntegerIDGenerator
           parameters:
+      ref_key:
+        azis:
+          prefix: "KUs0"
       mixins:
         - kind: Deletion
           parameters:
@@ -144,6 +145,18 @@ symbols:
             # infer this value by substracting total_bits with
             # significant_bits.
             size: 5
+            # sub_fields:
+            #   - size: 1
+            #     identifier: FirstParty
+            #   - size: 1
+            #     values:
+            #       - identifier: Service
+            #       - identifier: UserAgent
+            #         sub_fields:
+            #           - size: 1
+            #             values:
+            #               - identifier: PublicAuthorization
+            #               - identifier: ConfidentialAuthorization
             #TODO: copied sub_fields
             sub_fields:
               - identifier: FirstParty
@@ -217,11 +230,9 @@ symbols:
                     set: true
                   - index: 2
                     set: true
-          text_encoding:
-            prefix: "ap-"
-            encoding: crockford32
       ref_key:
-        identifier: App
+        azis:
+          prefix: KAp0
       creation:
         allow_cross_process_callers: true
       mixins:
@@ -268,6 +279,10 @@ symbols:
                   # value must be exactly same as host's. This is required
                   # for ensuring consistency.
                   size: 5
+
+        ref_key:
+          azis:
+            prefix: "KAK0"
               
         attributes:
           - identifier: Secret
@@ -301,15 +316,11 @@ symbols:
           kind: Terminal
           attributes:
             - identifier: PrincipalUser
-              kind: User
-        # An adjunct entity with global scope will make it more similar to
-        # Entity. It's still an adjunct of other entity but an instance
-        # is directly addressable instead of through its entities.
-        # A global adjunct entity can only have unordered ordering. Its
-        # instances' IDs are random and globally unique.
-        scope: global
+              kind: "@User"
+              final: true
         ref_key:
-          identifier: "Tx"
+          azis:
+            prefix: "KTx0"
         id:
           kind: integer
           parameters:
@@ -325,11 +336,13 @@ symbols:
         attributes:
           - identifier: PrincipalUser
             kind: "@User"
+            final: true
           - identifier: RegistrationIdentifier
             # TODO: union or interface
             # we need to refer to TerminalRegistrationPhoneNumber and
             # other methods of authentication.
             kind: "@TerminalRegistrationIdentifierVerification"
+            final: true
         creation:
           allow_cross_process_callers: false
           authorization:
@@ -395,9 +408,9 @@ symbols:
           parameters:
             total_bits: 32
             significant_bits: 24
-            text_encoding:
-              prefix: "s1o"
-              encoding: crockford32
+        ref_key:
+          azis:
+            prefix: "KSe0"
         service:
           enabled: true
           description: |
@@ -535,6 +548,7 @@ symbols:
                 }
               }
 
+  #TODO: generator
   - identifier: ApplicationAccessKeySecret
     documentation: |
       ApplicationAccessKeySecret encapsulates application access key secret.

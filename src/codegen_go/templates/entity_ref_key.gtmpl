@@ -2,14 +2,20 @@
 // an instance of entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} {{.id_type_name}}
 
-// To ensure that it conforms the interfaces
+// To ensure that it conforms the interfaces. If any of these is failing,
+// there's a bug in the generator.
 var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.EntityRefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
+var _ {{.base.azcore_pkg}}.AZISUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 {{if .implements -}}
 var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- end}}
 
-const {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}({{.id_type_name}}Zero)
+const {{unexported_global .ref_key_type_name}}Zero =
+	{{.ref_key_type_name}}({{.id_type_name}}Zero)
+var {{unexported_global .ref_key_type_name}}ZeroVar =
+	{{unexported_global .ref_key_type_name}}Zero
 
 // {{.ref_key_type_name}}Zero returns
 // a zero-valued instance of {{.ref_key_type_name}}.
@@ -40,6 +46,12 @@ func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
 	return {{.id_type_name}}(refKey) == {{.id_type_name}}Zero
+}
+
+// IsValid returns true if this instance is valid independently as a ref-key.
+// It doesn't tell whether it refers to a valid instance of {{.type_name}}.
+func (refKey {{.ref_key_type_name}}) IsValid() bool {
+	return {{.id_type_name}}(refKey).IsValid()
 }
 
 // Equals is required for conformance with {{.base.azcore_pkg}}.EntityRefKey.
@@ -78,22 +90,101 @@ func (refKey {{.ref_key_type_name}}) AZWireField(fieldNum int) []byte {
 	return {{.id_type_name}}(refKey).AZWireField(fieldNum)
 }
 
+// {{.ref_key_type_name}}FromAZWire creates {{.ref_key_type_name}} from
+// its azwire-encoded form.
+func {{.ref_key_type_name}}FromAZWire(b []byte) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+	var id {{.id_type_name}}
+	id, readLen, err = {{.id_type_name}}FromAZWire(b)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), readLen, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+	}
+	return {{.ref_key_type_name}}(id), readLen, nil
+}
+
 // UnmarshalAZWire is required for conformance
-// with {{.base.azcore_pkg}}.AZWireObject.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) error {
-	i, err := {{.id_type_name}}FromAZWire(b)
+// with {{.base.azcore_pkg}}.AZWireUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) (readLen int, err error) {
+	var i {{.ref_key_type_name}}
+	i, readLen, err = {{.ref_key_type_name}}FromAZWire(b)
 	if err == nil {
-		*refKey = {{.ref_key_type_name}}(i)
+		*refKey = i
+	}
+	return readLen, err
+}
+
+const {{unexported_global .ref_key_type_name}}AZISPrefix = "{{.ref_key_def.azis.prefix}}"
+
+// {{.ref_key_type_name}}FromAZIS creates {{.ref_key_type_name}} from
+// its AZIS-encoded form.
+func {{.ref_key_type_name}}FromAZIS(s string) ({{.ref_key_type_name}}, error) {
+	if s == "" {
+		return {{.ref_key_type_name}}Zero(), nil
+	}
+	if !strings.HasPrefix(s, _{{.ref_key_type_name}}AZISPrefix) {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	}
+	s = strings.TrimPrefix(s, _{{.ref_key_type_name}}AZISPrefix)
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	}
+	refKey, _, err := {{.ref_key_type_name}}FromAZWire(b)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	}
+	return refKey, nil
+}
+
+// AZIS returns an encoded representation of this instance. It returns empty
+// if IsValid returned false.
+//
+// AZIS is required for conformance
+// with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIS() string {
+	if !refKey.IsValid() {
+		return ""
+	}
+	wire := refKey.AZWire()
+	//TODO: configurable encoding
+	return {{unexported_global .ref_key_type_name}}AZISPrefix +
+		hex.EncodeToString(wire)
+}
+
+// UnmarshalAZIS is required for conformance
+// with {{.base.azcore_pkg}}.AZISUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZIS(s string) error {
+	r, err := {{.ref_key_type_name}}FromAZIS(s)
+	if err == nil {
+		*refKey = r
 	}
 	return err
 }
 
-// AZString returns an encoded representation of this instance.
-//
-// AZString is required for conformance
-// with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZString() string {
-	wire := refKey.AZWire()
-	//TODO: configurable encoding
-	return "{{.ref_key_def.string_prefix}}-" + hex.EncodeToString(wire)
+type {{.ref_key_type_name}}Error interface {
+	error
+	{{.ref_key_type_name}}Error()
+}
+
+type {{.ref_key_type_name}}AZWireDecodingArgumentError struct {}
+
+var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+var _ errors.ArgumentError = {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+
+func ({{.ref_key_type_name}}AZWireDecodingArgumentError) {{.ref_key_type_name}}Error() {}
+func ({{.ref_key_type_name}}AZWireDecodingArgumentError) ArgumentName() string { return "" }
+
+func ({{.ref_key_type_name}}AZWireDecodingArgumentError) Error() string {
+	return "{{.ref_key_type_name}}AZWireDecodingArgumentError"
+}
+
+type {{.ref_key_type_name}}AZISDecodingArgumentError struct {}
+
+var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZISDecodingArgumentError{}
+var _ errors.ArgumentError = {{.ref_key_type_name}}AZISDecodingArgumentError{}
+
+func ({{.ref_key_type_name}}AZISDecodingArgumentError) {{.ref_key_type_name}}Error() {}
+func ({{.ref_key_type_name}}AZISDecodingArgumentError) ArgumentName() string { return "" }
+
+func ({{.ref_key_type_name}}AZISDecodingArgumentError) Error() string {
+	return "{{.ref_key_type_name}}AZISDecodingArgumentError"
 }

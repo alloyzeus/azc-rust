@@ -60,14 +60,6 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
 
 //endregion
 
-impl Default for ref_key_yaml::RefKeyYaml {
-    fn default() -> ref_key_yaml::RefKeyYaml {
-        ref_key_yaml::RefKeyYaml {
-            identifier: "".to_owned(),
-        }
-    }
-}
-
 //region EntityCreationYaml
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]

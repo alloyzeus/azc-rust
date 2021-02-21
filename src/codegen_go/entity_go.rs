@@ -3,7 +3,9 @@
 use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
-    attribute_go::AttributeContext, eid_go::IntegerIdContext, ref_key_go::RefKeyContext,
+    attribute_go::AttributeContext,
+    eid_go::IntegerIdContext,
+    ref_key_go::{RefKeyAzisContext, RefKeyContext},
     BaseContext, GoCodeGenerator, ImportContext,
 };
 
@@ -58,10 +60,12 @@ impl GoCodeGenerator {
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
-                    string_prefix: if ent.ref_key.identifier.is_empty() {
-                        type_name.to_owned()
-                    } else {
-                        ent.ref_key.identifier.to_owned()
+                    azis: RefKeyAzisContext {
+                        prefix: if ent.ref_key.azis.prefix.is_empty() {
+                            type_name.to_owned()
+                        } else {
+                            ent.ref_key.azis.prefix.to_owned()
+                        },
                     },
                 },
                 implements: ent.implements.kind.to_owned(),

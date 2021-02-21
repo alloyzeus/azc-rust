@@ -2,7 +2,8 @@
 // attributes for adjunct {{.type_name}}.
 type {{.attributes_type_name}} struct {
 	{{.base.azlib_prefix}}AdjunctEntityAttributesBase
-	{{range .attributes}}
+
+	{{range .attributes -}}
 	{{unexported_field .identifier}} {{.kind}}
 	{{- end}}
 }

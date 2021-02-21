@@ -8,8 +8,10 @@ use azml::azml::eid;
 pub struct IntegerIdContext {
     primitive_size: i8,
     type_name: String,
+    significant_bits: i8,
+    significant_bits_mask: String,
+    significant_bits_mask_bin: String,
     bitfield: IntegerIdBitfieldContext,
-    text_encoding: IntegerIdTextEncodingContext,
 }
 
 impl From<&eid::IntegerId> for IntegerIdContext {
@@ -17,11 +19,33 @@ impl From<&eid::IntegerId> for IntegerIdContext {
         IntegerIdContext {
             primitive_size: x.primitive_size(),
             type_name: format!("int{}", x.primitive_size()),
+            significant_bits: x.significant_bits,
+            significant_bits_mask: significant_bit_mask_hex(x.primitive_size(), x.significant_bits),
+            significant_bits_mask_bin: significant_bit_mask_bin(x.primitive_size(), x.significant_bits),
             // Minus 2: one for making it zero-based index, one for skipping the most-significant bit (the sign bit)
             bitfield: IntegerIdBitfieldContext::from(&x.bitfield, x.primitive_size() - 2),
-            text_encoding: IntegerIdTextEncodingContext::from(&x.text_encoding),
         }
     }
+}
+
+fn significant_bit_mask_hex(bit_size: i8, significant_size: i8) -> String {
+    let mut v: u64 = 0;
+    for i in 0..bit_size {
+        if i < significant_size {
+            v |= 1 << i;
+        }
+    }
+    format!("0x{:x}", v)
+}
+
+fn significant_bit_mask_bin(bit_size: i8, significant_size: i8) -> String {
+    let mut v: u64 = 0;
+    for i in 0..bit_size {
+        if i < significant_size {
+            v |= 1 << i;
+        }
+    }
+    format!("0b{:b}", v)
 }
 
 //endregion
