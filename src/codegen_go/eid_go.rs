@@ -10,7 +10,6 @@ pub struct IntegerIdContext {
     type_name: String,
     significant_bits: i8,
     significant_bits_mask: String,
-    significant_bits_mask_bin: String,
     bitfield: IntegerIdBitfieldContext,
 }
 
@@ -20,22 +19,11 @@ impl From<&eid::IntegerId> for IntegerIdContext {
             primitive_size: x.primitive_size(),
             type_name: format!("int{}", x.primitive_size()),
             significant_bits: x.significant_bits,
-            significant_bits_mask: significant_bit_mask_hex(x.primitive_size(), x.significant_bits),
-            significant_bits_mask_bin: significant_bit_mask_bin(x.primitive_size(), x.significant_bits),
-            // Minus 2: one for making it zero-based index, one for skipping the most-significant bit (the sign bit)
-            bitfield: IntegerIdBitfieldContext::from(&x.bitfield, x.primitive_size() - 2),
+            significant_bits_mask: significant_bit_mask_bin(x.primitive_size(), x.significant_bits),
+            // one for skipping the most-significant bit (the sign bit)
+            bitfield: IntegerIdBitfieldContext::from(&x.bitfield, x.primitive_size() - 2, 0),
         }
     }
-}
-
-fn significant_bit_mask_hex(bit_size: i8, significant_size: i8) -> String {
-    let mut v: u64 = 0;
-    for i in 0..bit_size {
-        if i < significant_size {
-            v |= 1 << i;
-        }
-    }
-    format!("0x{:x}", v)
 }
 
 fn significant_bit_mask_bin(bit_size: i8, significant_size: i8) -> String {
@@ -45,7 +33,20 @@ fn significant_bit_mask_bin(bit_size: i8, significant_size: i8) -> String {
             v |= 1 << i;
         }
     }
-    format!("0b{:b}", v)
+    format_u64_as_bin(v)
+}
+
+fn format_u64_as_bin(i: u64) -> String {
+    let mut s = String::new();
+    let i_str = format!("{:b}", i);
+    let a = i_str.chars().rev().enumerate();
+    for (idx, val) in a {
+        if idx != 0 && idx % 8 == 0 {
+            s.insert(0, '_');
+        }
+        s.insert(0, val);
+    }
+    format!("0b{}", s)
 }
 
 //endregion
@@ -58,21 +59,20 @@ pub struct IntegerIdBitfieldContext {
 }
 
 impl IntegerIdBitfieldContext {
-    fn from(x: &eid::IntegerIdBitfield, index_offset: i8) -> IntegerIdBitfieldContext {
-        IntegerIdBitfieldContext {
-            sub_fields: x
-                .sub_fields
-                .iter()
-                .map(|sub_field| IntegerIdBitfieldSubFieldContext::from(sub_field, index_offset))
-                .collect(),
+    fn from(
+        x: &eid::IntegerIdBitfield,
+        bitfield_size: i8,
+        index_offset: i8,
+    ) -> IntegerIdBitfieldContext {
+        let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> = Vec::new();
+        let mut idx: i8 = 0;
+        for v in &x.sub_fields {
+            let fields = convert_field(&v, bitfield_size, index_offset + idx, 0, 0);
+            all_fields.extend(fields);
+            idx += 1;
         }
-    }
-}
-
-impl From<&eid::IntegerIdBitfield> for IntegerIdBitfieldContext {
-    fn from(x: &eid::IntegerIdBitfield) -> IntegerIdBitfieldContext {
         IntegerIdBitfieldContext {
-            sub_fields: x.sub_fields.iter().map(|x| x.into()).collect(),
+            sub_fields: all_fields,
         }
     }
 }
@@ -85,80 +85,76 @@ impl From<&eid::IntegerIdBitfield> for IntegerIdBitfieldContext {
 pub struct IntegerIdBitfieldSubFieldContext {
     identifier: String,
     doc_lines: Vec<String>,
-    bits: Vec<IntegerIdBitfieldSubFieldBitContext>,
+    mask: String,
+    flag: String,
 }
 
-impl IntegerIdBitfieldSubFieldContext {
-    fn from(
-        x: &eid::IntegerIdBitfieldSubField,
-        index_offset: i8,
-    ) -> IntegerIdBitfieldSubFieldContext {
-        IntegerIdBitfieldSubFieldContext {
-            identifier: x.identifier.to_owned(),
-            doc_lines: x.documentation.lines().map(|x| x.to_owned()).collect(),
-            bits: x
-                .bits
-                .iter()
-                .map(|bit| IntegerIdBitfieldSubFieldBitContext::from(bit, index_offset))
-                .collect(),
+fn convert_field(
+    field: &eid::IntegerIdBitfieldSubField,
+    bitfield_size: i8,
+    index_offset: i8,
+    mask: u64,
+    flag: u64,
+) -> Vec<IntegerIdBitfieldSubFieldContext> {
+    if !field.values.is_empty() {
+        let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> = Vec::new();
+        let mut flag: u64 = flag;
+        for v in &field.values {
+            let fields = convert_value(
+                &v,
+                bitfield_size,
+                index_offset + field.size,
+                mask | (1 << (bitfield_size - index_offset)),
+                flag,
+            );
+            all_fields.extend(fields);
+            flag |= 1 << (bitfield_size - index_offset);
         }
+        all_fields
+    } else {
+        //TODO:
+        // - ensure identifier is not empty
+        // - return single
+        let bit_offset = bitfield_size - index_offset;
+        let mask = mask | (1 << bit_offset);
+        let flag = flag | (1 << bit_offset);
+        vec![IntegerIdBitfieldSubFieldContext {
+            identifier: field.identifier.to_owned(),
+            doc_lines: field.documentation.lines().map(|x| x.to_owned()).collect(),
+            mask: format_u64_as_bin(mask),
+            flag: format_u64_as_bin(flag),
+        }]
     }
 }
 
-impl From<&eid::IntegerIdBitfieldSubField> for IntegerIdBitfieldSubFieldContext {
-    fn from(x: &eid::IntegerIdBitfieldSubField) -> IntegerIdBitfieldSubFieldContext {
-        IntegerIdBitfieldSubFieldContext {
-            identifier: x.identifier.to_owned(),
-            doc_lines: x.documentation.lines().map(|x| x.to_owned()).collect(),
-            bits: x.bits.iter().map(|x| x.into()).collect(),
+fn convert_value(
+    value: &eid::IntegerIdBitfieldSubFieldValue,
+    bitfield_size: i8,
+    index_offset: i8,
+    mask: u64,
+    flag: u64,
+) -> Vec<IntegerIdBitfieldSubFieldContext> {
+    if !value.sub_fields.is_empty() {
+        let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> =
+            vec![IntegerIdBitfieldSubFieldContext {
+                identifier: value.identifier.to_owned(),
+                doc_lines: value.documentation.lines().map(|x| x.to_owned()).collect(),
+                mask: format_u64_as_bin(mask),
+                flag: format_u64_as_bin(flag),
+            }];
+        for v in &value.sub_fields {
+            let fields = convert_field(&v, bitfield_size, index_offset, mask, flag);
+            all_fields.extend(fields);
         }
+        all_fields
+    } else {
+        vec![IntegerIdBitfieldSubFieldContext {
+            identifier: value.identifier.to_owned(),
+            doc_lines: value.documentation.lines().map(|x| x.to_owned()).collect(),
+            mask: format_u64_as_bin(mask),
+            flag: format_u64_as_bin(flag),
+        }]
     }
 }
 
 //endregion
-
-//region IntegerIdBitFieldSubFieldBitContext
-
-#[derive(Clone, Gtmpl)]
-pub struct IntegerIdBitfieldSubFieldBitContext {
-    pub index: i8,
-    pub set: bool,
-}
-
-impl IntegerIdBitfieldSubFieldBitContext {
-    fn from(
-        x: &eid::IntegerIdBitfieldSubFieldBit,
-        offset: i8,
-    ) -> IntegerIdBitfieldSubFieldBitContext {
-        IntegerIdBitfieldSubFieldBitContext {
-            index: offset - x.index,
-            set: x.set,
-        }
-    }
-}
-
-impl From<&eid::IntegerIdBitfieldSubFieldBit> for IntegerIdBitfieldSubFieldBitContext {
-    fn from(x: &eid::IntegerIdBitfieldSubFieldBit) -> IntegerIdBitfieldSubFieldBitContext {
-        IntegerIdBitfieldSubFieldBitContext {
-            index: x.index,
-            set: x.set,
-        }
-    }
-}
-
-//endregion
-
-#[derive(Clone, Gtmpl)]
-pub struct IntegerIdTextEncodingContext {
-    pub prefix: String,
-    pub encoding: String,
-}
-
-impl From<&eid::IntegerIdTextEncoding> for IntegerIdTextEncodingContext {
-    fn from(x: &eid::IntegerIdTextEncoding) -> IntegerIdTextEncodingContext {
-        IntegerIdTextEncodingContext {
-            prefix: x.prefix.to_owned(),
-            encoding: x.encoding.to_owned(),
-        }
-    }
-}

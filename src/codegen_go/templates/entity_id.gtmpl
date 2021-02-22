@@ -7,12 +7,13 @@ type {{.id_type_name}} {{.id_def.type_name}}
 var _ {{.base.azcore_pkg}}.EID = {{.id_type_name}}Zero
 var _ {{.base.azcore_pkg}}.EntityID = {{.id_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .id_type_name}}ZeroVar
-{{if .implements -}}
-var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero
-{{- end}}
+{{- if .implements}}
+var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero {{- end}}
 
-// In binary: {{.id_def.significant_bits_mask_bin}}
-const {{unexported_global .id_type_name}}SignificantBitsMask uint{{.id_def.primitive_size}} = {{.id_def.significant_bits_mask}}
+// {{unexported_global .id_type_name}}SignificantBitsMask is used to
+// extract significant bits from an instance of {{.id_type_name}}.
+const {{unexported_global .id_type_name}}SignificantBitsMask uint{{.id_def.primitive_size}} =
+	{{.id_def.significant_bits_mask}}
 
 // {{.id_type_name}}Zero is the zero value
 // for {{.id_type_name}}.
@@ -148,11 +149,9 @@ func (id *{{.id_type_name}}) UnmarshalAZWire(b []byte) (readLen int, err error) 
 {{range .doc_lines}}// {{.}}
 {{end -}}
 func (id {{$.id_type_name}}) Is{{.identifier}}() bool {
-	const mask = {{$uid_type}}(0) {{- range .bits}} |
-		({{$uid_type}}(1) << {{.index}}){{end}}
-	const flags = {{$uid_type}}(0) {{- range .bits}} |
-		({{$uid_type}}({{if .set}}1{{else}}0{{end}}) << {{.index}}){{end}}
-	return ({{$uid_type}}(id) & mask) == flags
+	return ({{$uid_type}}(id) &
+		{{.mask}}) ==
+		{{.flag}}
 }
 {{end}}
 

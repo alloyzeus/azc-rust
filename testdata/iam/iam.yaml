@@ -40,12 +40,10 @@ symbols:
           significant_bits: 48
           bitfield:
             sub_fields:
-              - identifier: Bot
+              - size: 1
+                identifier: Bot
                 documentation: |
                   Bot account is ....
-                bits:
-                  - index: 1
-                    set: true
         generator:
           # Other options: ShardedRandomIntegerGenerator
           # The option for generator is defined by the registered generators
@@ -145,21 +143,9 @@ symbols:
             # infer this value by substracting total_bits with
             # significant_bits.
             size: 5
-            # sub_fields:
-            #   - size: 1
-            #     identifier: FirstParty
-            #   - size: 1
-            #     values:
-            #       - identifier: Service
-            #       - identifier: UserAgent
-            #         sub_fields:
-            #           - size: 1
-            #             values:
-            #               - identifier: PublicAuthorization
-            #               - identifier: ConfidentialAuthorization
-            #TODO: copied sub_fields
             sub_fields:
-              - identifier: FirstParty
+              - size: 1
+                identifier: FirstParty
                 documentation: |
                   FirstParty indicates that the application is a first-party
                   application, i.e., an application that we official support.
@@ -170,66 +156,53 @@ symbols:
 
                   First-party applications could be in various forms, e.g.,
                   official mobile app, web app, or system dashboard.
-                bits:
-                  # Index starts from 0. The maximum index is bitfield size - 1.
-                  # An index is scoped within the bitfield, i.e., the first
-                  # bit of a bitfield is always index 0.
-                  - index: 0
-                    # Indicates that this field represents the value if the
-                    # bit is set.
-                    set: true
-              - identifier: Service
+              - size: 1
+                identifier: Type
                 documentation: |
-                  Service application is an application which does not
-                  represent user. Note that this is different from, e.g.,
-                  bot, where it's a specialization of User; a bot is a User.
+                  Application is divided into two types ...
+                values:
+                  - identifier: Service
+                    documentation: |
+                      A service application is an application which does not
+                      represent user. Note that this is different from, e.g.,
+                      bot, where it's a specialization of User; a bot is a User.
 
-                  All service applications are confidential as defined by
-                  OAuth 2.0.
-                bits:
-                  - index: 1
-                    set: false
-                  - index: 2
-                    set: true
-              - identifier: UserAgent
-                documentation: |
-                  A user-agent application is an application which represents
-                  the user it got authorized by.
+                      All service applications are confidential as defined by
+                      OAuth 2.0.
+                  - identifier: UserAgent
+                    documentation: |
+                      A user-agent application is an application which represents
+                      the user it got authorized by.
 
-                  There are two types of user agent: public and confidential.
-                  These types align with OAuth 2.0's.
-                bits:
-                  - index: 1
-                    set: true
-              - identifier: PublicAuthorizationUserAgent
-                documentation: |
-                  A direct user-agent application is an application which
-                  can be used by users to authenticate themselves to the system.
-                  The application will automatically receive authorization upon
-                  successful user authentication.
-                  
-                  A direct user-agent credentials should never be assumed to
-                  be secure, i.e., authorized direct user-agent application
-                  has no strong identity. Access control checks should be
-                  focused on testing the user's claims and less of the
-                  application's claims.
-                bits:
-                  - index: 1
-                    set: true
-                  - index: 2
-                    set: false
-              - identifier: ConfidentialAuthorizationUserAgent
-                documentation: |
-                  A confidential user-agent application is a user-agent
-                  application which could receive authorization from a
-                  consenting user through 3-legged authorization flow. A
-                  confidential user-agent can not be used for directly
-                  performing user authentication.
-                bits:
-                  - index: 1
-                    set: true
-                  - index: 2
-                    set: true
+                      There are two types of user agent: public and confidential.
+                      These types align with OAuth 2.0's.
+                    sub_fields:
+                      - size: 1
+                        identifier: Type
+                        documentation: |
+                          Types of user agent based on how can they secure
+                          the credentials.
+                        values:
+                          - identifier: PublicAuthorization
+                            documentation: |
+                              A direct user-agent application is an application which
+                              can be used by users to authenticate themselves to the system.
+                              The application will automatically receive authorization upon
+                              successful user authentication.
+                              
+                              A direct user-agent credentials should never be assumed to
+                              be secure, i.e., authorized direct user-agent application
+                              has no strong identity. Access control checks should be
+                              focused on testing the user's claims and less of the
+                              application's claims.
+                          - identifier: ConfidentialAuthorization
+                            documentation: |
+                              A confidential user-agent application is a user-agent
+                              application which could receive authorization from a
+                              consenting user through 3-legged authorization flow. A
+                              confidential user-agent can not be used for directly
+                              performing user authentication.
+            #TODO: copied sub_fields
       ref_key:
         azis:
           prefix: KAp0

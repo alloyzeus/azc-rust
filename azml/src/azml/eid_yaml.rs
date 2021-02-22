@@ -85,7 +85,10 @@ impl convert::TryFrom<IntegerIdBitfieldYaml> for eid::IntegerIdBitfield {
 struct IntegerIdBitfieldSubFieldYaml {
     pub identifier: String,
     pub documentation: String,
-    pub bits: Vec<IntegerIdBitfieldSubFieldBitYaml>,
+    pub size: i8,
+
+    #[serde(default)]
+    pub values: Vec<IntegerIdBitfieldSubFieldValueYaml>,
 }
 
 impl convert::TryFrom<&IntegerIdBitfieldSubFieldYaml> for eid::IntegerIdBitfieldSubField {
@@ -95,11 +98,12 @@ impl convert::TryFrom<&IntegerIdBitfieldSubFieldYaml> for eid::IntegerIdBitfield
         Ok(eid::IntegerIdBitfieldSubField {
             identifier: x.identifier.to_owned(),
             documentation: x.documentation.to_owned(),
-            bits: x
-                .bits
+            size: x.size,
+            values: x
+                .values
                 .iter()
                 .map(|x| x.try_into())
-                .collect::<Result<Vec<eid::IntegerIdBitfieldSubFieldBit>, _>>()?,
+                .collect::<Result<Vec<eid::IntegerIdBitfieldSubFieldValue>, _>>()?,
         })
     }
 }
@@ -108,6 +112,45 @@ impl convert::TryFrom<IntegerIdBitfieldSubFieldYaml> for eid::IntegerIdBitfieldS
     type Error = yaml::Error;
 
     fn try_from(x: IntegerIdBitfieldSubFieldYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
+//endregion
+
+//region IntegerIdBitfieldSubFieldValue
+
+#[derive(serde::Deserialize, serde::Serialize)]
+struct IntegerIdBitfieldSubFieldValueYaml {
+    identifier: String,
+
+    #[serde(default)]
+    documentation: String,
+
+    #[serde(default)]
+    sub_fields: Vec<IntegerIdBitfieldSubFieldYaml>,
+}
+
+impl convert::TryFrom<&IntegerIdBitfieldSubFieldValueYaml> for eid::IntegerIdBitfieldSubFieldValue {
+    type Error = yaml::Error;
+
+    fn try_from(x: &IntegerIdBitfieldSubFieldValueYaml) -> Result<Self, Self::Error> {
+        Ok(eid::IntegerIdBitfieldSubFieldValue {
+            identifier: x.identifier.to_owned(),
+            documentation: x.documentation.to_owned(),
+            sub_fields: x
+                .sub_fields
+                .iter()
+                .map(|x| x.try_into())
+                .collect::<Result<Vec<eid::IntegerIdBitfieldSubField>, _>>()?,
+        })
+    }
+}
+
+impl convert::TryFrom<IntegerIdBitfieldSubFieldValueYaml> for eid::IntegerIdBitfieldSubFieldValue {
+    type Error = yaml::Error;
+
+    fn try_from(x: IntegerIdBitfieldSubFieldValueYaml) -> Result<Self, Self::Error> {
         (&x).try_into()
     }
 }
@@ -171,41 +214,3 @@ impl convert::TryFrom<IntegerIdBitfieldInheritYaml> for eid::IntegerIdBitfieldIn
 }
 
 //endregion
-
-//region IntegerIdTextEncoding
-
-#[derive(serde::Serialize, serde::Deserialize)]
-struct IntegerIdTextEncodingYaml {
-    prefix: String,
-    encoding: String,
-}
-
-impl convert::TryFrom<&IntegerIdTextEncodingYaml> for eid::IntegerIdTextEncoding {
-    type Error = yaml::Error;
-
-    fn try_from(x: &IntegerIdTextEncodingYaml) -> Result<Self, Self::Error> {
-        Ok(eid::IntegerIdTextEncoding {
-            prefix: x.prefix.to_owned(),
-            encoding: x.encoding.to_owned(),
-        })
-    }
-}
-
-impl convert::TryFrom<IntegerIdTextEncodingYaml> for eid::IntegerIdTextEncoding {
-    type Error = yaml::Error;
-
-    fn try_from(x: IntegerIdTextEncodingYaml) -> Result<Self, Self::Error> {
-        (&x).try_into()
-    }
-}
-
-impl Default for IntegerIdTextEncodingYaml {
-    fn default() -> IntegerIdTextEncodingYaml {
-        IntegerIdTextEncodingYaml {
-            prefix: "".to_owned(),
-            encoding: "".to_owned(),
-        }
-    }
-}
-
-//end

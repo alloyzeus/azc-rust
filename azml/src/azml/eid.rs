@@ -114,10 +114,18 @@ impl Default for IntegerIdBitfield {
 pub struct IntegerIdBitfieldSubField {
     pub identifier: String,
     pub documentation: String,
-    pub bits: Vec<IntegerIdBitfieldSubFieldBit>,
+    pub size: i8,
+    pub values: Vec<IntegerIdBitfieldSubFieldValue>,
 }
 
 //endregion
+
+#[derive(Clone, Debug)]
+pub struct IntegerIdBitfieldSubFieldValue {
+    pub identifier: String,
+    pub documentation: String,
+    pub sub_fields: Vec<IntegerIdBitfieldSubField>,
+}
 
 //region IntegerIdBitfieldSubFieldBit
 
@@ -149,28 +157,6 @@ pub struct IntegerIdBitfieldInherit {
 impl Default for IntegerIdBitfieldInherit {
     fn default() -> IntegerIdBitfieldInherit {
         IntegerIdBitfieldInherit { host: -1, size: -1 }
-    }
-}
-
-//endregion
-
-//region IntegerIdTextEncoding
-
-// See https://en.wikipedia.org/wiki/Binary-to-text_encoding
-//
-//TODO: limit the characters we can use.
-#[derive(Clone, Debug)]
-pub struct IntegerIdTextEncoding {
-    pub prefix: String,
-    pub encoding: String, //TODO: resolved or reference?
-}
-
-impl Default for IntegerIdTextEncoding {
-    fn default() -> IntegerIdTextEncoding {
-        IntegerIdTextEncoding {
-            prefix: "".to_owned(),
-            encoding: "".to_owned(),
-        }
     }
 }
 
