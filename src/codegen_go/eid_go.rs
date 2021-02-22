@@ -20,7 +20,7 @@ impl From<&eid::IntegerId> for IntegerIdContext {
             type_name: format!("int{}", x.primitive_size()),
             significant_bits: x.significant_bits,
             significant_bits_mask: significant_bit_mask_bin(x.primitive_size(), x.significant_bits),
-            // one for skipping the most-significant bit (the sign bit)
+            // one for zero-based index, one for skipping the most-significant bit (the sign bit)
             bitfield: IntegerIdBitfieldContext::from(&x.bitfield, x.primitive_size() - 2, 0),
         }
     }
@@ -67,7 +67,14 @@ impl IntegerIdBitfieldContext {
         let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> = Vec::new();
         let mut idx: i8 = 0;
         for v in &x.sub_fields {
-            let fields = convert_field(&v, bitfield_size, index_offset + idx, 0, 0);
+            let fields = convert_field(
+                &v,
+                "".to_owned(),
+                bitfield_size,
+                index_offset + idx,
+                0,
+                0,
+            );
             all_fields.extend(fields);
             idx += 1;
         }
@@ -91,6 +98,7 @@ pub struct IntegerIdBitfieldSubFieldContext {
 
 fn convert_field(
     field: &eid::IntegerIdBitfieldSubField,
+    identifier_prefix: String,
     bitfield_size: i8,
     index_offset: i8,
     mask: u64,
@@ -102,6 +110,7 @@ fn convert_field(
         for v in &field.values {
             let fields = convert_value(
                 &v,
+                identifier_prefix.to_owned(),
                 bitfield_size,
                 index_offset + field.size,
                 mask | (1 << (bitfield_size - index_offset)),
@@ -129,32 +138,34 @@ fn convert_field(
 
 fn convert_value(
     value: &eid::IntegerIdBitfieldSubFieldValue,
+    identifier_prefix: String,
     bitfield_size: i8,
     index_offset: i8,
     mask: u64,
     flag: u64,
 ) -> Vec<IntegerIdBitfieldSubFieldContext> {
-    if !value.sub_fields.is_empty() {
-        let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> =
-            vec![IntegerIdBitfieldSubFieldContext {
-                identifier: value.identifier.to_owned(),
-                doc_lines: value.documentation.lines().map(|x| x.to_owned()).collect(),
-                mask: format_u64_as_bin(mask),
-                flag: format_u64_as_bin(flag),
-            }];
-        for v in &value.sub_fields {
-            let fields = convert_field(&v, bitfield_size, index_offset, mask, flag);
-            all_fields.extend(fields);
-        }
-        all_fields
-    } else {
+    let identifier = format!("{}{}", identifier_prefix, value.identifier);
+    let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> =
         vec![IntegerIdBitfieldSubFieldContext {
-            identifier: value.identifier.to_owned(),
+            identifier: identifier.to_owned(),
             doc_lines: value.documentation.lines().map(|x| x.to_owned()).collect(),
             mask: format_u64_as_bin(mask),
             flag: format_u64_as_bin(flag),
-        }]
+        }];
+    if !value.sub_fields.is_empty() {
+        for v in &value.sub_fields {
+            let fields = convert_field(
+                &v,
+                identifier.to_owned(),
+                bitfield_size,
+                index_offset,
+                mask,
+                flag,
+            );
+            all_fields.extend(fields);
+        }
     }
+    all_fields
 }
 
 //endregion

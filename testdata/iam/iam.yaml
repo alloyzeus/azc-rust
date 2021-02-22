@@ -137,6 +137,12 @@ symbols:
           # of significants, in this case 26. So it will be: 32 - 1 - 26 = 5.
           # Five is the maximum size of the bitfield if we have 26bit
           # significants and we want it to fit in 32bit integers.
+          #
+          # For this particular case, we embed some information to the
+          # IDs to help services handle requests from the applications
+          # based on these information without requiring them to hit the
+          # database or contacting the service responsible for defining these
+          # information.
           bitfield:
             # The size of the bitfield, i.e., the number of bits we reserve for
             # this bitfield. This field is optional as the compiler will
@@ -167,40 +173,43 @@ symbols:
                       represent user. Note that this is different from, e.g.,
                       bot, where it's a specialization of User; a bot is a User.
 
-                      All service applications are confidential as defined by
-                      OAuth 2.0.
+                      All service applications are confidential OAuth 2.0
+                      clients.
                   - identifier: UserAgent
                     documentation: |
                       A user-agent application is an application which represents
                       the user it got authorized by.
 
-                      There are two types of user agent: public and confidential.
-                      These types align with OAuth 2.0's.
+                      There are two types of user agent based on the flow they use
+                      to obtain authorization: public and confidential.
+                      These types align with OAuth 2.0 client types.
                     sub_fields:
                       - size: 1
-                        identifier: Type
+                        identifier: Authorization
                         documentation: |
                           Types of user agent based on how can they secure
                           the credentials.
                         values:
-                          - identifier: PublicAuthorization
+                          - identifier: AuthorizationPublic
                             documentation: |
-                              A direct user-agent application is an application which
-                              can be used by users to authenticate themselves to the system.
-                              The application will automatically receive authorization upon
-                              successful user authentication.
+                              A public-authorization user-agent application is an
+                              application which can be used by users to authenticate
+                              themselves to the system. The application will automatically
+                              receive authorization upon successful authentication of
+                              the user.
                               
-                              A direct user-agent credentials should never be assumed to
-                              be secure, i.e., authorized direct user-agent application
-                              has no strong identity. Access control checks should be
-                              focused on testing the user's claims and less of the
+                              A public-authorization user-agent credentials should
+                              never be assumed to be secure, i.e., it can not securely
+                              authenticate itself. An authorized application of this
+                              kind has no strong identity. Access control checks should
+                              be focused on testing the user's claims and less of the
                               application's claims.
-                          - identifier: ConfidentialAuthorization
+                          - identifier: AuthorizationConfidential
                             documentation: |
-                              A confidential user-agent application is a user-agent
-                              application which could receive authorization from a
-                              consenting user through 3-legged authorization flow. A
-                              confidential user-agent can not be used for directly
+                              A confidential-authorization user-agent application
+                              is a user-agent application which could receive authorization
+                              from a consenting user through 3-legged authorization flow.
+                              A confidential user-agent can not be used for directly
                               performing user authentication.
             #TODO: copied sub_fields
       ref_key:
