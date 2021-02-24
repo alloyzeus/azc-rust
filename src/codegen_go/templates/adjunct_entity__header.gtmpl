@@ -2,7 +2,6 @@ package {{.pkg_name}}
 
 import (
 	"bytes"
-	"encoding/hex"
 	"strconv"
 	"strings"
 
@@ -17,7 +16,6 @@ import (
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 var _ = bytes.MinRead
-var _ = hex.ErrLength
 var _ = strconv.IntSize
 var _ = strings.Compare
 var _ = protowire.MinValidNumber

@@ -28,7 +28,7 @@ func New{{.ref_key_type_name}}(
 var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
-var _ {{.base.azcore_pkg}}.AZISUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AZRSUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
 {{if .implements -}}
 var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- end}}
@@ -192,55 +192,75 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) (readLen int, er
 	return readLen, err
 }
 
-const {{unexported_global .ref_key_type_name}}AZISPrefix = "{{.ref_key_def.azis.prefix}}"
+const {{unexported_global .ref_key_type_name}}AZRSPrefix = "{{.ref_key_def.azis.prefix}}"
 
-// {{.ref_key_type_name}}FromAZIS creates {{.ref_key_type_name}} from
-// its AZIS-encoded form.
-func {{.ref_key_type_name}}FromAZIS(s string) ({{.ref_key_type_name}}, error) {
+// {{.ref_key_type_name}}FromAZRS creates {{.ref_key_type_name}} from
+// its AZRS-encoded form.
+func {{.ref_key_type_name}}FromAZRS(s string) ({{.ref_key_type_name}}, error) {
 	if s == "" {
 		return {{.ref_key_type_name}}Zero(), nil
 	}
-	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZISPrefix) {
-		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZRSPrefix) {
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZRSDecodingArgumentError{}
 	}
-	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZISPrefix)
-	b, err := hex.DecodeString(s)
+	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZRSPrefix)
+	b, err := {{.base.azcore_pkg}}.AZRSDecode(s)
 	if err != nil {
-		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZRSDecodingArgumentError{}
 	}
 	refKey, _, err := {{.ref_key_type_name}}FromAZWire(b)
 	if err != nil {
-		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZISDecodingArgumentError{}
+		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZRSDecodingArgumentError{}
 	}
 	return refKey, nil
 }
 
-// AZIS returns an encoded representation of this instance. It returns empty
+// AZRS returns an encoded representation of this instance. It returns empty
 // if IsValid returned false.
 //
-// AZIS is required for conformance
+// AZRS is required for conformance
 // with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZIS() string {
+func (refKey {{.ref_key_type_name}}) AZRS() string {
 	if !refKey.IsValid() {
 		return ""
 	}
 	wire := refKey.AZWire()
 	//TODO: configurable encoding
-	return {{unexported_global .ref_key_type_name}}AZISPrefix +
-		hex.EncodeToString(wire)
+	return {{unexported_global .ref_key_type_name}}AZRSPrefix +
+		{{.base.azcore_pkg}}.AZRSEncode(wire)
 }
 
-// UnmarshalAZIS is required for conformance
-// with {{.base.azcore_pkg}}.AZISUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZIS(s string) error {
-	r, err := {{.ref_key_type_name}}FromAZIS(s)
+// UnmarshalAZRS is required for conformance
+// with {{.base.azcore_pkg}}.AZRSUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZRS(s string) error {
+	r, err := {{.ref_key_type_name}}FromAZRS(s)
 	if err == nil {
 		*refKey = r
 	}
 	return err
 }
 
-{{if not .global_scope}}{{range .hosts -}}
+// MarshalJSON makes this type JSON-marshalable.
+func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
+	// We assume that there's no symbols in AZRS
+	return []byte("\"" + refKey.AZRS() + "\""), nil
+}
+
+// UnmarshalJSON parses a JSON value.
+func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	if s == "" {
+		*refKey = {{.ref_key_type_name}}Zero()
+		return nil
+	}
+	i, err := {{.ref_key_type_name}}FromAZRS(s)
+	if err == nil {
+		*refKey = i
+	}
+	return err
+}
+
+{{- if not .global_scope}}{{range .hosts}}
 
 // {{.}} returns instance's {{.}} value.
 func (refKey {{$.ref_key_type_name}}) {{.}}() {{.}}RefKey {
@@ -261,8 +281,10 @@ func (refKey {{$.ref_key_type_name}}) With{{.}}(
 	}
 }
 
-{{end}}{{end -}}
+{{- end}}{{end}}
 
+// {{.ref_key_type_name}}Error defines an interface for all
+// {{.ref_key_type_name}}-related errors.
 type {{.ref_key_type_name}}Error interface {
 	error
 	{{.ref_key_type_name}}Error()
@@ -280,14 +302,14 @@ func ({{.ref_key_type_name}}AZWireDecodingArgumentError) Error() string {
 	return "{{.ref_key_type_name}}AZWireDecodingArgumentError"
 }
 
-type {{.ref_key_type_name}}AZISDecodingArgumentError struct {}
+type {{.ref_key_type_name}}AZRSDecodingArgumentError struct {}
 
-var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZISDecodingArgumentError{}
-var _ errors.ArgumentError = {{.ref_key_type_name}}AZISDecodingArgumentError{}
+var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZRSDecodingArgumentError{}
+var _ errors.ArgumentError = {{.ref_key_type_name}}AZRSDecodingArgumentError{}
 
-func ({{.ref_key_type_name}}AZISDecodingArgumentError) {{.ref_key_type_name}}Error() {}
-func ({{.ref_key_type_name}}AZISDecodingArgumentError) ArgumentName() string { return "" }
+func ({{.ref_key_type_name}}AZRSDecodingArgumentError) {{.ref_key_type_name}}Error() {}
+func ({{.ref_key_type_name}}AZRSDecodingArgumentError) ArgumentName() string { return "" }
 
-func ({{.ref_key_type_name}}AZISDecodingArgumentError) Error() string {
-	return "{{.ref_key_type_name}}AZISDecodingArgumentError"
+func ({{.ref_key_type_name}}AZRSDecodingArgumentError) Error() string {
+	return "{{.ref_key_type_name}}AZRSDecodingArgumentError"
 }
