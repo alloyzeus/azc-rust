@@ -450,10 +450,6 @@ symbols:
         parameters:
           total_bits: 64
           significant_bits: 48
-          encodings:
-            text:
-              prefix: ""
-              alg: decimal
       mixins:
         - kind: Deletion
           parameters:
@@ -493,8 +489,8 @@ symbols:
             allow: on-condition
             condition:
               eq:
-                a: type
-                b: user-agent
+                a: $.id.UserAgent
+                b: true
         allowed_isolations:
           - all
         methods:

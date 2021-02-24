@@ -53,6 +53,7 @@ impl Compiler {
         // Rules to be enforced (incomplete):
         //
         // - ensure referenced symbols are valid and resolvable
+        // - resolve implementations of abstract system objects and ensure that each has only one implementation
         // - ensure id bits
         // - ensure bitfield boundaries
         // - generate enums for bitfields
