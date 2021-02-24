@@ -6,13 +6,13 @@ use azml::azml::ref_key;
 
 #[derive(Clone, Gtmpl)]
 pub struct RefKeyContext {
-    pub azis: RefKeyAzisContext,
+    pub azrs: RefKeyAzisContext,
 }
 
 // impl From<&ref_key::RefKey> for RefKeyContext {
 //     fn from(x: &ref_key::RefKey) -> RefKeyContext {
 //         RefKeyContext {
-//             azis: x.azis.into(),
+//             azrs: x.azrs.into(),
 //         }
 //     }
 // }
@@ -20,7 +20,7 @@ pub struct RefKeyContext {
 impl From<ref_key::RefKey> for RefKeyContext {
     fn from(x: ref_key::RefKey) -> RefKeyContext {
         RefKeyContext {
-            azis: x.azis.into(),
+            azrs: x.azrs.into(),
         }
     }
 }

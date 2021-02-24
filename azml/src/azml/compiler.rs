@@ -45,6 +45,18 @@ impl Compiler {
                 symbols: sf.symbols.to_vec(),
             },
         );
+
+        //TODO: after we loaded all the sources, we do the real compilation
+        // here.
+        // We enforce rules, and load referenced sources.
+        //
+        // Rules to be enforced (incomplete):
+        //
+        // - ensure referenced symbols are valid and resolvable
+        // - ensure id bits
+        // - ensure bitfield boundaries
+        // - generate enums for bitfields
+
         Ok(CompilationState {
             entry_module: sf.module.to_owned(),
             modules: modules,

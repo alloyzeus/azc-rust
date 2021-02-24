@@ -103,11 +103,11 @@ impl GoCodeGenerator {
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
-                    azis: RefKeyAzisContext {
-                        prefix: if adj_ent.ref_key.azis.prefix.is_empty() {
+                    azrs: RefKeyAzisContext {
+                        prefix: if adj_ent.ref_key.azrs.prefix.is_empty() {
                             type_name.to_owned()
                         } else {
-                            adj_ent.ref_key.azis.prefix.to_owned()
+                            adj_ent.ref_key.azrs.prefix.to_owned()
                         },
                     },
                 },

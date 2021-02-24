@@ -112,7 +112,7 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) (readLen int, er
 	return readLen, err
 }
 
-const {{unexported_global .ref_key_type_name}}AZRSPrefix = "{{.ref_key_def.azis.prefix}}"
+const {{unexported_global .ref_key_type_name}}AZRSPrefix = "{{.ref_key_def.azrs.prefix}}"
 
 // {{.ref_key_type_name}}FromAZRS creates {{.ref_key_type_name}} from
 // its AZRS-encoded form.

@@ -2,7 +2,7 @@
 
 #[derive(Clone, Debug)]
 pub struct RefKey {
-    pub azis: RefKeyAzis,
+    pub azrs: RefKeyAzis,
 }
 
 #[derive(Clone, Debug)]

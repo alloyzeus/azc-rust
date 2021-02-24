@@ -52,7 +52,7 @@ symbols:
           name: LocalRandomIntegerIDGenerator
           parameters:
       ref_key:
-        azis:
+        azrs:
           prefix: "KUs0"
       mixins:
         - kind: Deletion
@@ -154,18 +154,20 @@ symbols:
                 identifier: FirstParty
                 documentation: |
                   FirstParty indicates that the application is a first-party
-                  application, i.e., an application that we official support.
+                  application, i.e., the application was provided by the realm.
 
                   First-party applications, in contrast to third party
                   applications, are those of official applications, officially
-                  supported applications, or internal-use only applications.
+                  supported public applications, and internal-use only
+                  applications.
 
                   First-party applications could be in various forms, e.g.,
                   official mobile app, web app, or system dashboard.
               - size: 1
-                identifier: Type
+                identifier: Agency
                 documentation: |
-                  Application is divided into two types ...
+                  Application is divided into two types based on their agency:
+                  service and user agent.
                 values:
                   - identifier: Service
                     documentation: |
@@ -174,7 +176,7 @@ symbols:
                       bot, where it's a specialization of User; a bot is a User.
 
                       All service applications are confidential OAuth 2.0
-                      clients.
+                      clients (RFC6749 section 2.1).
                   - identifier: UserAgent
                     documentation: |
                       A user-agent application is an application which represents
@@ -182,13 +184,17 @@ symbols:
 
                       There are two types of user agent based on the flow they use
                       to obtain authorization: public and confidential.
-                      These types align with OAuth 2.0 client types.
+                      These types align with OAuth 2.0 client types (RFC6749
+                      section 2.1).
                     sub_fields:
                       - size: 1
                         identifier: Authorization
                         documentation: |
-                          Types of user agent based on how can they secure
-                          the credentials.
+                          User-agent applications is divided into two types
+                          based on how can they secure the credentials: public
+                          and confidential. This
+                          differentiation affects how strongly the system
+                          identifies the application.
                         values:
                           - identifier: AuthorizationPublic
                             documentation: |
@@ -213,7 +219,7 @@ symbols:
                               performing user authentication.
             #TODO: copied sub_fields
       ref_key:
-        azis:
+        azrs:
           prefix: KAp0
       creation:
         allow_cross_process_callers: true
@@ -263,7 +269,7 @@ symbols:
                   size: 5
 
         ref_key:
-          azis:
+          azrs:
             prefix: "KAK0"
               
         attributes:
@@ -301,7 +307,7 @@ symbols:
               kind: "@User"
               final: true
         ref_key:
-          azis:
+          azrs:
             prefix: "KTx0"
         id:
           kind: integer
@@ -391,7 +397,7 @@ symbols:
             total_bits: 32
             significant_bits: 24
         ref_key:
-          azis:
+          azrs:
             prefix: "KSe0"
         service:
           enabled: true

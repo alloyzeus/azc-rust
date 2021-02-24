@@ -9,14 +9,14 @@ use crate::azml::{ref_key, yaml};
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct RefKeyYaml {
     #[serde(default)]
-    pub azis: RefKeyAzisYaml,
+    pub azrs: RefKeyAzisYaml,
 }
 
 // impl convert::TryFrom<&RefKeyYaml> for ref_key::RefKey {
 //     type Error = yaml::Error;
 //     fn try_from(x: &RefKeyYaml) -> Result<Self, Self::Error> {
 //         Ok(ref_key::RefKey {
-//             azis: x.azis.try_into()?,
+//             azrs: x.azrs.try_into()?,
 //         })
 //     }
 // }
@@ -25,7 +25,7 @@ impl convert::TryFrom<RefKeyYaml> for ref_key::RefKey {
     type Error = yaml::Error;
     fn try_from(x: RefKeyYaml) -> Result<Self, Self::Error> {
         Ok(ref_key::RefKey {
-            azis: x.azis.try_into()?,
+            azrs: x.azrs.try_into()?,
         })
     }
 }
