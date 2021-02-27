@@ -1,21 +1,23 @@
 package {{.pkg_name}}
 
 import (
-	"bytes"
-	"strconv"
+	"encoding/binary"
 	"strings"
 
 	errors "{{.base.azcore_import}}/errors"
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-	protowire "google.golang.org/protobuf/encoding/protowire"
+	{{.base.azer_pkg}} "{{.base.azer_import}}"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"
 	{{- end}}
 )
 
-// Reference imports to suppress errors if they are not otherwise used.
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the azcore package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// azcore package needs to be updated.
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
-var _ = bytes.MinRead
-var _ = strconv.IntSize
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = {{.base.azer_pkg}}.BinDataTypeUnspecified
 var _ = strings.Compare
-var _ = protowire.MinValidNumber

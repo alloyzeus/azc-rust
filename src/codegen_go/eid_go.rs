@@ -7,6 +7,7 @@ use azml::azml::eid;
 #[derive(Clone, Gtmpl)]
 pub struct IntegerIdContext {
     primitive_size: i8,
+    primitive_size_bytes: i8,
     type_name: String,
     significant_bits: i8,
     significant_bits_mask: String,
@@ -17,6 +18,7 @@ impl From<&eid::IntegerId> for IntegerIdContext {
     fn from(x: &eid::IntegerId) -> IntegerIdContext {
         IntegerIdContext {
             primitive_size: x.primitive_size(),
+            primitive_size_bytes: x.primitive_size() / 8,
             type_name: format!("int{}", x.primitive_size()),
             significant_bits: x.significant_bits,
             significant_bits_mask: significant_bit_mask_bin(x.primitive_size(), x.significant_bits),
@@ -67,14 +69,7 @@ impl IntegerIdBitfieldContext {
         let mut all_fields: Vec<IntegerIdBitfieldSubFieldContext> = Vec::new();
         let mut idx: i8 = 0;
         for v in &x.sub_fields {
-            let fields = convert_field(
-                &v,
-                "".to_owned(),
-                bitfield_size,
-                index_offset + idx,
-                0,
-                0,
-            );
+            let fields = convert_field(&v, "".to_owned(), bitfield_size, index_offset + idx, 0, 0);
             all_fields.extend(fields);
             idx += 1;
         }

@@ -52,7 +52,7 @@ symbols:
           name: LocalRandomIntegerIDGenerator
           parameters:
       ref_key:
-        azrs:
+        azer_text:
           prefix: "KUs0"
       mixins:
         - kind: Deletion
@@ -219,7 +219,7 @@ symbols:
                               performing user authentication.
             #TODO: copied sub_fields
       ref_key:
-        azrs:
+        azer_text:
           prefix: KAp0
       creation:
         allow_cross_process_callers: true
@@ -269,7 +269,7 @@ symbols:
                   size: 5
 
         ref_key:
-          azrs:
+          azer_text:
             prefix: "KAK0"
               
         attributes:
@@ -307,7 +307,7 @@ symbols:
               kind: "@User"
               final: true
         ref_key:
-          azrs:
+          azer_text:
             prefix: "KTx0"
         id:
           kind: integer
@@ -397,7 +397,7 @@ symbols:
             total_bits: 32
             significant_bits: 24
         ref_key:
-          azrs:
+          azer_text:
             prefix: "KSe0"
         service:
           enabled: true

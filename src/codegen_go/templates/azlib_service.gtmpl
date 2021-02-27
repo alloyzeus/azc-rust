@@ -11,7 +11,7 @@ import (
 type {{.base.azlib_prefix}}ServiceServerBase struct {
 }
 
-var _ azcore.ServiceServer = &{{.base.azlib_prefix}}ServiceServerBase{}
+var _ {{.base.azcore_pkg}}.ServiceServer = &{{.base.azlib_prefix}}ServiceServerBase{}
 
 // AZServiceServer is required for conformance with {{.base.azlib_prefix}}.ServiceServer.
 func ({{.base.azlib_prefix}}ServiceServerBase) AZServiceServer() {}
@@ -27,7 +27,7 @@ type {{.base.azlib_prefix}}RealmServiceServerBase struct {
 	realmName string
 }
 
-//var _ azcore.RealmServiceServer = &{{.base.azlib_prefix}}RealmServiceServerBase{}
+//var _ {{.base.azcore_pkg}}.RealmServiceServer = &{{.base.azlib_prefix}}RealmServiceServerBase{}
 
 // RealmName returns configured realm name of this server.
 func (srv {{.base.azlib_prefix}}RealmServiceServerBase) RealmName() string {

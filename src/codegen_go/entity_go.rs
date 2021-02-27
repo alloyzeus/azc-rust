@@ -5,7 +5,7 @@ use std::{error, fs, io::Write};
 use crate::codegen_go::{
     attribute_go::AttributeContext,
     eid_go::IntegerIdContext,
-    ref_key_go::{RefKeyAzisContext, RefKeyContext},
+    ref_key_go::{RefKeyAzerTextContext, RefKeyContext},
     BaseContext, GoCodeGenerator, ImportContext,
 };
 
@@ -60,11 +60,11 @@ impl GoCodeGenerator {
                 id_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
-                    azrs: RefKeyAzisContext {
-                        prefix: if ent.ref_key.azrs.prefix.is_empty() {
+                    azer_text: RefKeyAzerTextContext {
+                        prefix: if ent.ref_key.azer_text.prefix.is_empty() {
                             type_name.to_owned()
                         } else {
-                            ent.ref_key.azrs.prefix.to_owned()
+                            ent.ref_key.azer_text.prefix.to_owned()
                         },
                     },
                 },

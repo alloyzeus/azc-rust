@@ -7,6 +7,9 @@ type {{.ref_key_type_name}} struct {
 	id {{.id_type_name}}
 }
 
+// The total number of fields in the struct.
+const {{unexported_global .ref_key_type_name}}FieldCount = {{len .hosts}} + 1
+
 // New{{.ref_key_type_name}} returns a new instance
 // of {{.ref_key_type_name}} with the provided attribute values.
 func New{{.ref_key_type_name}}(
@@ -27,9 +30,7 @@ func New{{.ref_key_type_name}}(
 // there's a bug in the generator.
 var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = {{unexported_global .ref_key_type_name}}Zero
-var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
-var _ {{.base.azcore_pkg}}.AZRSUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
-{{if .implements -}}
+{{- if .implements}}
 var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- end}}
 
@@ -58,13 +59,15 @@ func (refKey {{.ref_key_type_name}}) ID() {{.base.azcore_pkg}}.EID {
 	return refKey.id
 }
 
-{{if .implements -}}
-// {{.implements}}ID is required for conformance with {{.base.azcore_pkg}}.{{.implements}}RefKey.
+{{- if .implements}}
+
+// {{.implements}}ID is required for conformance
+// with {{.base.azcore_pkg}}.{{.implements}}RefKey.
 func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{.implements}}ID {
 	return refKey.id
 }
 
-{{end -}}
+{{- end}}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
@@ -106,134 +109,177 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 		{{end}}{{- end -}} refKey.id == other.id
 }
 
-// AZWire is required for conformance
-// with {{.base.azcore_pkg}}.AZWireObject.
-func (refKey {{.ref_key_type_name}}) AZWire() []byte {
-	return refKey.AZWireField(1)
+// AZERBin is required for conformance
+// with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZERBin() []byte {
+	data, typ := refKey.AZERBinField()
+	out := []byte{typ.Byte()}
+	return append(out, data...)
 }
 
-// AZWireField is required for conformance
-// with {{.base.azcore_pkg}}.AZWireObject.
-func (refKey {{.ref_key_type_name}}) AZWireField(fieldNum int) []byte {
-	{{if not .global_scope -}}{{if .hosts -}}
-	buf := &bytes.Buffer{}
-	var fieldWire []byte
-
-	{{range $i, $h := .hosts -}}
-	fieldWire = refKey.application.AZWireField({{$i}} + 1)
-	buf.Write(fieldWire)
-	{{- end}}
-	
-	fieldWire = refKey.id.AZWireField({{len .hosts}} + 1)
-	buf.Write(fieldWire)
-	var outBuf []byte
-	outBuf = protowire.AppendTag(outBuf,
-		protowire.Number(fieldNum), protowire.BytesType)
-	outBuf = protowire.AppendBytes(outBuf, buf.Bytes())
-	return outBuf
-	{{- end}}{{- else -}}
-	return refKey.id.AZWireField(fieldNum)
-	{{- end}}
-}
-
-// {{.ref_key_type_name}}FromAZWire creates {{.ref_key_type_name}} from
-// its azwire-encoded form.
-func {{.ref_key_type_name}}FromAZWire(
+// {{.ref_key_type_name}}FromAZERBin creates a new instance of
+// {{.ref_key_type_name}} from its azer-bin form.
+func {{.ref_key_type_name}}FromAZERBin(
 	b []byte,
-) (
-	refKey {{.ref_key_type_name}},
-	readLen int,
-	err error,
-) {
-	var readOffset int = 0
-	_, typ, n := protowire.ConsumeTag(b)
-	if n <= 0 {
-		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
-	}
-	readOffset += n
-	if typ != protowire.BytesType {
-		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
-	}
-	_, n = protowire.ConsumeVarint(b[readOffset:])
-	if n <= 0 {
-		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
-	}
-	readOffset += n
-
-	{{if not .global_scope -}}{{range .hosts -}}
-	{{unexported_field .}}, fieldLen, err := {{.}}RefKeyFromAZWire(b[readOffset:])
+) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+	typ, err := {{.base.azer_pkg}}.BinDataTypeFromByte(b[0])
 	if err != nil {
-		return {{$.ref_key_type_name}}Zero(), readOffset, {{$.ref_key_type_name}}AZWireDecodingArgumentError{}
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "type parsing", err)
 	}
-	readOffset += fieldLen
+	if typ != {{.base.azer_pkg}}.BinDataTypeArray {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.Arg("", errors.EntMsg("type", "unsupported"))
+	}
 
-	{{end}}{{- end -}}
+	refKey, readLen, err = {{.ref_key_type_name}}FromAZERBinField(b[1:], typ)
+	return refKey, readLen + 1, err
+}
 
-	id, fieldLen, err := {{.id_type_name}}FromAZWire(b[readOffset:])
+// AZERBinField is required for conformance
+// with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.BinDataType) {
+	{{if not .global_scope -}}{{if .hosts -}}
+	var typesBytes []byte
+	var dataBytes []byte
+	var fieldBytes []byte
+	var fieldType {{.base.azer_pkg}}.BinDataType
+
+	{{- range $i, $h := .hosts}}
+
+	fieldBytes, fieldType = refKey.{{unexported_field $h}}.AZERBinField()
+	typesBytes = append(typesBytes, fieldType.Byte())
+	dataBytes = append(dataBytes, fieldBytes...)
+
+	{{- end}}
+
+	fieldBytes, fieldType = refKey.id.AZERBinField()
+	typesBytes = append(typesBytes, fieldType.Byte())
+	dataBytes = append(dataBytes, fieldBytes...)
+
+	var out = []byte{byte(len(typesBytes))}
+	out = append(out, typesBytes...)
+	out = append(out, dataBytes...)
+	return out, {{.base.azer_pkg}}.BinDataTypeArray
+	{{- end}}{{- else -}}
+	return refKey.id.AZERBinField()
+	{{- end}}
+}
+
+// {{.ref_key_type_name}}FromAZERBinField creates {{.ref_key_type_name}} from
+// its azer-bin field form.
+func {{.ref_key_type_name}}FromAZERBinField(
+	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+	if typeHint != {{.base.azer_pkg}}.BinDataTypeArray {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.Arg("", errors.EntMsg("type", "unsupported"))
+	}
+
+	arrayLen := int(b[0])
+	if arrayLen != {{unexported_global .ref_key_type_name}}FieldCount {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.Arg("", errors.EntMsg("field count", "mismatch"))
+	}
+
+	typeCursor := 1
+	dataCursor := typeCursor + arrayLen
+
+	var fieldType {{.base.azer_pkg}}.BinDataType
+
+	{{- if not .global_scope}}{{- range .hosts}}
+
+	fieldType, err = {{$.base.azer_pkg}}.BinDataTypeFromByte(b[typeCursor])
 	if err != nil {
-		return {{.ref_key_type_name}}Zero(), readOffset, {{.ref_key_type_name}}AZWireDecodingArgumentError{}
+		return {{$.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "{{unexported_field .}} ref-key type parsing", err)
 	}
-	readOffset += fieldLen
+	typeCursor++
+	{{unexported_field .}}RefKey, readLen, err := {{.}}RefKeyFromAZERBinField(
+		b[dataCursor:], fieldType)
+	if err != nil {
+		return {{$.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "{{unexported_field .}} ref-key data parsing", err)
+	}
+	dataCursor += readLen
+
+	{{- end}}{{- end}}
+
+	fieldType, err = {{.base.azer_pkg}}.BinDataTypeFromByte(b[typeCursor])
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "id type parsing", err)
+	}
+	typeCursor++
+	id, readLen, err := {{.id_type_name}}FromAZERBinField(
+		b[dataCursor:], fieldType)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "id data parsing", err)
+	}
+	dataCursor += readLen
 
 	return {{.ref_key_type_name}}{
 		{{if not .global_scope -}}{{- range .hosts -}}
-		{{unexported_field .}}: {{arg_name .}},
+		{{unexported_field .}}: {{arg_name .}}RefKey,
 		{{end}}{{end -}}
-		id:          id,
-	}, readOffset, nil
+		id: id,
+	}, dataCursor, nil
 }
 
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZWire(b []byte) (readLen int, err error) {
-	var r {{.ref_key_type_name}}
-	r, readLen, err = {{.ref_key_type_name}}FromAZWire(b)
+// UnmarshalAZERBinField is required for conformance
+// with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZERBinField(
+	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+) (readLen int, err error) {
+	i, readLen, err := {{.ref_key_type_name}}FromAZERBinField(b, typeHint)
 	if err == nil {
-		*refKey = r
+		*refKey = i
 	}
 	return readLen, err
 }
 
-const {{unexported_global .ref_key_type_name}}AZRSPrefix = "{{.ref_key_def.azrs.prefix}}"
+const {{unexported_global .ref_key_type_name}}AZERTextPrefix = "{{.ref_key_def.azer_text.prefix}}"
 
-// {{.ref_key_type_name}}FromAZRS creates {{.ref_key_type_name}} from
-// its AZRS-encoded form.
-func {{.ref_key_type_name}}FromAZRS(s string) ({{.ref_key_type_name}}, error) {
+// AZERText is required for conformance
+// with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZERText() string {
+	if !refKey.IsValid() {
+		return ""
+	}
+
+	return {{unexported_global .ref_key_type_name}}AZERTextPrefix +
+		{{.base.azer_pkg}}.TextEncode(refKey.AZERBin())
+}
+
+// {{.ref_key_type_name}}FromAZERText creates a new instance of
+// {{.ref_key_type_name}} from its azer-text form.
+func {{.ref_key_type_name}}FromAZERText(s string) ({{.ref_key_type_name}}, error) {
 	if s == "" {
 		return {{.ref_key_type_name}}Zero(), nil
 	}
-	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZRSPrefix) {
-		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZRSDecodingArgumentError{}
+	if !strings.HasPrefix(s, _{{.ref_key_type_name}}AZERTextPrefix) {
+		return {{.ref_key_type_name}}Zero(),
+			errors.Arg("", errors.EntMsg("prefix", "mismatch"))
 	}
-	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZRSPrefix)
-	b, err := {{.base.azcore_pkg}}.AZRSDecode(s)
+	s = strings.TrimPrefix(s, _{{.ref_key_type_name}}AZERTextPrefix)
+	b, err := {{.base.azer_pkg}}.TextDecode(s)
 	if err != nil {
-		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZRSDecodingArgumentError{}
+		return {{.ref_key_type_name}}Zero(),
+			errors.ArgWrap("", "data parsing", err)
 	}
-	refKey, _, err := {{.ref_key_type_name}}FromAZWire(b)
+	refKey, _, err := {{.ref_key_type_name}}FromAZERBin(b)
 	if err != nil {
-		return {{.ref_key_type_name}}Zero(), {{.ref_key_type_name}}AZRSDecodingArgumentError{}
+		return {{.ref_key_type_name}}Zero(),
+			errors.ArgWrap("", "data decoding", err)
 	}
 	return refKey, nil
 }
 
-// AZRS returns an encoded representation of this instance. It returns empty
-// if IsValid returned false.
-//
-// AZRS is required for conformance
-// with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZRS() string {
-	if !refKey.IsValid() {
-		return ""
-	}
-	wire := refKey.AZWire()
-	//TODO: configurable encoding
-	return {{unexported_global .ref_key_type_name}}AZRSPrefix +
-		{{.base.azcore_pkg}}.AZRSEncode(wire)
-}
-
-// UnmarshalAZRS is required for conformance
-// with {{.base.azcore_pkg}}.AZRSUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZRS(s string) error {
-	r, err := {{.ref_key_type_name}}FromAZRS(s)
+// UnmarshalAZERText is required for conformance
+// with {{.base.azer_pkg}}.TextUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZERText(s string) error {
+	r, err := {{.ref_key_type_name}}FromAZERText(s)
 	if err == nil {
 		*refKey = r
 	}
@@ -242,8 +288,8 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZRS(s string) error {
 
 // MarshalJSON makes this type JSON-marshalable.
 func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
-	// We assume that there's no symbols in AZRS
-	return []byte("\"" + refKey.AZRS() + "\""), nil
+	// We assume that there's no symbols in azer-text
+	return []byte("\"" + refKey.AZERText() + "\""), nil
 }
 
 // UnmarshalJSON parses a JSON value.
@@ -253,7 +299,7 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 		*refKey = {{.ref_key_type_name}}Zero()
 		return nil
 	}
-	i, err := {{.ref_key_type_name}}FromAZRS(s)
+	i, err := {{.ref_key_type_name}}FromAZERText(s)
 	if err == nil {
 		*refKey = i
 	}
@@ -288,28 +334,4 @@ func (refKey {{$.ref_key_type_name}}) With{{.}}(
 type {{.ref_key_type_name}}Error interface {
 	error
 	{{.ref_key_type_name}}Error()
-}
-
-type {{.ref_key_type_name}}AZWireDecodingArgumentError struct {}
-
-var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZWireDecodingArgumentError{}
-var _ errors.ArgumentError = {{.ref_key_type_name}}AZWireDecodingArgumentError{}
-
-func ({{.ref_key_type_name}}AZWireDecodingArgumentError) {{.ref_key_type_name}}Error() {}
-func ({{.ref_key_type_name}}AZWireDecodingArgumentError) ArgumentName() string { return "" }
-
-func ({{.ref_key_type_name}}AZWireDecodingArgumentError) Error() string {
-	return "{{.ref_key_type_name}}AZWireDecodingArgumentError"
-}
-
-type {{.ref_key_type_name}}AZRSDecodingArgumentError struct {}
-
-var _ {{.ref_key_type_name}}Error = {{.ref_key_type_name}}AZRSDecodingArgumentError{}
-var _ errors.ArgumentError = {{.ref_key_type_name}}AZRSDecodingArgumentError{}
-
-func ({{.ref_key_type_name}}AZRSDecodingArgumentError) {{.ref_key_type_name}}Error() {}
-func ({{.ref_key_type_name}}AZRSDecodingArgumentError) ArgumentName() string { return "" }
-
-func ({{.ref_key_type_name}}AZRSDecodingArgumentError) Error() string {
-	return "{{.ref_key_type_name}}AZRSDecodingArgumentError"
 }

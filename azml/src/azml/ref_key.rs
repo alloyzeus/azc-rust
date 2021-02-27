@@ -2,10 +2,10 @@
 
 #[derive(Clone, Debug)]
 pub struct RefKey {
-    pub azrs: RefKeyAzis,
+    pub azer_text: RefKeyAzerText,
 }
 
 #[derive(Clone, Debug)]
-pub struct RefKeyAzis {
+pub struct RefKeyAzerText {
     pub prefix: String,
 }

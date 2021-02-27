@@ -7,9 +7,10 @@ type {{.id_type_name}} {{.id_def.type_name}}
 // there's a bug in the generator.
 var _ {{.base.azcore_pkg}}.EID = {{.id_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{.id_type_name}}Zero
-var _ {{.base.azcore_pkg}}.AZWireUnmarshalable = &{{unexported_global .id_type_name}}ZeroVar
-{{- if .implements -}}
-var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero {{- end}}
+var _ {{.base.azer_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_type_name}}ZeroVar
+{{- if .implements}}
+var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero
+{{- end}}
 
 // {{unexported_global .id_type_name}}SignificantBitsMask is used to
 // extract significant bits from an instance of {{.id_type_name}}.
@@ -31,23 +32,17 @@ func {{.id_type_name}}FromPrimitiveValue(v {{.id_def.type_name}}) {{.id_type_nam
 	return {{.id_type_name}}(v)
 }
 
-// {{.id_type_name}}FromAZWire creates {{.id_type_name}} from
-// its azwire-encoded form.
-func {{.id_type_name}}FromAZWire(b []byte) (id {{.id_type_name}}, readLen int, err error) {
-	_, typ, n := protowire.ConsumeTag(b)
-	if n <= 0 {
-		return {{.id_type_name}}Zero, n, {{.id_type_name}}AZWireDecodingArgumentError{}
+// {{.id_type_name}}FromAZERBinField creates {{.id_type_name}} from
+// its azer-bin form.
+func {{.id_type_name}}FromAZERBinField(
+	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+) (id {{.id_type_name}}, readLen int, err error) {
+	if typeHint != {{.base.azer_pkg}}.BinDataTypeUnspecified && typeHint != {{.base.azer_pkg}}.BinDataTypeInt{{.id_def.primitive_size}} {
+		return {{.id_type_name}}(0), 0,
+			errors.ArgMsg("typeHint", "unsupported")
 	}
-	readLen = n
-	if typ != protowire.VarintType {
-		return {{.id_type_name}}Zero, readLen, {{.id_type_name}}AZWireDecodingArgumentError{}
-	}
-	e, n := protowire.ConsumeVarint(b[readLen:])
-	if n <= 0 {
-		return {{.id_type_name}}Zero, readLen, {{.id_type_name}}AZWireDecodingArgumentError{}
-	}
-	readLen += n
-	return {{.id_type_name}}(e), readLen, nil
+	i := binary.BigEndian.Uint{{.id_def.primitive_size}}(b)
+	return {{.id_type_name}}(i), {{.id_def.primitive_size_bytes}}, nil
 }
 
 // PrimitiveValue returns the ID in its primitive type. Prefer to use
@@ -64,11 +59,13 @@ func ({{.id_type_name}}) AZEID() {}
 // for conformance with {{.base.azcore_pkg}}.AdjunctEntityID.
 func ({{.id_type_name}}) AZAdjunctEntityID() {}
 
-{{if .implements -}}
-// AZ{{.implements}}ID is required for conformance with {{.base.azcore_pkg}}.{{.implements}}ID.
+{{- if .implements}}
+
+// AZ{{.implements}}ID is required for conformance
+// with {{.base.azcore_pkg}}.{{.implements}}ID.
 func ({{.id_type_name}}) AZ{{.implements}}ID() {}
 
-{{end -}}
+{{- end}}
 
 // IsZero is required as {{.id_type_name}} is a value-object.
 func (id {{.id_type_name}}) IsZero() bool {
@@ -82,30 +79,25 @@ func (id {{.id_type_name}}) IsValid() bool {
 		(uint{{.id_def.primitive_size}}(id) & {{unexported_global .id_type_name}}SignificantBitsMask) != 0
 }
 
-// AZWire returns a binary representation of the instance.
-//
-// AZWire is required for conformance
-// with {{.base.azcore_pkg}}.AZWireObject.
-func (id {{.id_type_name}}) AZWire() []byte {
-	return id.AZWireField(1)
+// IsNotValid returns the negation of value returned by IsValid().
+func (id {{.id_type_name}}) IsNotValid() bool {
+	return !id.IsValid()
 }
 
-// AZWireField encode this instance as azwire with a specified field number.
-//
-// AZWire is required for conformance
-// with {{.base.azcore_pkg}}.AZWireObject.
-func (id {{.id_type_name}}) AZWireField(fieldNum int) []byte {
-	var buf []byte
-	buf = protowire.AppendTag(buf, protowire.Number(fieldNum), protowire.VarintType)
-	buf = protowire.AppendVarint(buf, uint64(id))
-	return buf
+// AZERBinField is required for conformance
+// with {{.base.azcore_pkg}}.EID.
+func (id {{.id_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.BinDataType) {
+	b := make([]byte, {{.id_def.primitive_size_bytes}})
+	binary.BigEndian.PutUint{{.id_def.primitive_size}}(b, uint{{.id_def.primitive_size}}(id))
+	return b, {{.base.azer_pkg}}.BinDataTypeInt{{.id_def.primitive_size}}
 }
 
-// UnmarshalAZWire is required for conformance
-// with {{.base.azcore_pkg}}.AZWireUnmarshalable.
-func (id *{{.id_type_name}}) UnmarshalAZWire(b []byte) (readLen int, err error) {
-	var i {{.id_type_name}}
-	i, readLen, err = {{.id_type_name}}FromAZWire(b)
+// UnmarshalAZERBinField is required for conformance
+// with {{.base.azer_pkg}}.BinFieldUnmarshalable.
+func (id *{{.id_type_name}}) UnmarshalAZERBinField(
+	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+) (readLen int, err error) {
+	i, readLen, err := {{.id_type_name}}FromAZERBinField(b, typeHint)
 	if err == nil {
 		*id = i
 	}
@@ -138,16 +130,4 @@ func (id {{.id_type_name}}) Equals{{.id_type_name}}(
 	other {{.id_type_name}},
 ) bool {
 	return id == other
-}
-
-type {{.id_type_name}}AZWireDecodingArgumentError struct {}
-
-var _ errors.ArgumentError = {{.id_type_name}}AZWireDecodingArgumentError{}
-
-func ({{.id_type_name}}AZWireDecodingArgumentError) ArgumentName() string {
-	return ""
-}
-
-func ({{.id_type_name}}AZWireDecodingArgumentError) Error() string {
-	return "{{.id_type_name}}AZWireDecodingArgumentError"
 }

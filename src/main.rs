@@ -48,6 +48,8 @@ fn main() {
                 azlib_prefix: "AZx".to_owned(),
                 azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
                 azcore_pkg: "azcore".to_owned(),
+                azer_import: "github.com/alloyzeus/go-azcore/azcore/azer".to_owned(),
+                azer_pkg: "azer".to_owned(),
                 compilation_state: None,
                 package_identifier: "".to_owned(),
                 package_dir_base_name: "".to_owned(),

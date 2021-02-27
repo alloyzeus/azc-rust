@@ -91,7 +91,7 @@ func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
 
 	// return {{.type_name}}CreateResponseWithError(
 	//	input.{{.type_name}}CreateRequestContext(),
-	//	azcore.ErrMethodNotImplemented,
+	//	{{.base.azcore_pkg}}.ErrMethodNotImplemented,
 	//)
 }
 
