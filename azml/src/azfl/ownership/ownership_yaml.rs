@@ -2,7 +2,7 @@
 
 use std::{convert, convert::TryInto};
 
-use crate::azcore::ownership::ownership;
+use crate::azfl::ownership::ownership;
 use crate::azml::{arity, arity_yaml, error, mixin, mixin_yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]

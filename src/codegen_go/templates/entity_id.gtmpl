@@ -10,9 +10,9 @@ var _ {{.base.azer_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_type_n
 {{- if .implements}}
 var _ {{.base.azcore_pkg}}.{{.implements}}ID = {{.id_type_name}}Zero {{- end}}
 
-// {{unexported_global .id_type_name}}SignificantBitsMask is used to
+// {{.id_type_name}}SignificantBitsMask is used to
 // extract significant bits from an instance of {{.id_type_name}}.
-const {{unexported_global .id_type_name}}SignificantBitsMask uint{{.id_def.primitive_size}} =
+const {{.id_type_name}}SignificantBitsMask uint{{.id_def.primitive_size}} =
 	{{.id_def.significant_bits_mask}}
 
 // {{.id_type_name}}Zero is the zero value
@@ -90,7 +90,7 @@ func (id {{.id_type_name}}) IsZero() bool {
 // method.
 func (id {{.id_type_name}}) IsValid() bool {
 	return int{{.id_def.primitive_size}}(id) > 0 &&
-		(uint{{.id_def.primitive_size}}(id) & {{unexported_global .id_type_name}}SignificantBitsMask) != 0
+		(uint{{.id_def.primitive_size}}(id) & {{.id_type_name}}SignificantBitsMask) != 0
 }
 
 // IsNotValid returns the negation of value returned by IsValid().
@@ -147,18 +147,29 @@ func (id *{{.id_type_name}}) UnmarshalAZERBinField(
 }
 
 {{$uid_type := print "uint" .id_def.primitive_size}}
-{{range .id_def.bitfield.sub_fields}}
+{{- range .id_def.bitfield.sub_fields}}
+
 // Is{{.identifier}} returns true if the {{$.type_name}} instance
 // this ID is for is a {{.identifier}} {{$.type_name}}.
 //
 {{range .doc_lines}}// {{.}}
 {{end -}}
 func (id {{$.id_type_name}}) Is{{.identifier}}() bool {
-	return ({{$uid_type}}(id) &
-		{{.mask}}) ==
-		{{.flag}}
+	return id.IsValid() && id.Has{{.identifier}}Bits()
 }
-{{end}}
+
+const {{unexported_global $.id_type_name}}{{.identifier}}Mask = {{.mask}}
+const {{unexported_global $.id_type_name}}{{.identifier}}Bits = {{.flag}}
+
+// Has{{.identifier}}Bits is only checking the bits
+// without validating other information contained in the ID.
+func (id {{$.id_type_name}}) Has{{.identifier}}Bits() bool {
+	return ({{$uid_type}}(id) &
+		{{unexported_global $.id_type_name}}{{.identifier}}Mask) ==
+		{{unexported_global $.id_type_name}}{{.identifier}}Bits
+}
+
+{{- end}}
 
 type {{.id_type_name}}Error interface {
 	error

@@ -54,8 +54,23 @@ func ({{.ref_key_type_name}}) AZRefKey() {}
 // by {{.base.azcore_pkg}}.AdjunctEntityRefKey interface.
 func ({{.ref_key_type_name}}) AZAdjunctEntityRefKey() {}
 
-// ID is required for conformance with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) ID() {{.base.azcore_pkg}}.EID {
+// ID returns the scoped identifier of the entity.
+func (refKey {{.ref_key_type_name}}) ID() {{.id_type_name}} {
+	return refKey.id
+}
+
+// IDPtr returns a pointer to a copy of the ID if it's considered valid
+// otherwise it returns nil.
+func (refKey {{.ref_key_type_name}}) IDPtr() *{{.id_type_name}} {
+	if refKey.IsNotValid() {
+		return nil
+	}
+	i := refKey.ID()
+	return &i
+}
+
+// EID is required for conformance with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) EID() {{.base.azcore_pkg}}.EID {
 	return refKey.id
 }
 
@@ -80,6 +95,11 @@ func (refKey {{.ref_key_type_name}}) IsZero() bool {
 func (refKey {{.ref_key_type_name}}) IsValid() bool {
 	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.IsValid() &&
 		{{end}}{{- end -}} refKey.id.IsValid()
+}
+
+// IsNotValid returns the negation of value returned by IsValid().
+func (refKey {{.ref_key_type_name}}) IsNotValid() bool {
+	return !refKey.IsValid()
 }
 
 // Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
@@ -286,6 +306,20 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZERText(s string) error {
 	return err
 }
 
+// MarshalText is for compatibility with Go's encoding.TextMarshaler
+func (refKey {{.ref_key_type_name}}) MarshalText() ([]byte, error) {
+	return []byte(refKey.AZERText()), nil
+}
+
+// UnmarshalText is for conformance with Go's encoding.TextUnmarshaler
+func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
+	r, err := {{.ref_key_type_name}}FromAZERText(string(b))
+	if err == nil {
+		*refKey = r
+	}
+	return err
+}
+
 // MarshalJSON makes this type JSON-marshalable.
 func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
 	// We assume that there's no symbols in azer-text
@@ -323,7 +357,8 @@ func (refKey {{$.ref_key_type_name}}) With{{.}}(
 	return {{$.ref_key_type_name}}{
 		{{- range $.hosts}}{{if eq . $p}}
 		{{unexported_field .}}: {{arg_name .}},{{else}}
-		{{unexported_field .}}: attrs.{{unexported_field .}},{{end}}{{- end}}
+		{{unexported_field .}}: refKey.{{unexported_field .}},{{end}}{{- end}}
+		id: refKey.id,
 	}
 }
 

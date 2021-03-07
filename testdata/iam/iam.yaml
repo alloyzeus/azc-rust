@@ -295,20 +295,22 @@ symbols:
       an initial Session.
     kind: adjunct
     parameters:
+      name_is_prepared: true
       kind: entity
       # At least one
       hosts:
         - name: Application
+        - name: User
+          required: false
       parameters:
         implements:
           kind: Terminal
-          attributes:
-            - identifier: PrincipalUser
-              kind: "@User"
-              final: true
         ref_key:
           azer_text:
             prefix: "KTx0"
+        #TODO: we want the ID to be unique without putting it in a composite
+        # with the hosts, but we don't want to make this adjunct-entity
+        # scoped globally.
         id:
           kind: integer
           parameters:
@@ -322,9 +324,6 @@ symbols:
           - kind: Deletion
             parameters:
         attributes:
-          - identifier: PrincipalUser
-            kind: "@User"
-            final: true
           - identifier: RegistrationIdentifier
             # TODO: union or interface
             # we need to refer to TerminalRegistrationPhoneNumber and
@@ -380,10 +379,21 @@ symbols:
       kind: entity
       hosts:
         - name: Terminal
-          exclusive: true # only one instance of Session for a Terminal active at a time
+          # only one instance of Session for a Terminal active at a time
+          exclusive: true
+        # TODO: parent session
       arity:
         min: 0
         max: -1
+      # this is a directive to expose a host of one of the hosts of this
+      # adjunct.
+      expose:
+        # This one, we expose the User host of the Terminal with the name User.
+        # TODO: name is optional. If it's not provided, we will construct
+        # the name by combining the names, so Terminal.User will be TerminalUser.
+        # If the name is provided, we will expose with the provided name.
+        - name: User
+          from: Terminal.User
       parameters:
         implements:
           kind: Session

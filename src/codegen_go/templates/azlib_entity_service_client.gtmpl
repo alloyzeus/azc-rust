@@ -4,7 +4,7 @@ import (
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
-// This file contains specializations of azcore types.
+// This file contains specializations of azfl types.
 
 //region EntityServiceClient
 

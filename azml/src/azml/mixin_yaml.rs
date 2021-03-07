@@ -3,7 +3,7 @@
 use std::convert::{self, TryInto};
 
 use crate::{
-    azcore::ownership::{ownership, ownership_yaml},
+    azfl::ownership::{ownership, ownership_yaml},
     azml::{mixin, yaml},
 };
 

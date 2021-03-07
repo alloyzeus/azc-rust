@@ -31,7 +31,7 @@ fn main() {
             );
             package_urls.insert(
                 "crockford32".to_owned(),
-                "github.com/alloyzeus/go-azcore/azcore/eid/integer/textencodings/crockford32"
+                "github.com/alloyzeus/go-azfl/azfl/eid/integer/textencodings/crockford32"
                     .to_owned(),
             );
 
@@ -46,9 +46,9 @@ fn main() {
                 file_per_struct: false,
                 package_urls: package_urls,
                 azlib_prefix: "AZx".to_owned(),
-                azcore_import: "github.com/alloyzeus/go-azcore/azcore".to_owned(),
-                azcore_pkg: "azcore".to_owned(),
-                azer_import: "github.com/alloyzeus/go-azcore/azcore/azer".to_owned(),
+                azcore_import: "github.com/alloyzeus/go-azfl/azfl".to_owned(),
+                azcore_pkg: "azfl".to_owned(),
+                azer_import: "github.com/alloyzeus/go-azfl/azfl/azer".to_owned(),
                 azer_pkg: "azer".to_owned(),
                 compilation_state: None,
                 package_identifier: "".to_owned(),

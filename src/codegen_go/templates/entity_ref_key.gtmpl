@@ -2,6 +2,14 @@
 // an instance of entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} {{.id_type_name}}
 
+// New{{.ref_key_type_name}} returns a new instance
+// of {{.ref_key_type_name}} with the provided attribute values.
+func New{{.ref_key_type_name}}(
+	id {{.id_type_name}},
+) {{.ref_key_type_name}} {
+	return {{.ref_key_type_name}}(id)
+}
+
 // To ensure that it conforms the interfaces. If any of these is failing,
 // there's a bug in the generator.
 var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
@@ -28,8 +36,23 @@ func ({{.ref_key_type_name}}) AZRefKey() {}
 // with {{.base.azcore_pkg}}.EntityRefKey.
 func ({{.ref_key_type_name}}) AZEntityRefKey() {}
 
-// ID is required for conformance with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) ID() {{.base.azcore_pkg}}.EID {
+// ID returns the scoped identifier of the entity.
+func (refKey {{.ref_key_type_name}}) ID() {{.id_type_name}} {
+	return {{.id_type_name}}(refKey)
+}
+
+// IDPtr returns a pointer to a copy of the ID if it's considered valid
+// otherwise it returns nil.
+func (refKey {{.ref_key_type_name}}) IDPtr() *{{.id_type_name}} {
+	if refKey.IsNotValid() {
+		return nil
+	}
+	i := refKey.ID()
+	return &i
+}
+
+// EID is required for conformance with {{.base.azcore_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) EID() {{.base.azcore_pkg}}.EID {
 	return {{.id_type_name}}(refKey)
 }
 
@@ -52,6 +75,11 @@ func (refKey {{.ref_key_type_name}}) IsZero() bool {
 // It doesn't tell whether it refers to a valid instance of {{.type_name}}.
 func (refKey {{.ref_key_type_name}}) IsValid() bool {
 	return {{.id_type_name}}(refKey).IsValid()
+}
+
+// IsNotValid returns the negation of value returned by IsValid().
+func (refKey {{.ref_key_type_name}}) IsNotValid() bool {
+	return !refKey.IsValid()
 }
 
 // Equals is required for conformance with {{.base.azcore_pkg}}.EntityRefKey.
@@ -182,6 +210,20 @@ func {{.ref_key_type_name}}FromAZERText(s string) ({{.ref_key_type_name}}, error
 // with {{.base.azer_pkg}}.TextUnmarshalable.
 func (refKey *{{.ref_key_type_name}}) UnmarshalAZERText(s string) error {
 	r, err := {{.ref_key_type_name}}FromAZERText(s)
+	if err == nil {
+		*refKey = r
+	}
+	return err
+}
+
+// MarshalText is for compatibility with Go's encoding.TextMarshaler
+func (refKey {{.ref_key_type_name}}) MarshalText() ([]byte, error) {
+	return []byte(refKey.AZERText()), nil
+}
+
+// UnmarshalText is for conformance with Go's encoding.TextUnmarshaler
+func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
+	r, err := {{.ref_key_type_name}}FromAZERText(string(b))
 	if err == nil {
 		*refKey = r
 	}
