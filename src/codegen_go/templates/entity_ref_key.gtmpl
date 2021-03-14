@@ -250,6 +250,15 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// {{.ref_key_type_name}}Service abstracts
+// {{.ref_key_type_name}}-related services.
+type {{.ref_key_type_name}}Service interface {
+	// Is{{.ref_key_type_name}} is to check if the ref-key is
+	// trully registered to system. It does not check whether the instance
+	// is active or not.
+	Is{{.ref_key_type_name}}Registered(refKey {{.ref_key_type_name}}) bool
+}
+
 // {{.ref_key_type_name}}Error defines an interface for all
 // {{.ref_key_type_name}}-related errors.
 type {{.ref_key_type_name}}Error interface {
