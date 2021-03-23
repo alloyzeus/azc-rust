@@ -63,7 +63,7 @@ type {{.type_name}}CreateResponse struct {
 }
 
 type {{.type_name}}CreateResponseParameters struct {
-	ID {{.id_type_name}}
+	RefKey {{.ref_key_type_name}}
 	CreationInfo *{{.base.azlib_prefix}}EntityCreationInfo
 
 	// TODO

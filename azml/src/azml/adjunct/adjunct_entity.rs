@@ -5,14 +5,14 @@ use std::{
     result,
 };
 
-use crate::azml::{abstract_, adjunct::adjunct, attribute, eid, ref_key, symbol};
+use crate::azml::{abstract_, adjunct::adjunct, attribute, id_num, ref_key, symbol};
 
 //region AdjunctEntity
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,
-    pub id: AdjunctEntityId,
+    pub id_num: AdjunctEntityIdNum,
     pub ref_key: ref_key::RefKey,
     pub implements: abstract_::AbstractImplementation,
     // This affects RefKey structure.
@@ -30,7 +30,7 @@ impl adjunct::AdjuctDefinition for AdjunctEntity {
                     .chain(b.collect_symbol_refs())
                     .collect::<Vec<_>>()
             });
-        let id_syms = self.id.definition.collect_symbol_refs();
+        let id_syms = self.id_num.definition.collect_symbol_refs();
         a_syms.into_iter().chain(id_syms.into_iter()).collect()
     }
 }
@@ -92,53 +92,53 @@ impl convert::TryFrom<&str> for AdjunctEntityScope {
 
 //endregion
 
-//region AdjunctEntityId
+//region AdjunctEntityIdNum
 
 #[derive(Clone, Debug)]
-pub struct AdjunctEntityId {
-    pub definition: Box<dyn AdjunctEntityIdDefinition>,
+pub struct AdjunctEntityIdNum {
+    pub definition: Box<dyn AdjunctEntityIdNumDefinition>,
 }
 
 //endregion
 
-//region AdjunctEntityIdDefinition
+//region AdjunctEntityIdNumDefinition
 
-pub trait AdjunctEntityIdDefinition:
-    mopa::Any + AdjunctEntityIdDefinitionClone + std::fmt::Debug
+pub trait AdjunctEntityIdNumDefinition:
+    mopa::Any + AdjunctEntityIdNumDefinitionClone + std::fmt::Debug
 {
     //NOTE: should simply add symbol::SymbolDefinition but we have some
     // conflict for the clone_box.
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef>;
 }
 
-mopafy!(AdjunctEntityIdDefinition);
+mopafy!(AdjunctEntityIdNumDefinition);
 
-pub trait AdjunctEntityIdDefinitionClone {
-    fn clone_box(&self) -> Box<dyn AdjunctEntityIdDefinition>;
+pub trait AdjunctEntityIdNumDefinitionClone {
+    fn clone_box(&self) -> Box<dyn AdjunctEntityIdNumDefinition>;
 }
 
-impl<T> AdjunctEntityIdDefinitionClone for T
+impl<T> AdjunctEntityIdNumDefinitionClone for T
 where
-    T: AdjunctEntityIdDefinition + Clone,
+    T: AdjunctEntityIdNumDefinition + Clone,
 {
-    fn clone_box(&self) -> Box<dyn AdjunctEntityIdDefinition> {
+    fn clone_box(&self) -> Box<dyn AdjunctEntityIdNumDefinition> {
         Box::new(self.clone())
     }
 }
 
-impl Clone for Box<dyn AdjunctEntityIdDefinition> {
-    fn clone(&self) -> Box<dyn AdjunctEntityIdDefinition> {
+impl Clone for Box<dyn AdjunctEntityIdNumDefinition> {
+    fn clone(&self) -> Box<dyn AdjunctEntityIdNumDefinition> {
         self.clone_box()
     }
 }
 
 //endregion
 
-//region AdjunctEntityIdInteger
+//region AdjunctEntityIdNumInteger
 
-pub type AdjunctEntityIdInteger = eid::IntegerId;
+pub type AdjunctEntityIdNumInteger = id_num::IntegerIdNum;
 
-impl AdjunctEntityIdDefinition for AdjunctEntityIdInteger {
+impl AdjunctEntityIdNumDefinition for AdjunctEntityIdNumInteger {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
         self.collect_symbol_refs()
     }

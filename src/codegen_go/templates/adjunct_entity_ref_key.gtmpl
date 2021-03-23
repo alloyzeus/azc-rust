@@ -4,7 +4,7 @@ type {{.ref_key_type_name}} struct {
 	{{if not .global_scope -}}{{range .hosts -}}
 	{{unexported_field .}} {{.}}RefKey
 	{{end}}{{- end -}}
-	id {{.id_type_name}}
+	idNum {{.id_num_type_name}}
 }
 
 // The total number of fields in the struct.
@@ -16,13 +16,13 @@ func New{{.ref_key_type_name}}(
 	{{if not .global_scope -}}{{range .hosts -}}
 	{{arg_name .}} {{.}}RefKey,
 	{{end}}{{- end -}}
-	id {{.id_type_name}},
+	idNum {{.id_num_type_name}},
 ) {{.ref_key_type_name}} {
 	return {{.ref_key_type_name}}{
 		{{if not .global_scope -}}{{- range .hosts -}}
 		{{unexported_field .}}: {{arg_name .}},
 		{{end}}{{end -}}
-		id: id,
+		idNum: idNum,
 	}
 }
 
@@ -38,7 +38,7 @@ var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
 	{{if not .global_scope -}}{{range .hosts -}}
 	{{unexported_field .}}: {{.}}RefKeyZero(),
 	{{end}}{{- end -}}
-	id: {{.id_type_name}}Zero,
+	idNum: {{.id_num_type_name}}Zero,
 }
 
 // {{.ref_key_type_name}}Zero returns
@@ -54,32 +54,32 @@ func ({{.ref_key_type_name}}) AZRefKey() {}
 // by {{.base.azcore_pkg}}.AdjunctEntityRefKey interface.
 func ({{.ref_key_type_name}}) AZAdjunctEntityRefKey() {}
 
-// ID returns the scoped identifier of the entity.
-func (refKey {{.ref_key_type_name}}) ID() {{.id_type_name}} {
-	return refKey.id
+// IDNum returns the scoped identifier of the entity.
+func (refKey {{.ref_key_type_name}}) IDNum() {{.id_num_type_name}} {
+	return refKey.idNum
 }
 
-// IDPtr returns a pointer to a copy of the ID if it's considered valid
+// IDNumPtr returns a pointer to a copy of the IDNum if it's considered valid
 // otherwise it returns nil.
-func (refKey {{.ref_key_type_name}}) IDPtr() *{{.id_type_name}} {
+func (refKey {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
 	if refKey.IsNotValid() {
 		return nil
 	}
-	i := refKey.ID()
+	i := refKey.IDNum()
 	return &i
 }
 
 // EID is required for conformance with {{.base.azcore_pkg}}.RefKey.
 func (refKey {{.ref_key_type_name}}) EID() {{.base.azcore_pkg}}.EID {
-	return refKey.id
+	return refKey.idNum
 }
 
 {{- if .implements}}
 
-// {{.implements}}ID is required for conformance
+// {{.implements}}IDNum is required for conformance
 // with {{.base.azcore_pkg}}.{{.implements}}RefKey.
-func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{.implements}}ID {
-	return refKey.id
+func (refKey {{.ref_key_type_name}}) {{.implements}}IDNum() {{.base.azcore_pkg}}.{{.implements}}IDNum {
+	return refKey.idNum
 }
 
 {{- end}}
@@ -87,14 +87,14 @@ func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
 	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.IsZero() &&
-		{{end}}{{- end -}} refKey.id == {{.id_type_name}}Zero
+		{{end}}{{- end -}} refKey.idNum == {{.id_num_type_name}}Zero
 }
 
 // IsValid returns true if this instance is valid independently as a ref-key.
 // It doesn't tell whether it refers to a valid instance of {{.type_name}}.
 func (refKey {{.ref_key_type_name}}) IsValid() bool {
 	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.IsValid() &&
-		{{end}}{{- end -}} refKey.id.IsValid()
+		{{end}}{{- end -}} refKey.idNum.IsValid()
 }
 
 // IsNotValid returns the negation of value returned by IsValid().
@@ -106,11 +106,11 @@ func (refKey {{.ref_key_type_name}}) IsNotValid() bool {
 func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
 		return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.Equals{{.}}RefKey(x.{{unexported_field .}}) &&
-			{{end}}{{- end -}} refKey.id == x.id
+			{{end}}{{- end -}} refKey.idNum == x.idNum
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
 		return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.Equals{{.}}RefKey(x.{{unexported_field .}}) &&
-			{{end}}{{- end -}} refKey.id == x.id
+			{{end}}{{- end -}} refKey.idNum == x.idNum
 	}
 	return false
 }
@@ -126,7 +126,7 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {
 	return {{if not .global_scope -}}{{range .hosts}}refKey.{{unexported_field .}}.Equals{{.}}RefKey(other.{{unexported_field .}}) &&
-		{{end}}{{- end -}} refKey.id == other.id
+		{{end}}{{- end -}} refKey.idNum == other.idNum
 }
 
 // AZERBin is required for conformance
@@ -173,7 +173,7 @@ func (refKey {{.ref_key_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.
 
 	{{- end}}
 
-	fieldBytes, fieldType = refKey.id.AZERBinField()
+	fieldBytes, fieldType = refKey.idNum.AZERBinField()
 	typesBytes = append(typesBytes, fieldType.Byte())
 	dataBytes = append(dataBytes, fieldBytes...)
 
@@ -182,7 +182,7 @@ func (refKey {{.ref_key_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.
 	out = append(out, dataBytes...)
 	return out, {{.base.azer_pkg}}.BinDataTypeArray
 	{{- end}}{{- else -}}
-	return refKey.id.AZERBinField()
+	return refKey.idNum.AZERBinField()
 	{{- end}}
 }
 
@@ -228,14 +228,14 @@ func {{.ref_key_type_name}}FromAZERBinField(
 	fieldType, err = {{.base.azer_pkg}}.BinDataTypeFromByte(b[typeCursor])
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "id type parsing", err)
+			errors.ArgWrap("", "idnum type parsing", err)
 	}
 	typeCursor++
-	id, readLen, err := {{.id_type_name}}FromAZERBinField(
+	idNum, readLen, err := {{.id_num_type_name}}FromAZERBinField(
 		b[dataCursor:], fieldType)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "id data parsing", err)
+			errors.ArgWrap("", "idnum data parsing", err)
 	}
 	dataCursor += readLen
 
@@ -243,7 +243,7 @@ func {{.ref_key_type_name}}FromAZERBinField(
 		{{if not .global_scope -}}{{- range .hosts -}}
 		{{unexported_field .}}: {{arg_name .}}RefKey,
 		{{end}}{{end -}}
-		id: id,
+		idNum: idNum,
 	}, dataCursor, nil
 }
 
@@ -358,7 +358,7 @@ func (refKey {{$.ref_key_type_name}}) With{{.}}(
 		{{- range $.hosts}}{{if eq . $p}}
 		{{unexported_field .}}: {{arg_name .}},{{else}}
 		{{unexported_field .}}: refKey.{{unexported_field .}},{{end}}{{- end}}
-		id: refKey.id,
+		idNum: refKey.idNum,
 	}
 }
 

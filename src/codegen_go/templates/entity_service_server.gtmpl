@@ -71,7 +71,7 @@ type {{.type_name}}CreateResponse struct {
 }
 
 type {{.type_name}}CreateResponseParameters struct {
-	ID {{.pkg_name}}.{{.id_type_name}}
+	RefKey {{.pkg_name}}.{{.ref_key_type_name}}
 	CreationInfo *{{.pkg_name}}.{{.base.azlib_prefix}}EntityCreationInfo
 
 	// TODO
@@ -97,9 +97,9 @@ func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
 
 // instantiate{{.type_name}}
 
-// new{{.id_type_name}} generates a new ID which can be assigned
+// new{{.id_num_type_name}} generates a new IDNum which can be assigned
 // to a new entity.
-func (srv *{{.service_name}}Server) new{{.id_type_name}}() ({{.pkg_name}}.{{.id_type_name}}, error) {
+func (srv *{{.service_name}}Server) new{{.id_num_type_name}}() ({{.pkg_name}}.{{.id_num_type_name}}, error) {
 	//TODO
-	return {{.pkg_name}}.{{.id_type_name}}Zero, nil
+	return {{.pkg_name}}.{{.id_num_type_name}}Zero, nil
 }

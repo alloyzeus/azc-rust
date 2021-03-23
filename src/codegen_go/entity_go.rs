@@ -4,13 +4,13 @@ use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
     attribute_go::AttributeContext,
-    eid_go::IntegerIdContext,
+    id_num_go::IntegerIdNumContext,
     ref_key_go::{RefKeyAzerTextContext, RefKeyContext},
     BaseContext, GoCodeGenerator, ImportContext,
 };
 
 use azml::azml::{
-    entity::{entity, entity_id_integer},
+    entity::{entity, entity_id_num_integer},
     symbol,
 };
 
@@ -24,10 +24,11 @@ impl GoCodeGenerator {
         symbol: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = symbol.identifier.to_owned();
-        let id_def = &ent.id.definition;
+        let id_num_def = &ent.id_num.definition;
 
-        if let Some(id_int) = id_def.downcast_ref::<entity_id_integer::EntityIdInteger>() {
-            let id_type_name = format!("{}ID", type_name);
+        if let Some(id_int) = id_num_def.downcast_ref::<entity_id_num_integer::EntityIdNumInteger>()
+        {
+            let id_num_type_name = format!("{}IDNum", type_name);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let event_interface_name = format!("{}Event", type_name);
@@ -56,8 +57,8 @@ impl GoCodeGenerator {
                 imports: imports,
                 type_name: type_name.to_owned(),
                 type_doc_lines: type_doc_lines.clone(),
-                id_type_name: id_type_name.to_owned(),
-                id_def: id_int.into(),
+                id_num_type_name: id_num_type_name.to_owned(),
+                id_num_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
                     azer_text: RefKeyAzerTextContext {
@@ -96,7 +97,7 @@ impl GoCodeGenerator {
                     out_file.write_all("\n".as_bytes())?;
                 }
             }
-            render_file_region!(out_file, "ID", "templates/entity_id.gtmpl", tpl_ctx);
+            render_file_region!(out_file, "IDNum", "templates/entity_id_num.gtmpl", tpl_ctx);
             render_file_region!(
                 out_file,
                 "RefKey",
@@ -150,7 +151,7 @@ impl GoCodeGenerator {
             Ok(())
         } else {
             Err(Box::new(azml::azml::Error::Msg(
-                "Unsupported ID type".to_owned(),
+                "Unsupported id_num type".to_owned(),
             )))
         }
     }
@@ -164,8 +165,8 @@ struct EntityContext {
     imports: Vec<ImportContext>,
     type_name: String,
     type_doc_lines: Vec<String>,
-    id_type_name: String,
-    id_def: IntegerIdContext,
+    id_num_type_name: String,
+    id_num_def: IntegerIdNumContext,
     ref_key_type_name: String,
     ref_key_def: RefKeyContext,
     implements: String, //TODO: attributes

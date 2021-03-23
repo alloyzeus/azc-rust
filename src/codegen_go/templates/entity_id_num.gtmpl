@@ -1,0 +1,182 @@
+// {{.id_num_type_name}} is a scoped identifier
+// used to identify an instance of entity {{.type_name}}.
+type {{.id_num_type_name}} {{.id_num_def.type_name}}
+
+// To ensure that it conforms the interfaces. If any of these is failing,
+// there's a bug in the generator.
+var _ {{.base.azcore_pkg}}.EID = {{.id_num_type_name}}Zero
+var _ {{.base.azcore_pkg}}.EntityID = {{.id_num_type_name}}Zero
+var _ {{.base.azer_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
+{{- if .implements}}
+var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero {{- end}}
+
+// {{.id_num_type_name}}SignificantBitsMask is used to
+// extract significant bits from an instance of {{.id_num_type_name}}.
+const {{.id_num_type_name}}SignificantBitsMask uint{{.id_num_def.primitive_size}} =
+	{{.id_num_def.significant_bits_mask}}
+
+// {{.id_num_type_name}}Zero is the zero value
+// for {{.id_num_type_name}}.
+const {{.id_num_type_name}}Zero =
+	{{.id_num_type_name}}(0)
+
+// {{unexported_global .id_num_type_name}}ZeroVar is used for testing
+// pointer-based interfaces conformance.
+var {{unexported_global .id_num_type_name}}ZeroVar =
+	{{.id_num_type_name}}Zero
+
+// {{.id_num_type_name}}FromPrimitiveValue creates an instance
+// of {{.id_num_type_name}} from its primitive value.
+func {{.id_num_type_name}}FromPrimitiveValue(v {{.id_num_def.type_name}}) {{.id_num_type_name}} {
+	return {{.id_num_type_name}}(v)
+}
+
+// {{.id_num_type_name}}FromAZERBinField creates {{.id_num_type_name}} from
+// its azer-bin-field form.
+func {{.id_num_type_name}}FromAZERBinField(
+	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+) (idNum {{.id_num_type_name}}, readLen int, err error) {
+	if typeHint != {{.base.azer_pkg}}.BinDataTypeUnspecified && typeHint != {{.base.azer_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
+		return {{.id_num_type_name}}(0), 0,
+			errors.ArgMsg("typeHint", "unsupported")
+	}
+	i := binary.BigEndian.Uint{{.id_num_def.primitive_size}}(b)
+	return {{.id_num_type_name}}(i), {{.id_num_def.primitive_size_bytes}}, nil
+}
+
+// PrimitiveValue returns the value in its primitive type. Prefer to use
+// this method instead of casting directly.
+func (idNum {{.id_num_type_name}}) PrimitiveValue() {{.id_num_def.type_name}} {
+	return {{.id_num_def.type_name}}(idNum)
+}
+
+// AZEID is required for conformance
+// with {{.base.azcore_pkg}}.EID.
+func ({{.id_num_type_name}}) AZEID() {}
+
+// AZEntityID is required for conformance
+// with {{.base.azcore_pkg}}.EntityID.
+func ({{.id_num_type_name}}) AZEntityID() {}
+
+{{- if .implements}}
+
+// AZ{{.implements}}IDNum is required for conformance
+// with {{.base.azcore_pkg}}.{{.implements}}IDNum.
+func ({{.id_num_type_name}}) AZ{{.implements}}IDNum() {}
+
+{{- end}}
+
+// IsZero is required as {{.id_num_type_name}} is a value-object.
+func (idNum {{.id_num_type_name}}) IsZero() bool {
+	return idNum == {{.id_num_type_name}}Zero
+}
+
+// IsValid returns true if this instance is valid independently
+// as an {{.id_num_type_name}}. It doesn't tell whether it refers to
+// a valid instance of {{.type_name}}.
+//
+// To elaborate, validity of a data depends on the perspective of the user.
+// For example, age 1000 is a valid as an instance of age, but on the context
+// of human living age, we can consider it as invalid.
+//
+// To use some analogy, a ticket has a date of validity for today, but
+// after it got checked in to the counter, it turns out that its serial number
+// is not registered in the issuer's database. The ticket claims that it's
+// valid, but it's considered invalid because it's a fake.
+//
+// Similarly, what is considered valid in this context here is that the data
+// contained in this instance doesn't break any rule for an instance of
+// {{.id_num_type_name}}. Whether the instance is valid for certain context,
+// it requires case-by-case validation which is out of the scope of this
+// method.
+func (idNum {{.id_num_type_name}}) IsValid() bool {
+	return int{{.id_num_def.primitive_size}}(idNum) > 0 &&
+		(uint{{.id_num_def.primitive_size}}(idNum) & {{.id_num_type_name}}SignificantBitsMask) != 0
+}
+
+// IsNotValid returns the negation of value returned by IsValid().
+func (idNum {{.id_num_type_name}}) IsNotValid() bool {
+	return !idNum.IsValid()
+}
+
+// Equals is required as {{.id_num_type_name}} is a value-object.
+//
+// Use Equals{{.id_num_type_name}} method if the other value
+// has the same type.
+func (idNum {{.id_num_type_name}}) Equals(other interface{}) bool {
+	if x, ok := other.({{.id_num_type_name}}); ok {
+		return x == idNum
+	}
+	if x, _ := other.(*{{.id_num_type_name}}); x != nil {
+		return *x == idNum
+	}
+	return false
+}
+
+// Equal is a wrapper for Equals method. It is required for
+// compatibility with github.com/google/go-cmp
+func (idNum {{.id_num_type_name}}) Equal(other interface{}) bool {
+	return idNum.Equals(other)
+}
+
+// Equals{{.id_num_type_name}} determines if the other instance is equal
+// to this instance.
+func (idNum {{.id_num_type_name}}) Equals{{.id_num_type_name}}(
+	other {{.id_num_type_name}},
+) bool {
+	return idNum == other
+}
+
+// AZERBinField is required for conformance
+// with {{.base.azcore_pkg}}.EID.
+func (idNum {{.id_num_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.BinDataType) {
+	b := make([]byte, {{.id_num_def.primitive_size_bytes}})
+	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b, uint{{.id_num_def.primitive_size}}(idNum))
+	return b, {{.base.azer_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}
+}
+
+// UnmarshalAZERBinField is required for conformance
+// with {{.base.azer_pkg}}.BinFieldUnmarshalable.
+func (idNum *{{.id_num_type_name}}) UnmarshalAZERBinField(
+	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+) (readLen int, err error) {
+	i, readLen, err := {{.id_num_type_name}}FromAZERBinField(b, typeHint)
+	if err == nil {
+		*idNum = i
+	}
+	return readLen, err
+}
+
+{{$uid_type := print "uint" .id_num_def.primitive_size}}
+{{- range .id_num_def.bitfield.sub_fields}}
+
+// Is{{.identifier}} returns true if
+// the {{$.type_name}} instance this {{$.id_num_type_name}} is for
+// is a {{.identifier}} {{$.type_name}}.
+//
+{{range .doc_lines -}}
+{{if .}}// {{.}}{{else}}//{{end}}
+{{end -}}
+func (idNum {{$.id_num_type_name}}) Is{{.identifier}}() bool {
+	return idNum.IsValid() && idNum.Has{{.identifier}}Bits()
+}
+
+const {{unexported_global $.id_num_type_name}}{{.identifier}}Mask = {{.mask}}
+const {{unexported_global $.id_num_type_name}}{{.identifier}}Bits = {{.flag}}
+
+// Has{{.identifier}}Bits is only checking the bits
+// without validating other information.
+func (idNum {{$.id_num_type_name}}) Has{{.identifier}}Bits() bool {
+	return ({{$uid_type}}(idNum) &
+		{{unexported_global $.id_num_type_name}}{{.identifier}}Mask) ==
+		{{unexported_global $.id_num_type_name}}{{.identifier}}Bits
+}
+
+{{- end}}
+
+type {{.id_num_type_name}}Error interface {
+	error
+	{{.id_num_type_name}}Error()
+}
+
+//TODO: (Un)MarshalText (for SQL?)

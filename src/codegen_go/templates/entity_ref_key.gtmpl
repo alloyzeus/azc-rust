@@ -1,13 +1,13 @@
 // {{.ref_key_type_name}} is used to identify
 // an instance of entity {{.type_name}} system-wide.
-type {{.ref_key_type_name}} {{.id_type_name}}
+type {{.ref_key_type_name}} {{.id_num_type_name}}
 
 // New{{.ref_key_type_name}} returns a new instance
 // of {{.ref_key_type_name}} with the provided attribute values.
 func New{{.ref_key_type_name}}(
-	id {{.id_type_name}},
+	idNum {{.id_num_type_name}},
 ) {{.ref_key_type_name}} {
-	return {{.ref_key_type_name}}(id)
+	return {{.ref_key_type_name}}(idNum)
 }
 
 // To ensure that it conforms the interfaces. If any of these is failing,
@@ -19,7 +19,7 @@ var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_
 {{- end}}
 
 const {{unexported_global .ref_key_type_name}}Zero =
-	{{.ref_key_type_name}}({{.id_type_name}}Zero)
+	{{.ref_key_type_name}}({{.id_num_type_name}}Zero)
 var {{unexported_global .ref_key_type_name}}ZeroVar =
 	{{unexported_global .ref_key_type_name}}Zero
 
@@ -36,45 +36,45 @@ func ({{.ref_key_type_name}}) AZRefKey() {}
 // with {{.base.azcore_pkg}}.EntityRefKey.
 func ({{.ref_key_type_name}}) AZEntityRefKey() {}
 
-// ID returns the scoped identifier of the entity.
-func (refKey {{.ref_key_type_name}}) ID() {{.id_type_name}} {
-	return {{.id_type_name}}(refKey)
+// IDNum returns the scoped identifier of the entity.
+func (refKey {{.ref_key_type_name}}) IDNum() {{.id_num_type_name}} {
+	return {{.id_num_type_name}}(refKey)
 }
 
-// IDPtr returns a pointer to a copy of the ID if it's considered valid
+// IDNumPtr returns a pointer to a copy of the IDNum if it's considered valid
 // otherwise it returns nil.
-func (refKey {{.ref_key_type_name}}) IDPtr() *{{.id_type_name}} {
+func (refKey {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
 	if refKey.IsNotValid() {
 		return nil
 	}
-	i := refKey.ID()
+	i := refKey.IDNum()
 	return &i
 }
 
 // EID is required for conformance with {{.base.azcore_pkg}}.RefKey.
 func (refKey {{.ref_key_type_name}}) EID() {{.base.azcore_pkg}}.EID {
-	return {{.id_type_name}}(refKey)
+	return {{.id_num_type_name}}(refKey)
 }
 
 {{- if .implements}}
 
-// {{.implements}}ID is required for conformance
+// {{.implements}}IDNum is required for conformance
 // with {{.base.azcore_pkg}}.{{.implements}}RefKey.
-func (refKey {{.ref_key_type_name}}) {{.implements}}ID() {{.base.azcore_pkg}}.{{.implements}}ID {
-	return {{.id_type_name}}(refKey)
+func (refKey {{.ref_key_type_name}}) {{.implements}}IDNum() {{.base.azcore_pkg}}.{{.implements}}IDNum {
+	return {{.id_num_type_name}}(refKey)
 }
 
 {{- end}}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
-	return {{.id_type_name}}(refKey) == {{.id_type_name}}Zero
+	return {{.id_num_type_name}}(refKey) == {{.id_num_type_name}}Zero
 }
 
 // IsValid returns true if this instance is valid independently as a ref-key.
 // It doesn't tell whether it refers to a valid instance of {{.type_name}}.
 func (refKey {{.ref_key_type_name}}) IsValid() bool {
-	return {{.id_type_name}}(refKey).IsValid()
+	return {{.id_num_type_name}}(refKey).IsValid()
 }
 
 // IsNotValid returns the negation of value returned by IsValid().
@@ -107,9 +107,9 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 }
 
 func (refKey {{.ref_key_type_name}}) AZERBin() []byte {
-	b := make([]byte, {{.id_def.primitive_size_bytes}} + 1)
-	b[0] = {{.base.azer_pkg}}.BinDataTypeInt{{.id_def.primitive_size}}.Byte()
-	binary.BigEndian.PutUint{{.id_def.primitive_size}}(b[1:], uint{{.id_def.primitive_size}}(refKey))
+	b := make([]byte, {{.id_num_def.primitive_size_bytes}} + 1)
+	b[0] = {{.base.azer_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}.Byte()
+	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b[1:], uint{{.id_num_def.primitive_size}}(refKey))
 	return b
 }
 
@@ -119,7 +119,7 @@ func {{.ref_key_type_name}}FromAZERBin(b []byte) (refKey {{.ref_key_type_name}},
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
 			errors.ArgWrap("", "type parsing", err)
 	}
-	if typ != {{.base.azer_pkg}}.BinDataTypeInt{{.id_def.primitive_size}} {
+	if typ != {{.base.azer_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
 			errors.Arg("", errors.EntMsg("type", "unsupported"))
 	}
@@ -127,7 +127,7 @@ func {{.ref_key_type_name}}FromAZERBin(b []byte) (refKey {{.ref_key_type_name}},
 	i, readLen, err := {{.ref_key_type_name}}FromAZERBinField(b[1:], typ)
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			errors.ArgWrap("", "id data parsing", err)
+			errors.ArgWrap("", "idnum data parsing", err)
 	}
 
 	return {{.ref_key_type_name}}(i), 1 + readLen, nil
@@ -144,17 +144,17 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZERBin(b []byte) (readLen int, e
 }
 
 func (refKey {{.ref_key_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.BinDataType) {
-	return {{.id_type_name}}(refKey).AZERBinField()
+	return {{.id_num_type_name}}(refKey).AZERBinField()
 }
 
 func {{.ref_key_type_name}}FromAZERBinField(
 	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
 ) (refKey {{.ref_key_type_name}}, readLen int, err error) {
-	id, n, err := {{.id_type_name}}FromAZERBinField(b, typeHint)
+	idNum, n, err := {{.id_num_type_name}}FromAZERBinField(b, typeHint)
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, n, err
 	}
-	return {{.ref_key_type_name}}(id), n, nil
+	return {{.ref_key_type_name}}(idNum), n, nil
 }
 
 // UnmarshalAZERBinField is required for conformance

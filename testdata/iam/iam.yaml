@@ -16,7 +16,7 @@ symbols:
         kind: User
       lifecycle:
         creation:
-      id:
+      id_num:
         # Options: integer(bits), uuid(version), string (encoded bytes; similar
         # to integer but it doesn't have to be valid integer)
         kind: integer
@@ -93,7 +93,7 @@ symbols:
     parameters:
       # TODO: encode application type into the ID. we will then use
       # the same method to encode the type into Terminal ID.
-      id:
+      id_num:
         kind: integer
         parameters:
           total_bits: 32
@@ -247,7 +247,7 @@ symbols:
         max: 4
       kind: entity
       parameters:
-        id:
+        id_num:
           kind: integer
           parameters:
             total_bits: 64
@@ -319,7 +319,7 @@ symbols:
         #TODO: we want the ID to be unique without putting it in a composite
         # with the hosts, but we don't want to make this adjunct-entity
         # scoped globally.
-        id:
+        id_num:
           kind: integer
           parameters:
             total_bits: 64
@@ -412,7 +412,7 @@ symbols:
         # An instance of local adjunct entity might have a same id with other
         # instance under different hosts.
         scope: local
-        id:
+        id_num:
           kind: integer
           parameters:
             total_bits: 32
@@ -466,7 +466,7 @@ symbols:
       substrate:
         product:
           kind: Terminal
-      id:
+      id_num:
         kind: integer
         parameters:
           total_bits: 64

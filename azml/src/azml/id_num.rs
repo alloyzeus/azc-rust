@@ -2,10 +2,10 @@
 
 use crate::azml::symbol;
 
-//region IntegerId
+//region IntegerIdNum
 
 #[derive(Clone, Debug)]
-pub struct IntegerId {
+pub struct IntegerIdNum {
     // This field is used to ensure that the IDs fit in the stated value;
     // the compiler will return error if the IDs doesn't fit in
     // total_bits.
@@ -32,7 +32,7 @@ pub struct IntegerId {
     //
     // Negative values are unused. Zero, as the default value, should not be
     // used as the identifier of any valid entity instance -- for example,
-    // 0 in the context of user ID could be used to indicate nobody.
+    // 0 in the context of user idnum could be used to indicate nobody.
     pub significant_bits: i8,
 
     // Additional attributes (flags) encoding. these attributes are
@@ -42,17 +42,17 @@ pub struct IntegerId {
     // first-part and third-party. First-party applications could access
     // more API than that of available to third parties. These API will need
     // to check whether the application which made the request is first-party
-    // or third-party. Without embedding the information into the ID, the
+    // or third-party. Without embedding the information into the idnum, the
     // endpoints are required to fetch the information from the database. By
     // embedding the information, first-party endpoints could quickly reject
     // requests from third-party applications simply by looking at the
-    // application ID provided through the access token claims.
+    // application idnum provided through the access token claims.
     //
     // The number of attributes could be included is strictly limited.
-    pub bitfield: IntegerIdBitfield,
+    pub bitfield: IntegerIdNumBitfield,
 }
 
-impl IntegerId {
+impl IntegerIdNum {
     pub fn primitive_size(&self) -> i8 {
         if self.total_bits > 0 {
             //TODO: this should be performed in the compilation phase, and
@@ -80,26 +80,26 @@ impl IntegerId {
 
 //endregion
 
-//region IntegerIdBitfield
+//region IntegerIdNumBitfield
 
 #[derive(Clone, Debug)]
-pub struct IntegerIdBitfield {
+pub struct IntegerIdNumBitfield {
     pub size: i8,
-    pub sub_fields: Vec<IntegerIdBitfieldSubField>,
-    pub inherits: Vec<IntegerIdBitfieldInherit>,
+    pub sub_fields: Vec<IntegerIdNumBitfieldSubField>,
+    pub inherits: Vec<IntegerIdNumBitfieldInherit>,
 }
 
-impl IntegerIdBitfield {
+impl IntegerIdNumBitfield {
     // default value for size is 'unspecified'
     pub fn size_default() -> i8 {
         -1
     }
 }
 
-impl Default for IntegerIdBitfield {
-    fn default() -> IntegerIdBitfield {
-        IntegerIdBitfield {
-            size: IntegerIdBitfield::size_default(),
+impl Default for IntegerIdNumBitfield {
+    fn default() -> IntegerIdNumBitfield {
+        IntegerIdNumBitfield {
+            size: IntegerIdNumBitfield::size_default(),
             sub_fields: Vec::new(),
             inherits: Vec::new(),
         }
@@ -108,36 +108,36 @@ impl Default for IntegerIdBitfield {
 
 //endregion
 
-//region IntegerIdBitfieldSubField
+//region IntegerIdNumBitfieldSubField
 
 #[derive(Clone, Debug)]
-pub struct IntegerIdBitfieldSubField {
+pub struct IntegerIdNumBitfieldSubField {
     pub identifier: String,
     pub documentation: String,
     pub size: i8,
-    pub values: Vec<IntegerIdBitfieldSubFieldValue>,
+    pub values: Vec<IntegerIdNumBitfieldSubFieldValue>,
 }
 
 //endregion
 
 #[derive(Clone, Debug)]
-pub struct IntegerIdBitfieldSubFieldValue {
+pub struct IntegerIdNumBitfieldSubFieldValue {
     pub identifier: String,
     pub documentation: String,
-    pub sub_fields: Vec<IntegerIdBitfieldSubField>,
+    pub sub_fields: Vec<IntegerIdNumBitfieldSubField>,
 }
 
-//region IntegerIdBitfieldSubFieldBit
+//region IntegerIdNumBitfieldSubFieldBit
 
 #[derive(Clone, Debug)]
-pub struct IntegerIdBitfieldSubFieldBit {
+pub struct IntegerIdNumBitfieldSubFieldBit {
     pub index: i8,
     pub set: bool,
 }
 
-impl Default for IntegerIdBitfieldSubFieldBit {
-    fn default() -> IntegerIdBitfieldSubFieldBit {
-        IntegerIdBitfieldSubFieldBit {
+impl Default for IntegerIdNumBitfieldSubFieldBit {
+    fn default() -> IntegerIdNumBitfieldSubFieldBit {
+        IntegerIdNumBitfieldSubFieldBit {
             index: -1,
             set: false,
         }
@@ -146,17 +146,17 @@ impl Default for IntegerIdBitfieldSubFieldBit {
 
 //endregion
 
-//region IntegerIdBitfieldInherit
+//region IntegerIdNumBitfieldInherit
 
 #[derive(Clone, Debug)]
-pub struct IntegerIdBitfieldInherit {
+pub struct IntegerIdNumBitfieldInherit {
     pub host: i8,
     pub size: i8,
 }
 
-impl Default for IntegerIdBitfieldInherit {
-    fn default() -> IntegerIdBitfieldInherit {
-        IntegerIdBitfieldInherit { host: -1, size: -1 }
+impl Default for IntegerIdNumBitfieldInherit {
+    fn default() -> IntegerIdNumBitfieldInherit {
+        IntegerIdNumBitfieldInherit { host: -1, size: -1 }
     }
 }
 

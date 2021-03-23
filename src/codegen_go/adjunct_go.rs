@@ -4,7 +4,7 @@ use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
     attribute_go::AttributeContext,
-    eid_go::IntegerIdContext,
+    id_num_go::IntegerIdNumContext,
     ref_key_go::{RefKeyAzerTextContext, RefKeyContext},
     BaseContext, GoCodeGenerator, ImportContext,
 };
@@ -53,9 +53,9 @@ impl GoCodeGenerator {
             .map(|x| x.name.to_owned())
             .collect::<Vec<String>>();
         // If the adjunct is globally addressable, i.e., an instance's
-        // ID is unique system-wide, it must not derive its hosts' name
+        // idnum is unique system-wide, it must not derive its hosts' name
         // by default.
-        // And also, the RefKey is just a typedef of ID.
+        // And also, the RefKey is just a typedef of idnum.
         let global_scope = adjunct_entity::AdjunctEntityScope::Global == adj_ent.scope;
         let base_type_name = if adj.name_is_prepared || global_scope {
             "".to_owned()
@@ -64,10 +64,11 @@ impl GoCodeGenerator {
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
-        let id_def = &adj_ent.id.definition;
+        let id_num_def = &adj_ent.id_num.definition;
 
-        if let Some(id_int) = id_def.downcast_ref::<adjunct_entity::AdjunctEntityIdInteger>() {
-            let id_type_name = format!("{}ID", type_name);
+        if let Some(id_int) = id_num_def.downcast_ref::<adjunct_entity::AdjunctEntityIdNumInteger>()
+        {
+            let id_num_type_name = format!("{}IDNum", type_name);
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let service_name = format!("{}Service", type_name);
@@ -99,8 +100,8 @@ impl GoCodeGenerator {
                 pkg_path: self.package_identifier.to_owned(),
                 type_name: type_name.to_owned(),
                 imports: imports,
-                id_type_name: id_type_name.to_owned(),
-                id_def: id_int.into(),
+                id_num_type_name: id_num_type_name.to_owned(),
+                id_num_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
                     azer_text: RefKeyAzerTextContext {
@@ -146,7 +147,12 @@ impl GoCodeGenerator {
                     out_file.write_all("\n".as_bytes())?;
                 }
             }
-            render_file_region!(out_file, "ID", "templates/adjunct_entity_id.gtmpl", tpl_ctx);
+            render_file_region!(
+                out_file,
+                "IDNum",
+                "templates/adjunct_entity_id_num.gtmpl",
+                tpl_ctx
+            );
             render_file_region!(
                 out_file,
                 "RefKey",
@@ -170,7 +176,7 @@ impl GoCodeGenerator {
             Ok(())
         } else {
             Err(Box::new(azml::azml::Error::Msg(
-                "Unsupported ID type".to_owned(),
+                "Unsupported id_num type".to_owned(),
             )))
         }
     }
@@ -190,14 +196,18 @@ impl GoCodeGenerator {
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()
         } else {
-            (&hosts_names).into_iter().map(|x| {
-                let v = x.split(".").last();
-                if let Some(i) = v {
-                    i.to_owned()
-                } else {
-                    x.to_owned()
-                }
-            }).collect::<Vec<String>>().join("")
+            (&hosts_names)
+                .into_iter()
+                .map(|x| {
+                    let v = x.split(".").last();
+                    if let Some(i) = v {
+                        i.to_owned()
+                    } else {
+                        x.to_owned()
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("")
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
@@ -237,8 +247,8 @@ struct AdjunctEntityContext {
     pkg_path: String,
     imports: Vec<ImportContext>,
     type_name: String,
-    id_type_name: String,
-    id_def: IntegerIdContext,
+    id_num_type_name: String,
+    id_num_def: IntegerIdNumContext,
     ref_key_type_name: String,
     ref_key_def: RefKeyContext,
     implements: String, //TODO: attributes

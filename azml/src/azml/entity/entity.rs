@@ -1,12 +1,12 @@
 //
 
-use crate::azml::{abstract_, attribute, entity::entity_id, mixin, ref_key, symbol};
+use crate::azml::{abstract_, attribute, entity::entity_id_num, mixin, ref_key, symbol};
 
 //region Entity
 
 #[derive(Clone, Debug)]
 pub struct Entity {
-    pub id: entity_id::EntityId,
+    pub id_num: entity_id_num::EntityIdNum,
     pub ref_key: ref_key::RefKey,
     pub implements: abstract_::AbstractImplementation,
     pub creation: EntityCreation,
@@ -25,7 +25,7 @@ impl symbol::SymbolDefinition for Entity {
                     .chain(b.collect_symbol_refs())
                     .collect::<Vec<_>>()
             });
-        let id_syms = self.id.definition.collect_symbol_refs();
+        let id_syms = self.id_num.definition.collect_symbol_refs();
         a_syms.into_iter().chain(id_syms.into_iter()).collect()
     }
 }

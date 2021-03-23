@@ -13,8 +13,8 @@ mod render_macros;
 
 mod adjunct_go;
 mod attribute_go;
-mod eid_go;
 mod entity_go;
+mod id_num_go;
 mod ref_key_go;
 mod symbol_go;
 mod template;
