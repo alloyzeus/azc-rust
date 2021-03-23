@@ -7,6 +7,17 @@ import (
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 
-{{range .type_doc_lines}}// {{.}}
+{{range .type_doc_lines -}}
+{{if .}}// {{.}}{{else}}//{{end}}
 {{end -}}
-type {{.type_name}} struct{}
+type {{.type_name}} struct {
+	{{range .hosts -}}
+	{{unexported_field .}} {{.}}RefKey
+	{{end -}}
+
+	data {{.type_name}}Data
+}
+
+type {{.type_name}}Data struct {
+	{{.primitive_type_name}}
+}

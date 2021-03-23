@@ -76,7 +76,7 @@ symbols:
             grpc:
               enabled: true
 
-  - identifier: IdentifierPhoneNumber
+  - identifier: KeyPhoneNumber
     kind: adjunct
     parameters:
       hosts:
@@ -302,6 +302,14 @@ symbols:
         - name: Application
         - name: User
           required: false
+      # Options are 'id' and 'ref_key'. If it's set to 'id', an id could
+      # be used to uniquely identify an instance. If it's set to 'ref_key',
+      # which is the default, it requires hosts' ids (composite) to uniquely
+      # identify an instance.
+      #
+      # Note that this does not affect how the ref-keys of the instances are
+      # constructed.
+      identity: id
       parameters:
         implements:
           kind: Terminal
@@ -329,6 +337,9 @@ symbols:
             # we need to refer to TerminalRegistrationPhoneNumber and
             # other methods of authentication.
             kind: "@TerminalRegistrationIdentifierVerification"
+            final: true
+          - identifier: DisplayName
+            kind: string
             final: true
         creation:
           allow_cross_process_callers: false
@@ -533,7 +544,7 @@ symbols:
             process: |
               self.confirm_verification(code):{
                 error(err) -> return err
-                ok(phone_number) -> IdentifierPhoneNumber.service.get_user_or_create(phone_number):{
+                ok(phone_number) -> KeyPhoneNumber.service.get_user_or_create(phone_number):{
                   error(err) -> return err
                   ok(uid) -> Terminal.create(self.application, uid):{
                     error(err) -> return err

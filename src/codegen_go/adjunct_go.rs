@@ -178,7 +178,7 @@ impl GoCodeGenerator {
     pub fn generate_adjunct_value_object_codes(
         &self,
         module_name: &String,
-        _adj_vo: &adjunct_value_object::AdjunctValueObject,
+        adj_vo: &adjunct_value_object::AdjunctValueObject,
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
@@ -190,7 +190,14 @@ impl GoCodeGenerator {
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()
         } else {
-            hosts_names.join("")
+            (&hosts_names).into_iter().map(|x| {
+                let v = x.split(".").last();
+                if let Some(i) = v {
+                    i.to_owned()
+                } else {
+                    x.to_owned()
+                }
+            }).collect::<Vec<String>>().join("")
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
@@ -200,7 +207,8 @@ impl GoCodeGenerator {
             pkg_name: module_name.to_lowercase(),
             type_name: type_name.to_owned(),
             type_doc_lines: sym.documentation.lines().map(|x| x.to_owned()).collect(),
-            primitive_type_name: "".to_owned(),
+            primitive_type_name: adj_vo.kind.to_owned(),
+            hosts: hosts_names.clone(),
         };
 
         let out_tpl_bytes: &[u8];
@@ -248,4 +256,5 @@ struct AdjunctValueObjectContext {
     type_name: String,
     type_doc_lines: Vec<String>,
     primitive_type_name: String,
+    hosts: Vec<String>,
 }

@@ -1,24 +1,42 @@
-// {{.type_name}}InstanceStateService is a service which provides
-// methods for manipulating entity instances.
-type {{.type_name}}InstanceStateService interface {
-	// Get{{.type_name}}InstanceState checks if the provided
+// {{.type_name}}InstanceInfoService is a service which
+// provides an access to instances metadata.
+type {{.type_name}}InstanceInfoService interface {
+	// Get{{.type_name}}InstanceInfo checks if the provided
     // ref-key is valid and whether the instance is deleted.
 	//
 	// This method returns nil if the refKey is not referencing to any valid
 	// instance.
-	Get{{.type_name}}InstanceState(
+	Get{{.type_name}}InstanceInfo(
 		/*callCtx CallContext,*/ //TODO: call context
 		refKey {{.ref_key_type_name}},
-	) (*{{.type_name}}InstanceStateData, error)
+	) (*{{.type_name}}InstanceInfo, error)
 }
 
-// {{.type_name}}InstanceStateService holds information about
+// {{.type_name}}InstanceInfo holds information about
 // an instance of {{.type_name}}.
-type {{.type_name}}InstanceStateData struct {
-	Deletion *{{.type_name}}InstanceDeletionData
+type {{.type_name}}InstanceInfo struct {
+    RevisionNumber int32
+
+    // Deletion holds information about the deletion of the instance. If
+    // the instance has not been deleted, this field value will be nil.
+	Deletion *{{.type_name}}InstanceDeletionInfo
 }
 
-// IsActive returns true if the instance is considered active.
-func (instState {{.type_name}}InstanceStateData) IsActive() bool {
-	return instState.Deletion == nil && !instState.Deletion.Deleted
+// IsActive returns true if the instance is considered as active.
+func (instInfo {{.type_name}}InstanceInfo) IsActive() bool {
+    // Note: we will check other flags in the future, but that's said,
+    // deleted instance is considered inactive.
+    return !instInfo.IsDeleted()
+}
+
+// IsDeleted returns true if the instance was deleted.
+func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
+    return instInfo.Deletion != nil && instInfo.Deletion.Deleted 
+}
+
+// {{.type_name}}InstanceDeletionInfo holds information about
+// the deletion of an instance if the instance has been deleted.
+type {{.type_name}}InstanceDeletionInfo struct {
+	Deleted       bool
+	DeletionNotes string
 }
