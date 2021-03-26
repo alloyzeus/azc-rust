@@ -41,8 +41,8 @@ pub struct GoCodeGenerator {
     // AZCore is the fundamental part of the language
     pub azcore_import: String,
     pub azcore_pkg: String,
-    pub azer_import: String,
-    pub azer_pkg: String,
+    pub azid_import: String,
+    pub azid_pkg: String,
     // AZStd is a collection of well-thought, stable library
     // AZExt contains additional libraries which are generally optional
     // or they are in an experimental stage.
@@ -60,8 +60,8 @@ impl GoCodeGenerator {
             azcore_import: self.azcore_import.to_owned(),
             azcore_pkg: self.azcore_pkg.to_owned(),
             azcore_version: "AZCorePackageIsVersion1".to_owned(),
-            azer_import: self.azer_import.to_owned(),
-            azer_pkg: self.azer_pkg.to_owned(),
+            azid_import: self.azid_import.to_owned(),
+            azid_pkg: self.azid_pkg.to_owned(),
         }
     }
 
@@ -196,8 +196,8 @@ struct BaseContext {
     azcore_import: String,
     azcore_pkg: String,
     azcore_version: String,
-    azer_import: String,
-    azer_pkg: String,
+    azid_import: String,
+    azid_pkg: String,
 }
 
 #[derive(Clone, Gtmpl)]

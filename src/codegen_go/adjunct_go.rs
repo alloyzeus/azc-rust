@@ -5,7 +5,7 @@ use std::{error, fs, io::Write};
 use crate::codegen_go::{
     attribute_go::AttributeContext,
     id_num_go::IntegerIdNumContext,
-    ref_key_go::{RefKeyAzerTextContext, RefKeyContext},
+    ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
     BaseContext, GoCodeGenerator, ImportContext,
 };
 
@@ -53,9 +53,9 @@ impl GoCodeGenerator {
             .map(|x| x.name.to_owned())
             .collect::<Vec<String>>();
         // If the adjunct is globally addressable, i.e., an instance's
-        // idnum is unique system-wide, it must not derive its hosts' name
+        // id-num is unique system-wide, it must not derive its hosts' name
         // by default.
-        // And also, the RefKey is just a typedef of idnum.
+        // And also, the RefKey is just a typedef of id-num.
         let global_scope = adjunct_entity::AdjunctEntityScope::Global == adj_ent.scope;
         let base_type_name = if adj.name_is_prepared || global_scope {
             "".to_owned()
@@ -104,11 +104,11 @@ impl GoCodeGenerator {
                 id_num_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
-                    azer_text: RefKeyAzerTextContext {
-                        prefix: if adj_ent.ref_key.azer_text.prefix.is_empty() {
+                    azid_text: RefKeyAzidTextContext {
+                        prefix: if adj_ent.ref_key.azid_text.prefix.is_empty() {
                             type_name.to_owned()
                         } else {
-                            adj_ent.ref_key.azer_text.prefix.to_owned()
+                            adj_ent.ref_key.azid_text.prefix.to_owned()
                         },
                     },
                 },

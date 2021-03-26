@@ -52,7 +52,7 @@ symbols:
           name: LocalRandomIntegerIDGenerator
           parameters:
       ref_key:
-        azer_text:
+        azid_text:
           prefix: "KUs0"
       mixins:
         - kind: Deletion
@@ -219,7 +219,7 @@ symbols:
                               performing user authentication.
             #TODO: copied sub_fields
       ref_key:
-        azer_text:
+        azid_text:
           prefix: KAp0
       creation:
         allow_cross_process_callers: true
@@ -269,7 +269,7 @@ symbols:
                   size: 5
 
         ref_key:
-          azer_text:
+          azid_text:
             prefix: "KAK0"
               
         attributes:
@@ -302,19 +302,23 @@ symbols:
         - name: Application
         - name: User
           required: false
-      # Options are 'id' and 'ref_key'. If it's set to 'id', an id could
-      # be used to uniquely identify an instance. If it's set to 'ref_key',
-      # which is the default, it requires hosts' ids (composite) to uniquely
-      # identify an instance.
+      # Options are 'id_num' and 'ref_key'. If it's set to 'id_num',
+      # an id_num could be used to uniquely identify an instance. If it's
+      # set to 'ref_key', which is the default, it requires hosts' ref-keys
+      # (composite) to uniquely identify an instance.
       #
       # Note that this does not affect how the ref-keys of the instances are
       # constructed.
-      identity: id
+      identity: id_num
       parameters:
         implements:
           kind: Terminal
+        #TODO: rules for ref-key validity.
+        # if the application has the type of user-agent, the user field
+        # must be valid. if the application has the type of service, the user
+        # field must be zero.
         ref_key:
-          azer_text:
+          azid_text:
             prefix: "KTx0"
         #TODO: we want the ID to be unique without putting it in a composite
         # with the hosts, but we don't want to make this adjunct-entity
@@ -409,7 +413,7 @@ symbols:
         implements:
           kind: Session
         # a flag to indicate that a session is scoped within its host entities.
-        # An instance of local adjunct entity might have a same id with other
+        # An instance of local adjunct entity might have a same id_num with other
         # instance under different hosts.
         scope: local
         id_num:
@@ -418,7 +422,7 @@ symbols:
             total_bits: 32
             significant_bits: 24
         ref_key:
-          azer_text:
+          azid_text:
             prefix: "KSe0"
         service:
           enabled: true
@@ -443,8 +447,8 @@ symbols:
   # Idea for the term: substrate, material, artifact, mold, aid, assist,
   # scaffold, proto.
   # TODO: we could just use prebuilt functionality,
-  # e.g., PhoneNumberVerification, but we still need to declare something here
-  # which brings the functionality here.
+  # e.g., PhoneNumberVerification, but we still need to declare something
+  # to bring in the functionality here.
   - identifier: TerminalRegistrationPhoneNumber
     documentation: |
       TerminalRegistrationPhoneNumber is used to track terminal registrations
@@ -510,7 +514,7 @@ symbols:
             allow: on-condition
             condition:
               eq:
-                a: $.id.UserAgent
+                a: $.id_num.UserAgent
                 b: true
         allowed_isolations:
           - all

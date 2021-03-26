@@ -5,9 +5,9 @@ type {{.id_num_type_name}} {{.id_num_def.type_name}}
 
 // To ensure that it conforms the interfaces. If any of these is failing,
 // there's a bug in the generator.
-var _ {{.base.azcore_pkg}}.EID = {{.id_num_type_name}}Zero
-var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{.id_num_type_name}}Zero
-var _ {{.base.azer_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
+var _ {{.base.azid_pkg}}.IDNum = {{.id_num_type_name}}Zero
+var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
+var _ {{.base.azcore_pkg}}.AdjunctEntityIDNum = {{.id_num_type_name}}Zero
 {{- if .implements}}
 var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero
 {{- end}}
@@ -32,12 +32,12 @@ func {{.id_num_type_name}}FromPrimitiveValue(v {{.id_num_def.type_name}}) {{.id_
 	return {{.id_num_type_name}}(v)
 }
 
-// {{.id_num_type_name}}FromAZERBinField creates {{.id_num_type_name}} from
-// its azer-bin form.
-func {{.id_num_type_name}}FromAZERBinField(
-	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+// {{.id_num_type_name}}FromAZIDBinField creates {{.id_num_type_name}} from
+// its azid-bin form.
+func {{.id_num_type_name}}FromAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (idNum {{.id_num_type_name}}, readLen int, err error) {
-	if typeHint != {{.base.azer_pkg}}.BinDataTypeUnspecified && typeHint != {{.base.azer_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
+	if typeHint != {{.base.azid_pkg}}.BinDataTypeUnspecified && typeHint != {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
 		return {{.id_num_type_name}}(0), 0,
 			errors.ArgMsg("typeHint", "unsupported")
 	}
@@ -51,13 +51,13 @@ func (idNum {{.id_num_type_name}}) PrimitiveValue() {{.id_num_def.type_name}} {
 	return {{.id_num_def.type_name}}(idNum)
 }
 
-// AZEID is required
-// for conformance with {{.base.azcore_pkg}}.EID.
-func ({{.id_num_type_name}}) AZEID() {}
+// AZIDNum is required
+// for conformance with {{.base.azid_pkg}}.IDNum.
+func ({{.id_num_type_name}}) AZIDNum() {}
 
-// AZAdjunctEntityID is required
-// for conformance with {{.base.azcore_pkg}}.AdjunctEntityID.
-func ({{.id_num_type_name}}) AZAdjunctEntityID() {}
+// AZAdjunctEntityIDNum is required
+// for conformance with {{.base.azcore_pkg}}.AdjunctEntityIDNum.
+func ({{.id_num_type_name}}) AZAdjunctEntityIDNum() {}
 
 {{- if .implements}}
 
@@ -85,20 +85,20 @@ func (idNum {{.id_num_type_name}}) IsNotValid() bool {
 	return !idNum.IsValid()
 }
 
-// AZERBinField is required for conformance
-// with {{.base.azcore_pkg}}.EID.
-func (idNum {{.id_num_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.BinDataType) {
+// AZIDBinField is required for conformance
+// with {{.base.azid_pkg}}.IDNum.
+func (idNum {{.id_num_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
 	b := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b, uint{{.id_num_def.primitive_size}}(idNum))
-	return b, {{.base.azer_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}
+	return b, {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}
 }
 
-// UnmarshalAZERBinField is required for conformance
-// with {{.base.azer_pkg}}.BinFieldUnmarshalable.
-func (idNum *{{.id_num_type_name}}) UnmarshalAZERBinField(
-	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+// UnmarshalAZIDBinField is required for conformance
+// with {{.base.azid_pkg}}.BinFieldUnmarshalable.
+func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (readLen int, err error) {
-	i, readLen, err := {{.id_num_type_name}}FromAZERBinField(b, typeHint)
+	i, readLen, err := {{.id_num_type_name}}FromAZIDBinField(b, typeHint)
 	if err == nil {
 		*idNum = i
 	}

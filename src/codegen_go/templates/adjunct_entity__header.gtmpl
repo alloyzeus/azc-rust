@@ -6,7 +6,7 @@ import (
 
 	errors "{{.base.azcore_import}}/errors"
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
-	{{.base.azer_pkg}} "{{.base.azer_import}}"
+	{{.base.azid_pkg}} "{{.base.azid_import}}"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"
 	{{- end}}
@@ -19,5 +19,5 @@ import (
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = {{.base.azer_pkg}}.BinDataTypeUnspecified
+var _ = {{.base.azid_pkg}}.BinDataTypeUnspecified
 var _ = strings.Compare

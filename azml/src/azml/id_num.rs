@@ -32,7 +32,7 @@ pub struct IntegerIdNum {
     //
     // Negative values are unused. Zero, as the default value, should not be
     // used as the identifier of any valid entity instance -- for example,
-    // 0 in the context of user idnum could be used to indicate nobody.
+    // 0 in the context of user id-num could be used to indicate nobody.
     pub significant_bits: i8,
 
     // Additional attributes (flags) encoding. these attributes are
@@ -42,11 +42,11 @@ pub struct IntegerIdNum {
     // first-part and third-party. First-party applications could access
     // more API than that of available to third parties. These API will need
     // to check whether the application which made the request is first-party
-    // or third-party. Without embedding the information into the idnum, the
+    // or third-party. Without embedding the information into the id-num, the
     // endpoints are required to fetch the information from the database. By
     // embedding the information, first-party endpoints could quickly reject
     // requests from third-party applications simply by looking at the
-    // application idnum provided through the access token claims.
+    // application id-num provided through the access token claims.
     //
     // The number of attributes could be included is strictly limited.
     pub bitfield: IntegerIdNumBitfield,

@@ -28,7 +28,9 @@ func New{{.ref_key_type_name}}(
 
 // To ensure that it conforms the interfaces. If any of these is failing,
 // there's a bug in the generator.
-var _ {{.base.azcore_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = {{unexported_global .ref_key_type_name}}Zero
 {{- if .implements}}
 var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
@@ -47,7 +49,7 @@ func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 	return {{unexported_global .ref_key_type_name}}Zero
 }
 
-// AZRefKey is required by {{.base.azcore_pkg}}.RefKey interface.
+// AZRefKey is required by {{.base.azid_pkg}}.RefKey interface.
 func ({{.ref_key_type_name}}) AZRefKey() {}
 
 // AZAdjunctEntityRefKey is required
@@ -59,7 +61,7 @@ func (refKey {{.ref_key_type_name}}) IDNum() {{.id_num_type_name}} {
 	return refKey.idNum
 }
 
-// IDNumPtr returns a pointer to a copy of the IDNum if it's considered valid
+// IDNumPtr returns a pointer to a copy of the id-num if it's considered valid
 // otherwise it returns nil.
 func (refKey {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
 	if refKey.IsNotValid() {
@@ -69,8 +71,8 @@ func (refKey {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
 	return &i
 }
 
-// EID is required for conformance with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) EID() {{.base.azcore_pkg}}.EID {
+// AZIDNum is required for conformance with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDNum() {{.base.azid_pkg}}.IDNum {
 	return refKey.idNum
 }
 
@@ -129,69 +131,69 @@ func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 		{{end}}{{- end -}} refKey.idNum == other.idNum
 }
 
-// AZERBin is required for conformance
-// with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZERBin() []byte {
-	data, typ := refKey.AZERBinField()
+// AZIDBin is required for conformance
+// with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDBin() []byte {
+	data, typ := refKey.AZIDBinField()
 	out := []byte{typ.Byte()}
 	return append(out, data...)
 }
 
-// {{.ref_key_type_name}}FromAZERBin creates a new instance of
-// {{.ref_key_type_name}} from its azer-bin form.
-func {{.ref_key_type_name}}FromAZERBin(
+// {{.ref_key_type_name}}FromAZIDBin creates a new instance of
+// {{.ref_key_type_name}} from its azid-bin form.
+func {{.ref_key_type_name}}FromAZIDBin(
 	b []byte,
 ) (refKey {{.ref_key_type_name}}, readLen int, err error) {
-	typ, err := {{.base.azer_pkg}}.BinDataTypeFromByte(b[0])
+	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(b[0])
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
 			errors.ArgWrap("", "type parsing", err)
 	}
-	if typ != {{.base.azer_pkg}}.BinDataTypeArray {
+	if typ != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
 			errors.Arg("", errors.EntMsg("type", "unsupported"))
 	}
 
-	refKey, readLen, err = {{.ref_key_type_name}}FromAZERBinField(b[1:], typ)
+	refKey, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(b[1:], typ)
 	return refKey, readLen + 1, err
 }
 
-// AZERBinField is required for conformance
-// with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZERBinField() ([]byte, {{.base.azer_pkg}}.BinDataType) {
+// AZIDBinField is required for conformance
+// with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
 	{{if not .global_scope -}}{{if .hosts -}}
 	var typesBytes []byte
 	var dataBytes []byte
 	var fieldBytes []byte
-	var fieldType {{.base.azer_pkg}}.BinDataType
+	var fieldType {{.base.azid_pkg}}.BinDataType
 
 	{{- range $i, $h := .hosts}}
 
-	fieldBytes, fieldType = refKey.{{unexported_field $h}}.AZERBinField()
+	fieldBytes, fieldType = refKey.{{unexported_field $h}}.AZIDBinField()
 	typesBytes = append(typesBytes, fieldType.Byte())
 	dataBytes = append(dataBytes, fieldBytes...)
 
 	{{- end}}
 
-	fieldBytes, fieldType = refKey.idNum.AZERBinField()
+	fieldBytes, fieldType = refKey.idNum.AZIDBinField()
 	typesBytes = append(typesBytes, fieldType.Byte())
 	dataBytes = append(dataBytes, fieldBytes...)
 
 	var out = []byte{byte(len(typesBytes))}
 	out = append(out, typesBytes...)
 	out = append(out, dataBytes...)
-	return out, {{.base.azer_pkg}}.BinDataTypeArray
+	return out, {{.base.azid_pkg}}.BinDataTypeArray
 	{{- end}}{{- else -}}
-	return refKey.idNum.AZERBinField()
+	return refKey.idNum.AZIDBinField()
 	{{- end}}
 }
 
-// {{.ref_key_type_name}}FromAZERBinField creates {{.ref_key_type_name}} from
-// its azer-bin field form.
-func {{.ref_key_type_name}}FromAZERBinField(
-	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+// {{.ref_key_type_name}}FromAZIDBinField creates {{.ref_key_type_name}} from
+// its azid-bin field form.
+func {{.ref_key_type_name}}FromAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (refKey {{.ref_key_type_name}}, readLen int, err error) {
-	if typeHint != {{.base.azer_pkg}}.BinDataTypeArray {
+	if typeHint != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
 			errors.Arg("", errors.EntMsg("type", "unsupported"))
 	}
@@ -205,17 +207,17 @@ func {{.ref_key_type_name}}FromAZERBinField(
 	typeCursor := 1
 	dataCursor := typeCursor + arrayLen
 
-	var fieldType {{.base.azer_pkg}}.BinDataType
+	var fieldType {{.base.azid_pkg}}.BinDataType
 
 	{{- if not .global_scope}}{{- range .hosts}}
 
-	fieldType, err = {{$.base.azer_pkg}}.BinDataTypeFromByte(b[typeCursor])
+	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(b[typeCursor])
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
 			errors.ArgWrap("", "{{unexported_field .}} ref-key type parsing", err)
 	}
 	typeCursor++
-	{{unexported_field .}}RefKey, readLen, err := {{.}}RefKeyFromAZERBinField(
+	{{unexported_field .}}RefKey, readLen, err := {{.}}RefKeyFromAZIDBinField(
 		b[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
@@ -225,17 +227,17 @@ func {{.ref_key_type_name}}FromAZERBinField(
 
 	{{- end}}{{- end}}
 
-	fieldType, err = {{.base.azer_pkg}}.BinDataTypeFromByte(b[typeCursor])
+	fieldType, err = {{.base.azid_pkg}}.BinDataTypeFromByte(b[typeCursor])
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "idnum type parsing", err)
+			errors.ArgWrap("", "id-num type parsing", err)
 	}
 	typeCursor++
-	idNum, readLen, err := {{.id_num_type_name}}FromAZERBinField(
+	idNum, readLen, err := {{.id_num_type_name}}FromAZIDBinField(
 		b[dataCursor:], fieldType)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "idnum data parsing", err)
+			errors.ArgWrap("", "id-num data parsing", err)
 	}
 	dataCursor += readLen
 
@@ -247,48 +249,48 @@ func {{.ref_key_type_name}}FromAZERBinField(
 	}, dataCursor, nil
 }
 
-// UnmarshalAZERBinField is required for conformance
+// UnmarshalAZIDBinField is required for conformance
 // with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZERBinField(
-	b []byte, typeHint {{.base.azer_pkg}}.BinDataType,
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (readLen int, err error) {
-	i, readLen, err := {{.ref_key_type_name}}FromAZERBinField(b, typeHint)
+	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(b, typeHint)
 	if err == nil {
 		*refKey = i
 	}
 	return readLen, err
 }
 
-const {{unexported_global .ref_key_type_name}}AZERTextPrefix = "{{.ref_key_def.azer_text.prefix}}"
+const {{unexported_global .ref_key_type_name}}AZIDTextPrefix = "{{.ref_key_def.azid_text.prefix}}"
 
-// AZERText is required for conformance
-// with {{.base.azcore_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZERText() string {
+// AZIDText is required for conformance
+// with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDText() string {
 	if !refKey.IsValid() {
 		return ""
 	}
 
-	return {{unexported_global .ref_key_type_name}}AZERTextPrefix +
-		{{.base.azer_pkg}}.TextEncode(refKey.AZERBin())
+	return {{unexported_global .ref_key_type_name}}AZIDTextPrefix +
+		{{.base.azid_pkg}}.TextEncode(refKey.AZIDBin())
 }
 
-// {{.ref_key_type_name}}FromAZERText creates a new instance of
-// {{.ref_key_type_name}} from its azer-text form.
-func {{.ref_key_type_name}}FromAZERText(s string) ({{.ref_key_type_name}}, error) {
+// {{.ref_key_type_name}}FromAZIDText creates a new instance of
+// {{.ref_key_type_name}} from its azid-text form.
+func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error) {
 	if s == "" {
 		return {{.ref_key_type_name}}Zero(), nil
 	}
-	if !strings.HasPrefix(s, _{{.ref_key_type_name}}AZERTextPrefix) {
+	if !strings.HasPrefix(s, _{{.ref_key_type_name}}AZIDTextPrefix) {
 		return {{.ref_key_type_name}}Zero(),
 			errors.Arg("", errors.EntMsg("prefix", "mismatch"))
 	}
-	s = strings.TrimPrefix(s, _{{.ref_key_type_name}}AZERTextPrefix)
-	b, err := {{.base.azer_pkg}}.TextDecode(s)
+	s = strings.TrimPrefix(s, _{{.ref_key_type_name}}AZIDTextPrefix)
+	b, err := {{.base.azid_pkg}}.TextDecode(s)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
 			errors.ArgWrap("", "data parsing", err)
 	}
-	refKey, _, err := {{.ref_key_type_name}}FromAZERBin(b)
+	refKey, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
 			errors.ArgWrap("", "data decoding", err)
@@ -296,10 +298,10 @@ func {{.ref_key_type_name}}FromAZERText(s string) ({{.ref_key_type_name}}, error
 	return refKey, nil
 }
 
-// UnmarshalAZERText is required for conformance
-// with {{.base.azer_pkg}}.TextUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZERText(s string) error {
-	r, err := {{.ref_key_type_name}}FromAZERText(s)
+// UnmarshalAZIDText is required for conformance
+// with {{.base.azid_pkg}}.TextUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDText(s string) error {
+	r, err := {{.ref_key_type_name}}FromAZIDText(s)
 	if err == nil {
 		*refKey = r
 	}
@@ -308,12 +310,12 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZERText(s string) error {
 
 // MarshalText is for compatibility with Go's encoding.TextMarshaler
 func (refKey {{.ref_key_type_name}}) MarshalText() ([]byte, error) {
-	return []byte(refKey.AZERText()), nil
+	return []byte(refKey.AZIDText()), nil
 }
 
 // UnmarshalText is for conformance with Go's encoding.TextUnmarshaler
 func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
-	r, err := {{.ref_key_type_name}}FromAZERText(string(b))
+	r, err := {{.ref_key_type_name}}FromAZIDText(string(b))
 	if err == nil {
 		*refKey = r
 	}
@@ -322,8 +324,8 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
 
 // MarshalJSON makes this type JSON-marshalable.
 func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
-	// We assume that there's no symbols in azer-text
-	return []byte("\"" + refKey.AZERText() + "\""), nil
+	// We assume that there's no symbols in azid-text
+	return []byte("\"" + refKey.AZIDText() + "\""), nil
 }
 
 // UnmarshalJSON parses a JSON value.
@@ -333,7 +335,7 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 		*refKey = {{.ref_key_type_name}}Zero()
 		return nil
 	}
-	i, err := {{.ref_key_type_name}}FromAZERText(s)
+	i, err := {{.ref_key_type_name}}FromAZIDText(s)
 	if err == nil {
 		*refKey = i
 	}
@@ -345,6 +347,16 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 // {{.}} returns instance's {{.}} value.
 func (refKey {{$.ref_key_type_name}}) {{.}}() {{.}}RefKey {
 	return refKey.{{unexported_field .}}
+}
+
+// {{.}}Ptr returns a pointer to a copy of
+// {{.}}RefKey if it's considered valid.
+func (refKey {{$.ref_key_type_name}}) {{.}}Ptr() *{{.}}RefKey {
+	if refKey.{{unexported_field .}}.IsValid() {
+		rk := refKey.{{unexported_field .}}
+		return &rk
+	}
+	return nil
 }
 
 // With{{.}} returns a copy

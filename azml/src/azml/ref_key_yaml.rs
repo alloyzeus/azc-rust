@@ -9,14 +9,14 @@ use crate::azml::{ref_key, yaml};
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct RefKeyYaml {
     #[serde(default)]
-    pub azer_text: RefKeyAzerTextYaml,
+    pub azid_text: RefKeyAzidTextYaml,
 }
 
 // impl convert::TryFrom<&RefKeyYaml> for ref_key::RefKey {
 //     type Error = yaml::Error;
 //     fn try_from(x: &RefKeyYaml) -> Result<Self, Self::Error> {
 //         Ok(ref_key::RefKey {
-//             azer_text: x.azer_text.try_into()?,
+//             azid_text: x.azid_text.try_into()?,
 //         })
 //     }
 // }
@@ -25,33 +25,33 @@ impl convert::TryFrom<RefKeyYaml> for ref_key::RefKey {
     type Error = yaml::Error;
     fn try_from(x: RefKeyYaml) -> Result<Self, Self::Error> {
         Ok(ref_key::RefKey {
-            azer_text: x.azer_text.try_into()?,
+            azid_text: x.azid_text.try_into()?,
         })
     }
 }
 
 //endregion
 
-//region RefKeyAzerText
+//region RefKeyAzidText
 
 #[derive(serde::Deserialize, serde::Serialize, Default)]
-pub struct RefKeyAzerTextYaml {
+pub struct RefKeyAzidTextYaml {
     #[serde(default)]
     pub prefix: String,
 }
 
-impl convert::TryFrom<&RefKeyAzerTextYaml> for ref_key::RefKeyAzerText {
+impl convert::TryFrom<&RefKeyAzidTextYaml> for ref_key::RefKeyAzidText {
     type Error = yaml::Error;
-    fn try_from(x: &RefKeyAzerTextYaml) -> Result<Self, Self::Error> {
-        Ok(ref_key::RefKeyAzerText {
+    fn try_from(x: &RefKeyAzidTextYaml) -> Result<Self, Self::Error> {
+        Ok(ref_key::RefKeyAzidText {
             prefix: x.prefix.to_owned(),
         })
     }
 }
 
-impl convert::TryFrom<RefKeyAzerTextYaml> for ref_key::RefKeyAzerText {
+impl convert::TryFrom<RefKeyAzidTextYaml> for ref_key::RefKeyAzidText {
     type Error = yaml::Error;
-    fn try_from(x: RefKeyAzerTextYaml) -> Result<Self, Self::Error> {
+    fn try_from(x: RefKeyAzidTextYaml) -> Result<Self, Self::Error> {
         (&x).try_into()
     }
 }

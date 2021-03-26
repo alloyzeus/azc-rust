@@ -6,13 +6,13 @@ use azml::azml::ref_key;
 
 #[derive(Clone, Gtmpl)]
 pub struct RefKeyContext {
-    pub azer_text: RefKeyAzerTextContext,
+    pub azid_text: RefKeyAzidTextContext,
 }
 
 // impl From<&ref_key::RefKey> for RefKeyContext {
 //     fn from(x: &ref_key::RefKey) -> RefKeyContext {
 //         RefKeyContext {
-//             azer_text: x.azer_text.into(),
+//             azid_text: x.azid_text.into(),
 //         }
 //     }
 // }
@@ -20,27 +20,27 @@ pub struct RefKeyContext {
 impl From<ref_key::RefKey> for RefKeyContext {
     fn from(x: ref_key::RefKey) -> RefKeyContext {
         RefKeyContext {
-            azer_text: x.azer_text.into(),
+            azid_text: x.azid_text.into(),
         }
     }
 }
 
 #[derive(Clone, Gtmpl)]
-pub struct RefKeyAzerTextContext {
+pub struct RefKeyAzidTextContext {
     pub prefix: String,
 }
 
-impl From<&ref_key::RefKeyAzerText> for RefKeyAzerTextContext {
-    fn from(x: &ref_key::RefKeyAzerText) -> RefKeyAzerTextContext {
-        RefKeyAzerTextContext {
+impl From<&ref_key::RefKeyAzidText> for RefKeyAzidTextContext {
+    fn from(x: &ref_key::RefKeyAzidText) -> RefKeyAzidTextContext {
+        RefKeyAzidTextContext {
             prefix: x.prefix.to_owned(),
         }
     }
 }
 
-impl From<ref_key::RefKeyAzerText> for RefKeyAzerTextContext {
-    fn from(x: ref_key::RefKeyAzerText) -> RefKeyAzerTextContext {
-        RefKeyAzerTextContext {
+impl From<ref_key::RefKeyAzidText> for RefKeyAzidTextContext {
+    fn from(x: ref_key::RefKeyAzidText) -> RefKeyAzidTextContext {
+        RefKeyAzidTextContext {
             prefix: x.prefix.to_owned(),
         }
     }

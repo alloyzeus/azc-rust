@@ -97,7 +97,7 @@ func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
 
 // instantiate{{.type_name}}
 
-// new{{.id_num_type_name}} generates a new IDNum which can be assigned
+// new{{.id_num_type_name}} generates a new id-num which can be assigned
 // to a new entity.
 func (srv *{{.service_name}}Server) new{{.id_num_type_name}}() ({{.pkg_name}}.{{.id_num_type_name}}, error) {
 	//TODO
