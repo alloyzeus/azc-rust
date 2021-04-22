@@ -17,8 +17,8 @@ symbols:
       lifecycle:
         creation:
       id_num:
-        # Options: integer(bits), uuid(version), string (encoded bytes; similar
-        # to integer but it doesn't have to be valid integer)
+        # Only signed integer is supported for the highest compatibility with
+        # various languages and systems.
         kind: integer
         parameters:
           # Only significant_bits is required, but here, we also define the
