@@ -7,12 +7,12 @@ type {{.service_name}} interface {
 		{{.type_name}}EventsObserveInput,
 	) {{.type_name}}EventsObserveOutput
 
-	{{if .creation.allow_cross_process_callers -}}
+	{{- if .lifecycle.creation.allow_cross_process_callers}}
 	Create{{.type_name}}(
 		{{.type_name}}CreateRequest,
 	) {{.type_name}}CreateResponse
 
-	{{end -}}
+	{{- end}}
 
 	{{- /* TODO: this interface should be dynamically filled by mixins */}}
 }
@@ -45,7 +45,7 @@ func (evt {{.type_name}}CreateEvent) {{.type_name}}Event() {{.type_name}}Event {
 	return evt
 }
 
-{{if .creation.allow_cross_process_callers}}
+{{- if .lifecycle.creation.allow_cross_process_callers}}
 
 // {{.type_name}}CreateRequest is for use in Create{{.type_name}} method of {{.service_name}}.
 type {{.type_name}}CreateRequest struct {
@@ -69,4 +69,4 @@ type {{.type_name}}CreateResponseParameters struct {
 	// TODO
 }
 
-{{end}}
+{{- end}}

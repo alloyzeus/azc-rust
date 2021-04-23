@@ -23,9 +23,13 @@ type {{.type_name}}InstanceInfoService interface {
 type {{.type_name}}InstanceInfo struct {
     RevisionNumber int32
 
+{{- if .lifecycle.deletion.enabled}}
+
     // Deletion holds information about the deletion of the instance. If
     // the instance has not been deleted, this field value will be nil.
 	Deletion *{{.type_name}}InstanceDeletionInfo
+
+{{- end}}
 }
 
 // IsActive returns true if the instance is considered as active.
@@ -37,12 +41,22 @@ func (instInfo {{.type_name}}InstanceInfo) IsActive() bool {
 
 // IsDeleted returns true if the instance was deleted.
 func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
-    return instInfo.Deletion != nil && instInfo.Deletion.Deleted 
+{{- if .lifecycle.deletion.enabled}}
+    return instInfo.Deletion != nil && instInfo.Deletion.Deleted
+{{- else}}
+	return false
+{{- end}}
 }
+
+{{- if .lifecycle.deletion.enabled}}
 
 // {{.type_name}}InstanceDeletionInfo holds information about
 // the deletion of an instance if the instance has been deleted.
 type {{.type_name}}InstanceDeletionInfo struct {
 	Deleted       bool
+{{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes string
+{{- end}}
 }
+
+{{- end}}

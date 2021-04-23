@@ -74,7 +74,7 @@ impl GoCodeGenerator {
                 attributes: attributes,
                 event_interface_name: event_interface_name.to_owned(),
                 service_name: service_name.to_owned(),
-                creation: (&ent.creation).into(),
+                lifecycle: (&ent.lifecycle).into(),
             };
 
             let header_tpl_bytes = include_bytes!("templates/entity__header.gtmpl");
@@ -174,7 +174,22 @@ struct EntityContext {
     attributes: Vec<AttributeContext>,
     event_interface_name: String,
     service_name: String,
+    lifecycle: EntityLifecycleContext,
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityLifecycleContext {
     creation: EntityCreationContext,
+    deletion: EntityDeletionContext,
+}
+
+impl From<&entity::EntityLifecycle> for EntityLifecycleContext {
+    fn from(s: &entity::EntityLifecycle) -> EntityLifecycleContext {
+        EntityLifecycleContext {
+            creation: (&s.creation).into(),
+            deletion: (&s.deletion).into(),
+        }
+    }
 }
 
 #[derive(Clone, Gtmpl)]
@@ -186,6 +201,36 @@ impl From<&entity::EntityCreation> for EntityCreationContext {
     fn from(s: &entity::EntityCreation) -> EntityCreationContext {
         EntityCreationContext {
             allow_cross_process_callers: s.allow_cross_process_callers,
+        }
+    }
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityDeletionContext {
+    enabled: bool,
+    notes: EntityDeletionNotesContext,
+}
+
+impl From<&entity::EntityDeletion> for EntityDeletionContext {
+    fn from(s: &entity::EntityDeletion) -> EntityDeletionContext {
+        EntityDeletionContext {
+            enabled: s.enabled,
+            notes: (&s.notes).into(),
+        }
+    }
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityDeletionNotesContext {
+    enabled: bool,
+    required: bool,
+}
+
+impl From<&entity::EntityDeletionNotes> for EntityDeletionNotesContext {
+    fn from(s: &entity::EntityDeletionNotes) -> EntityDeletionNotesContext {
+        EntityDeletionNotesContext {
+            enabled: s.enabled,
+            required: s.required,
         }
     }
 }

@@ -14,8 +14,6 @@ symbols:
       # control.
       implements:
         kind: User
-      lifecycle:
-        creation:
       id_num:
         # Only signed integer is supported for the highest compatibility with
         # various languages and systems.
@@ -63,11 +61,19 @@ symbols:
             event_emission:
               enabled: true
             api:
-      # Declares the creation rules. This defines how and who can create
-      # an instance.
-      creation:
-        allow_cross_process_callers: false
-        allow_cross_process_event_observers: false
+      lifecycle:
+        # Declares the creation rules. This defines how and who can create
+        # an instance.
+        creation:
+          allow_cross_process_callers: false
+          allow_cross_process_event_observers: false
+        deletion:
+          enabled: true
+          notes:
+            enabled: true
+            required: false
+          event_emission:
+            enabled: true
       service:
         enabled: true
         methods:
@@ -224,8 +230,11 @@ symbols:
       ref_key:
         azid_text:
           prefix: KAp0
-      creation:
-        allow_cross_process_callers: true
+      lifecycle:
+        creation:
+          allow_cross_process_callers: true
+        deletion:
+          enabled: true
       mixins:
         - kind: Ownership
           parameters:
@@ -349,11 +358,12 @@ symbols:
           - identifier: DisplayName
             kind: string
             final: true
-        creation:
-          allow_cross_process_callers: false
-          authorization:
-            - kind: intraprocess
-              allow: always
+        lifecycle:
+          creation:
+            allow_cross_process_callers: false
+            authorization:
+              - kind: intraprocess
+                allow: always
         service:
           # TODO: this is runtime/deployment configs. there should be 
           # various ways for defining configurations.
@@ -489,44 +499,45 @@ symbols:
               value:
                 quantity: 5
                 unit: minute
-      # Creation is a special service method.
-      creation:
-        # Master flag. Only if the value is true, each of creation methods
-        # could set its own flag.
-        #
-        # By default, this flag is set to false.
-        #
-        # If the value is false, we won't allow any creation through
-        # other application, including the same kind of application on
-        # different process/machine; the creation can only be performed by other
-        # part of the same application. It means that the entity was
-        # designed as by-product of other entity's method, i.e., non-direct
-        # creation.
-        #
-        # If the value is true, we want to allow the creation to be initiated
-        # directly by other applications.
-        allow_cross_process_callers: true
-        # A flag to determine if applications from other realms is allowed
-        # to make call to this method.
-        #
-        # An application from other realms is an application which received
-        # authorization to integrate with this realm. In contrast to
-        # own-realm applications.
-        allow_cross_realm_callers: false
-        authorization:
-          - kind: Application
-            allow: on-condition
-            condition:
-              eq:
-                a: $.id_num.UserAgent
-                b: true
-        allowed_isolations:
-          - all
-        methods:
-          create:
-            allow_cross_process_callers: true
-            input_parameters:
-              Self.phone_number:
+      lifecycle:
+        # Creation is a special service method.
+        creation:
+          # Master flag. Only if the value is true, each of creation methods
+          # could set its own flag.
+          #
+          # By default, this flag is set to false.
+          #
+          # If the value is false, we won't allow any creation through
+          # other application, including the same kind of application on
+          # different process/machine; the creation can only be performed by other
+          # part of the same application. It means that the entity was
+          # designed as by-product of other entity's method, i.e., non-direct
+          # creation.
+          #
+          # If the value is true, we want to allow the creation to be initiated
+          # directly by other applications.
+          allow_cross_process_callers: true
+          # A flag to determine if applications from other realms is allowed
+          # to make call to this method.
+          #
+          # An application from other realms is an application which received
+          # authorization to integrate with this realm. In contrast to
+          # own-realm applications.
+          allow_cross_realm_callers: false
+          authorization:
+            - kind: Application
+              allow: on-condition
+              condition:
+                eq:
+                  a: $.id_num.UserAgent
+                  b: true
+          allowed_isolations:
+            - all
+          methods:
+            create:
+              allow_cross_process_callers: true
+              input_parameters:
+                Self.phone_number:
       attributes:
         - identifier: PhoneNumber
           kind: telephony.PhoneNumber
