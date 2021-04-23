@@ -117,12 +117,12 @@ impl GoCodeGenerator {
                 "templates/entity_instance.gtmpl",
                 tpl_ctx
             );
-            // render_file_region!(
-            //     out_file,
-            //     "Service",
-            //     "templates/entity_service.gtmpl",
-            //     tpl_ctx
-            // );
+            render_file_region!(
+                out_file,
+                "Service",
+                "templates/entity_service.gtmpl",
+                tpl_ctx
+            );
             // render_file_region!(
             //     out_file,
             //     "ServiceBase",

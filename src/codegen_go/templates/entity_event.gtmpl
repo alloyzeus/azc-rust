@@ -5,3 +5,24 @@ type {{.event_interface_name}} interface {
 
 	{{.event_interface_name}}() {{.event_interface_name}}
 }
+
+type {{.type_name}}EventService interface {
+	Observe{{.type_name}}Events(
+		{{.type_name}}EventsObservationInput,
+	) {{.type_name}}EventsObservationOutput
+}
+
+// {{.type_name}}EventsObservationInput is the input
+// type for Observe{{.type_name}}Events method in
+// {{.service_name}}.
+type {{.type_name}}EventsObservationInput struct {}
+
+// {{.type_name}}EventsObservationOutput is the output
+// type for Observe{{.type_name}}Events method in
+// {{.service_name}}.
+//
+//TODO: the output should contain a field which is an instance of Rx Observable.
+// See http://reactivex.io/documentation/contract.html and
+// https://pkg.go.dev/github.com/reactivex/rxgo/v2#Observable .
+type {{.type_name}}EventsObservationOutput struct {}
+

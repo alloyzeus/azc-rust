@@ -32,6 +32,13 @@ type {{.type_name}}InstanceInfo struct {
 {{- end}}
 }
 
+// {{.type_name}}InstanceInfoZero returns an instance of
+// {{.type_name}}InstanceInfo with attributes set their respective zero
+// value.
+func {{.type_name}}InstanceInfoZero() {{.type_name}}InstanceInfo {
+	return {{.type_name}}InstanceInfo{}
+}
+
 // IsActive returns true if the instance is considered as active.
 func (instInfo {{.type_name}}InstanceInfo) IsActive() bool {
     // Note: we will check other flags in the future, but that's said,
@@ -50,10 +57,48 @@ func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
 
 {{- if .lifecycle.deletion.enabled}}
 
+//----
+
 // {{.type_name}}InstanceDeletionInfo holds information about
 // the deletion of an instance if the instance has been deleted.
 type {{.type_name}}InstanceDeletionInfo struct {
 	Deleted       bool
+{{- if .lifecycle.deletion.notes.enabled}}
+	DeletionNotes string
+{{- end}}
+}
+
+{{- end}}
+
+//----
+
+// {{.type_name}}InstanceServiceInternal is a service which provides
+// methods for manipulating instances of {{.type_name}}. Declared for
+// internal use within a process, this interface contains methods that
+// available to be called from another part of a process.
+type {{.type_name}}InstanceServiceInternal interface {
+	{{- if .lifecycle.deletion.enabled}}
+
+	// Delete{{.type_name}}InstanceInternal deletes an instance of
+	// {{.type_name}} entity based identfied by refOfInstToDel.
+	// The returned instanceMutated will have the value of
+	// true if this particular call resulted the deletion of the instance and
+	// it will have the value of false of subsequent calls to this method.
+	Delete{{.type_name}}InstanceInternal(
+		callCtx CallContext,
+		refOfInstToDel {{.type_name}}RefKey,
+		input {{.type_name}}InstanceDeletionInput,
+	) (instanceMutated bool, currentState {{.type_name}}InstanceInfo, err error)
+
+	{{- end}}
+}
+
+{{- if .lifecycle.deletion.enabled}}
+
+// {{.type_name}}InstanceDeletionInput contains data to be passed
+// as an argument when invoking the method Delete{{.type_name}}InstanceInternal
+// of {{.type_name}}InstanceInfoService.
+type {{.type_name}}InstanceDeletionInput struct {
 {{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes string
 {{- end}}

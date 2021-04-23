@@ -52,15 +52,6 @@ symbols:
       ref_key:
         azid_text:
           prefix: "KUs0"
-      mixins:
-        - kind: Deletion
-          parameters:
-            notes:
-              enabled: true
-              required: false
-            event_emission:
-              enabled: true
-            api:
       lifecycle:
         # Declares the creation rules. This defines how and who can create
         # an instance.
@@ -345,9 +336,6 @@ symbols:
               inherits:
                 - host: 0
                   size: 5
-        mixins:
-          - kind: Deletion
-            parameters:
         attributes:
           - identifier: RegistrationIdentifier
             # TODO: union or interface
@@ -364,6 +352,8 @@ symbols:
             authorization:
               - kind: intraprocess
                 allow: always
+          deletion:
+            enabled: true
         service:
           # TODO: this is runtime/deployment configs. there should be 
           # various ways for defining configurations.
@@ -495,7 +485,8 @@ symbols:
         - kind: Expiration
           parameters:
             duration:
-              overridable: true
+              overridability:
+                default: true
               value:
                 quantity: 5
                 unit: minute

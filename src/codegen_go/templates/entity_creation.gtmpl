@@ -1,0 +1,53 @@
+// {{.type_name}}CreationService provides a contract
+// for methods related to entity {{.type_name}}.
+type {{.type_name}}CreationService interface {
+	// {{.base.azlib_prefix}}EntityCreationService
+
+	{{- if .lifecycle.creation.allow_cross_process_callers}}
+
+	Create{{.type_name}}(
+		{{.type_name}}CreationRequest,
+	) {{.type_name}}CreationResponse
+
+	{{- end}}
+}
+
+type {{.type_name}}CreationEvent struct {
+	//TODO: context?
+	{{.base.azlib_prefix}}EntityCreationEventBase
+
+	// TODO
+}
+
+var _ {{.type_name}}Event = {{.type_name}}CreationEvent{}
+
+// {{.type_name}}Event is required by {{.type_name}}Event interface.
+func (evt {{.type_name}}CreationEvent) {{.type_name}}Event() {{.type_name}}Event {
+	return evt
+}
+
+{{- if .lifecycle.creation.allow_cross_process_callers}}
+
+// {{.type_name}}CreationRequest is for use in Create{{.type_name}} method of {{.service_name}}.
+type {{.type_name}}CreationRequest struct {
+	Context {{.base.azlib_prefix}}EntityCreationRequestContext
+	Parameters {{.type_name}}CreationRequestParameters
+}
+
+type {{.type_name}}CreationRequestParameters struct {
+	// TODO
+}
+
+type {{.type_name}}CreationResponse struct {
+	Context {{.base.azlib_prefix}}EntityCreationResponseContext
+	Parameters {{.type_name}}CreationResponseParameters
+}
+
+type {{.type_name}}CreationResponseParameters struct {
+	RefKey {{.ref_key_type_name}}
+	CreationInfo *{{.base.azlib_prefix}}EntityCreationInfo
+
+	// TODO
+}
+
+{{- end}}

@@ -22,6 +22,7 @@ pub struct EntityYaml {
 
     lifecycle: EntityLifecycleYaml,
 
+    #[serde(default)]
     mixins: Vec<mixin_yaml::MixinYaml>,
 
     #[serde(default)]
