@@ -1,5 +1,11 @@
+// {{.type_name}}InstanceService is a service which
+// provides methods to manipulate an instance of {{.type_name}}.
+type {{.type_name}}InstanceService interface {
+	{{.type_name}}InstanceInfoService
+}
+
 // {{.type_name}}InstanceInfoService is a service which
-// provides an access to instances metadata.
+// provides access to instances metadata.
 type {{.type_name}}InstanceInfoService interface {
 	// Get{{.type_name}}InstanceInfo checks if the provided
     // ref-key is valid and whether the instance is deleted.
@@ -7,7 +13,7 @@ type {{.type_name}}InstanceInfoService interface {
 	// This method returns nil if the refKey is not referencing to any valid
 	// instance.
 	Get{{.type_name}}InstanceInfo(
-		/*callCtx CallContext,*/ //TODO: call context
+		callCtx CallContext,
 		refKey {{.ref_key_type_name}},
 	) (*{{.type_name}}InstanceInfo, error)
 }

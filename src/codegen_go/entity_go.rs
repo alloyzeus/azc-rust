@@ -104,49 +104,49 @@ impl GoCodeGenerator {
                 "templates/entity_ref_key.gtmpl",
                 tpl_ctx
             );
-            render_file_region!(
-                out_file,
-                "Attributes",
-                "templates/entity_attributes.gtmpl",
-                tpl_ctx
-            );
-            render_file_region!(out_file, "Events", "templates/entity_event.gtmpl", tpl_ctx);
+            // render_file_region!(
+            //     out_file,
+            //     "Attributes",
+            //     "templates/entity_attributes.gtmpl",
+            //     tpl_ctx
+            // );
+            // render_file_region!(out_file, "Events", "templates/entity_event.gtmpl", tpl_ctx);
             render_file_region!(
                 out_file,
                 "Instance",
                 "templates/entity_instance.gtmpl",
                 tpl_ctx
             );
-            render_file_region!(
-                out_file,
-                "Service",
-                "templates/entity_service.gtmpl",
-                tpl_ctx
-            );
-            render_file_region!(
-                out_file,
-                "ServiceBase",
-                "templates/entity_service_base.gtmpl",
-                tpl_ctx
-            );
+            // render_file_region!(
+            //     out_file,
+            //     "Service",
+            //     "templates/entity_service.gtmpl",
+            //     tpl_ctx
+            // );
+            // render_file_region!(
+            //     out_file,
+            //     "ServiceBase",
+            //     "templates/entity_service_base.gtmpl",
+            //     tpl_ctx
+            // );
 
-            // ServiceClient
-            render_file!(
-                format!("{}/client", self.package_dir_base_name),
-                format!("{}ClientBase", service_name),
-                "templates/entity_service_client_base.gtmpl",
-                tpl_ctx,
-                ""
-            );
+            // // ServiceClient
+            // render_file!(
+            //     format!("{}/client", self.package_dir_base_name),
+            //     format!("{}ClientBase", service_name),
+            //     "templates/entity_service_client_base.gtmpl",
+            //     tpl_ctx,
+            //     ""
+            // );
 
-            // ServiceServer
-            render_file!(
-                format!("{}server", self.package_dir_base_name),
-                format!("{}Server", service_name),
-                "templates/entity_service_server.gtmpl",
-                tpl_ctx,
-                ""
-            );
+            // // ServiceServer
+            // render_file!(
+            //     format!("{}server", self.package_dir_base_name),
+            //     format!("{}Server", service_name),
+            //     "templates/entity_service_server.gtmpl",
+            //     tpl_ctx,
+            //     ""
+            // );
 
             Ok(())
         } else {

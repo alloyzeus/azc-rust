@@ -57,6 +57,9 @@ symbols:
       mixins:
         - kind: Deletion
           parameters:
+            notes:
+              enabled: true
+              required: false
             event_emission:
               enabled: true
             api:
@@ -275,6 +278,7 @@ symbols:
         attributes:
           - identifier: Secret
             kind: ApplicationAccessKeySecret
+            # TODO: describe: can it be changed? by who? other requirements?
 
   - identifier: Terminal
     documentation: |

@@ -159,19 +159,19 @@ impl GoCodeGenerator {
                 "templates/adjunct_entity_ref_key.gtmpl",
                 tpl_ctx
             );
-            render_file_region!(
-                out_file,
-                "Attributes",
-                "templates/adjunct_entity_attributes.gtmpl",
-                tpl_ctx
-            );
-            //render_file_region!(out_file, "Events", "templates/adjunct_entity_event.gtmpl", tpl_ctx);
-            render_file_region!(
-                out_file,
-                "Service",
-                "templates/adjunct_entity_service.gtmpl",
-                tpl_ctx
-            );
+            // render_file_region!(
+            //     out_file,
+            //     "Attributes",
+            //     "templates/adjunct_entity_attributes.gtmpl",
+            //     tpl_ctx
+            // );
+            // render_file_region!(out_file, "Events", "templates/adjunct_entity_event.gtmpl", tpl_ctx);
+            // render_file_region!(
+            //     out_file,
+            //     "Service",
+            //     "templates/adjunct_entity_service.gtmpl",
+            //     tpl_ctx
+            // );
 
             Ok(())
         } else {

@@ -3,7 +3,10 @@
 use std::convert::{self, TryInto};
 
 use crate::{
-    azfl::ownership::{ownership, ownership_yaml},
+    azfl::{
+        deletion::{deletion, deletion_yaml},
+        ownership::{ownership, ownership_yaml},
+    },
     azml::{mixin, yaml},
 };
 
@@ -19,6 +22,16 @@ impl convert::TryFrom<MixinYaml> for mixin::Mixin {
 
     fn try_from(x: MixinYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
+            "Deletion" => {
+                let params: Option<deletion_yaml::DeletionYaml> = yaml::from_value(x.parameters)?;
+                Ok(mixin::Mixin {
+                    definition: if let Some(p) = params {
+                        Some(Box::new(deletion::Deletion::try_from(p)?))
+                    } else {
+                        None
+                    },
+                })
+            }
             "Ownership" => {
                 let params: Option<ownership_yaml::OwnershipYaml> = yaml::from_value(x.parameters)?;
                 Ok(mixin::Mixin {
