@@ -16,7 +16,7 @@ pub struct IntegerIdNum {
     //
     // If not provided, total_bits will be determined by picking the
     // option value a step larger than the value provided to
-    // significant_bits.
+    // identifier_bits.
     pub total_bits: i8,
 
     // The number of bits. Note that the actual types used are rounded up
@@ -33,7 +33,7 @@ pub struct IntegerIdNum {
     // Negative values are unused. Zero, as the default value, should not be
     // used as the identifier of any valid entity instance -- for example,
     // 0 in the context of user id-num could be used to indicate nobody.
-    pub significant_bits: i8,
+    pub identifier_bits: i8,
 
     // Additional attributes (flags) encoding. these attributes are
     // part of the identity for the entity's lifetime.
@@ -57,18 +57,18 @@ impl IntegerIdNum {
         if self.total_bits > 0 {
             //TODO: this should be performed in the compilation phase, and
             // it should also include the size of bitfield.
-            if self.total_bits <= self.significant_bits {
-                panic!("Invalid directive. The value of total_bits must be larger than the value of significant_bits")
+            if self.total_bits <= self.identifier_bits {
+                panic!("Invalid directive. The value of total_bits must be larger than the value of identifier_bits")
             }
             self.total_bits
         } else {
-            match self.significant_bits {
+            match self.identifier_bits {
                 d if d < 16 => 16,
                 d if d < 32 => 32,
                 d if d < 64 => 64,
                 _ => panic!(
                     "Unsupported bits value {} (bits value must be smaller than 64)",
-                    self.significant_bits
+                    self.identifier_bits
                 ),
             }
         }

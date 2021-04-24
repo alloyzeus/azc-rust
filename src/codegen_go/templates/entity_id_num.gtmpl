@@ -10,10 +10,10 @@ var _ {{.base.azcore_pkg}}.EntityIDNum = {{.id_num_type_name}}Zero
 {{- if .implements}}
 var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero {{- end}}
 
-// {{.id_num_type_name}}SignificantBitsMask is used to
-// extract significant bits from an instance of {{.id_num_type_name}}.
-const {{.id_num_type_name}}SignificantBitsMask uint{{.id_num_def.primitive_size}} =
-	{{.id_num_def.significant_bits_mask}}
+// {{.id_num_type_name}}IdentifierBitsMask is used to
+// extract identifier bits from an instance of {{.id_num_type_name}}.
+const {{.id_num_type_name}}IdentifierBitsMask uint{{.id_num_def.primitive_size}} =
+	{{.id_num_def.identifier_bits_mask}}
 
 // {{.id_num_type_name}}Zero is the zero value
 // for {{.id_num_type_name}}.
@@ -91,7 +91,7 @@ func (idNum {{.id_num_type_name}}) IsZero() bool {
 // method.
 func (idNum {{.id_num_type_name}}) IsSound() bool {
 	return int{{.id_num_def.primitive_size}}(idNum) > 0 &&
-		(uint{{.id_num_def.primitive_size}}(idNum) & {{.id_num_type_name}}SignificantBitsMask) != 0
+		(uint{{.id_num_def.primitive_size}}(idNum) & {{.id_num_type_name}}IdentifierBitsMask) != 0
 }
 
 // IsNotSound returns the negation of value returned by IsSound.
@@ -147,6 +147,14 @@ func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
 	return readLen, err
 }
 
+// Embedded fields
+const (
+{{- range .id_num_def.bitfield.sub_fields}}
+	{{$.id_num_type_name}}{{.identifier}}Mask = {{.mask}}
+	{{$.id_num_type_name}}{{.identifier}}Bits = {{.flag}}
+{{- end}}
+)
+
 {{- $uid_type := print "uint" .id_num_def.primitive_size}}
 {{- range .id_num_def.bitfield.sub_fields}}
 
@@ -161,15 +169,12 @@ func (idNum {{$.id_num_type_name}}) Is{{.identifier}}() bool {
 	return idNum.IsSound() && idNum.Has{{.identifier}}Bits()
 }
 
-const {{unexported_global $.id_num_type_name}}{{.identifier}}Mask = {{.mask}}
-const {{unexported_global $.id_num_type_name}}{{.identifier}}Bits = {{.flag}}
-
 // Has{{.identifier}}Bits is only checking the bits
 // without validating other information.
 func (idNum {{$.id_num_type_name}}) Has{{.identifier}}Bits() bool {
 	return ({{$uid_type}}(idNum) &
-		{{unexported_global $.id_num_type_name}}{{.identifier}}Mask) ==
-		{{unexported_global $.id_num_type_name}}{{.identifier}}Bits
+		{{$.id_num_type_name}}{{.identifier}}Mask) ==
+		{{$.id_num_type_name}}{{.identifier}}Bits
 }
 
 {{- end}}
@@ -179,4 +184,13 @@ type {{.id_num_type_name}}Error interface {
 	{{.id_num_type_name}}Error()
 }
 
-//TODO: (Un)MarshalText (for SQL?)
+// {{.id_num_type_name}}Generator abstracts the ID num generator
+// for {{.type_name}} instances.
+//
+// The embeddedFieldBits argument could be constructed by combining
+// {{.id_num_type_name}}*Bits constants.
+type {{.id_num_type_name}}Generator interface {
+	Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}}) ({{.id_num_type_name}}, error)
+}
+
+{{- /* TODO: (Un)MarshalText (for SQL?) */}}

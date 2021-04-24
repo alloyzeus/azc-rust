@@ -11,7 +11,7 @@ pub struct IntegerIdNumYaml {
     #[serde(default)]
     total_bits: i8,
 
-    significant_bits: i8,
+    identifier_bits: i8,
 
     #[serde(default)]
     bitfield: Option<IntegerIdNumBitfieldYaml>,
@@ -23,7 +23,7 @@ impl convert::TryFrom<IntegerIdNumYaml> for id_num::IntegerIdNum {
     fn try_from(x: IntegerIdNumYaml) -> Result<Self, Self::Error> {
         Ok(id_num::IntegerIdNum {
             total_bits: x.total_bits,
-            significant_bits: x.significant_bits,
+            identifier_bits: x.identifier_bits,
             bitfield: if let Some(y) = x.bitfield {
                 y.try_into()?
             } else {

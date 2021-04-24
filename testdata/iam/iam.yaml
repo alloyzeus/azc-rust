@@ -19,7 +19,7 @@ symbols:
         # various languages and systems.
         kind: integer
         parameters:
-          # Only significant_bits is required, but here, we also define the
+          # Only identifier_bits is required, but here, we also define the
           # value of total_bits.
           #
           # This field is used to ensure that the IDs fit in the stated value;
@@ -32,10 +32,10 @@ symbols:
           #
           # If not provided, total_bits will be determined by picking the
           # option value a step larger than the value provided to
-          # significant_bits.
+          # identifier_bits.
           total_bits: 64
           # Max 63
-          significant_bits: 48
+          identifier_bits: 48
           bitfield:
             sub_fields:
               - size: 1
@@ -104,13 +104,13 @@ symbols:
           # 0b00000000000000000000000000000000
           #   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
           #   ||||||||||||||||||||||||||||||||
-          #   ||||||++++++++++++++++++++++++++- significants (index 0-25)
+          #   ||||||++++++++++++++++++++++++++- identifier (index 0-25)
           #   ||||++- reserved 
           #   |||+--- depends on index 29 (index 28)
           #   ||+---- Service/UserAgent (index 29)
           #   |+----- IsFirstParty (index 30)
           #   +------ reserved for 32bit integer
-          significant_bits: 26
+          identifier_bits: 26
           # Bitfield is used to embed limited information to the IDs. This
           # information will be part of the identity of an instance;
           # information can not be changed without changing the identity of
@@ -131,12 +131,12 @@ symbols:
           # application can not be changed without changing the
           # identity of the application.
           #
-          # If we have 26bit significants, and we want the identifier to fit
+          # If we have 26bit identifier, and we want the whole ID num to fit
           # in 32bit integers, first, we substract it by 1 (for ensuring it
-          # fits in 32bit signed integers), then substract it with the number
-          # of significants, in this case 26. So it will be: 32 - 1 - 26 = 5.
+          # fits in 32bit signed integers), then substract it with the length
+          # of identifier bits, in this case 26. So it will be: 32 - 1 - 26 = 5.
           # Five is the maximum size of the bitfield if we have 26bit
-          # significants and we want it to fit in 32bit integers.
+          # identifier and we want it to fit in 32bit integers.
           #
           # For this particular case, we embed some information to the
           # IDs to help services handle requests from the applications
@@ -147,7 +147,7 @@ symbols:
             # The size of the bitfield, i.e., the number of bits we reserve for
             # this bitfield. This field is optional as the compiler will
             # infer this value by substracting total_bits with
-            # significant_bits.
+            # identifier_bits.
             size: 5
             sub_fields:
               - size: 1
@@ -254,7 +254,7 @@ symbols:
           kind: integer
           parameters:
             total_bits: 64
-            significant_bits: 56
+            identifier_bits: 56
             bitfield:
               # An adjunct can inherit its hosts' bitfields.
               # This is similar to entity ID, but instead of encode own
@@ -331,7 +331,7 @@ symbols:
           kind: integer
           parameters:
             total_bits: 64
-            significant_bits: 56
+            identifier_bits: 56
             bitfield:
               inherits:
                 - host: 0
@@ -424,7 +424,7 @@ symbols:
           kind: integer
           parameters:
             total_bits: 32
-            significant_bits: 24
+            identifier_bits: 24
         ref_key:
           azid_text:
             prefix: "KSe0"
@@ -478,7 +478,7 @@ symbols:
         kind: integer
         parameters:
           total_bits: 64
-          significant_bits: 48
+          identifier_bits: 48
       mixins:
         - kind: Deletion
           parameters:

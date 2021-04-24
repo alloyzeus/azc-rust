@@ -9,8 +9,8 @@ pub struct IntegerIdNumContext {
     primitive_size: i8,
     primitive_size_bytes: i8,
     type_name: String,
-    significant_bits: i8,
-    significant_bits_mask: String,
+    identifier_bits: i8,
+    identifier_bits_mask: String,
     bitfield: IntegerIdNumBitfieldContext,
 }
 
@@ -20,35 +20,41 @@ impl From<&id_num::IntegerIdNum> for IntegerIdNumContext {
             primitive_size: x.primitive_size(),
             primitive_size_bytes: x.primitive_size() / 8,
             type_name: format!("int{}", x.primitive_size()),
-            significant_bits: x.significant_bits,
-            significant_bits_mask: significant_bit_mask_bin(x.primitive_size(), x.significant_bits),
+            identifier_bits: x.identifier_bits,
+            identifier_bits_mask: identifier_bit_mask_bin(x.primitive_size(), x.identifier_bits),
             // one for zero-based index, one for skipping the most-significant bit (the sign bit)
             bitfield: IntegerIdNumBitfieldContext::from(&x.bitfield, x.primitive_size() - 2, 0),
         }
     }
 }
 
-fn significant_bit_mask_bin(bit_size: i8, significant_size: i8) -> String {
+fn identifier_bit_mask_bin(total_size: i8, identifier_size: i8) -> String {
     let mut v: u64 = 0;
-    for i in 0..bit_size {
-        if i < significant_size {
+    for i in 0..total_size {
+        if i < identifier_size {
             v |= 1 << i;
         }
     }
-    format_u64_as_bin(v)
+    format_u64_as_bin(v, total_size)
 }
 
-fn format_u64_as_bin(i: u64) -> String {
-    let mut s = String::new();
+fn format_u64_as_bin(i: u64, _width: i8) -> String {
+    // TODO: padding
+    // This, is somehow resulting in an infinite loop or something.
+    // let i_str = format!("{:0width$b}", i, width = (width as usize));
+
     let i_str = format!("{:b}", i);
+
     let a = i_str.chars().rev().enumerate();
+    let mut s = String::new();
     for (idx, val) in a {
         if idx != 0 && idx % 8 == 0 {
             s.insert(0, '_');
         }
         s.insert(0, val);
     }
-    format!("0b{}", s)
+
+    format!("0b_{}", s)
 }
 
 //endregion
@@ -69,7 +75,15 @@ impl IntegerIdNumBitfieldContext {
         let mut all_fields: Vec<IntegerIdNumBitfieldSubFieldContext> = Vec::new();
         let mut idx: i8 = 0;
         for v in &x.sub_fields {
-            let fields = convert_field(&v, "".to_owned(), bitfield_size, index_offset + idx, 0, 0);
+            let fields = convert_field(
+                &v,
+                "".to_owned(),
+                x.size,
+                bitfield_size,
+                index_offset + idx,
+                0,
+                0,
+            );
             all_fields.extend(fields);
             idx += 1;
         }
@@ -94,6 +108,7 @@ pub struct IntegerIdNumBitfieldSubFieldContext {
 fn convert_field(
     field: &id_num::IntegerIdNumBitfieldSubField,
     identifier_prefix: String,
+    total_size: i8,
     bitfield_size: i8,
     index_offset: i8,
     mask: u64,
@@ -106,6 +121,7 @@ fn convert_field(
             let fields = convert_value(
                 &v,
                 identifier_prefix.to_owned(),
+                total_size,
                 bitfield_size,
                 index_offset + field.size,
                 mask | (1 << (bitfield_size - index_offset)),
@@ -125,8 +141,8 @@ fn convert_field(
         vec![IntegerIdNumBitfieldSubFieldContext {
             identifier: field.identifier.to_owned(),
             doc_lines: field.documentation.lines().map(|x| x.to_owned()).collect(),
-            mask: format_u64_as_bin(mask),
-            flag: format_u64_as_bin(flag),
+            mask: format_u64_as_bin(mask, total_size),
+            flag: format_u64_as_bin(flag, total_size),
         }]
     }
 }
@@ -134,6 +150,7 @@ fn convert_field(
 fn convert_value(
     value: &id_num::IntegerIdNumBitfieldSubFieldValue,
     identifier_prefix: String,
+    total_size: i8,
     bitfield_size: i8,
     index_offset: i8,
     mask: u64,
@@ -144,14 +161,15 @@ fn convert_value(
         vec![IntegerIdNumBitfieldSubFieldContext {
             identifier: identifier.to_owned(),
             doc_lines: value.documentation.lines().map(|x| x.to_owned()).collect(),
-            mask: format_u64_as_bin(mask),
-            flag: format_u64_as_bin(flag),
+            mask: format_u64_as_bin(mask, total_size),
+            flag: format_u64_as_bin(flag, total_size),
         }];
     if !value.sub_fields.is_empty() {
         for v in &value.sub_fields {
             let fields = convert_field(
                 &v,
                 identifier.to_owned(),
+                total_size,
                 bitfield_size,
                 index_offset,
                 mask,

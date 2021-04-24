@@ -12,10 +12,10 @@ var _ {{.base.azcore_pkg}}.AdjunctEntityIDNum = {{.id_num_type_name}}Zero
 var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero
 {{- end}}
 
-// {{.id_num_type_name}}SignificantBitsMask is used to
-// extract significant bits from an instance of {{.id_num_type_name}}.
-const {{.id_num_type_name}}SignificantBitsMask uint{{.id_num_def.primitive_size}} =
-	{{.id_num_def.significant_bits_mask}}
+// {{.id_num_type_name}}IdentifierBitsMask is used to
+// extract identifier bits from an instance of {{.id_num_type_name}}.
+const {{.id_num_type_name}}IdentifierBitsMask uint{{.id_num_def.primitive_size}} =
+	{{.id_num_def.identifier_bits_mask}}
 
 // {{.id_num_type_name}}Zero is the zero value for {{.id_num_type_name}}.
 const {{.id_num_type_name}}Zero =
@@ -77,7 +77,7 @@ func (idNum {{.id_num_type_name}}) IsZero() bool {
 // a valid instance of {{.type_name}}.
 func (idNum {{.id_num_type_name}}) IsSound() bool {
 	return int{{.id_num_def.primitive_size}}(idNum) > 0 &&
-		(uint{{.id_num_def.primitive_size}}(idNum) & {{.id_num_type_name}}SignificantBitsMask) != 0
+		(uint{{.id_num_def.primitive_size}}(idNum) & {{.id_num_type_name}}IdentifierBitsMask) != 0
 }
 
 // IsNotSound returns the negation of value returned by IsSound.
