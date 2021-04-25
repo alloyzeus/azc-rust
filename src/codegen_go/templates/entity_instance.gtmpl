@@ -77,6 +77,11 @@ type {{.type_name}}InstanceDeletionInfo struct {
 // internal use within a process, this interface contains methods that
 // available to be called from another part of a process.
 type {{.type_name}}InstanceServiceInternal interface {
+	Create{{.type_name}}InstanceInternal(
+		callCtx CallContext,
+		input {{.type_name}}InstanceCreationInput,
+	 ) (refKey {{.ref_key_type_name}}, initialState {{.type_name}}InstanceInfo, err error);
+
 	{{- if .lifecycle.deletion.enabled}}
 
 	// Delete{{.type_name}}InstanceInternal deletes an instance of
@@ -86,18 +91,25 @@ type {{.type_name}}InstanceServiceInternal interface {
 	// it will have the value of false of subsequent calls to this method.
 	Delete{{.type_name}}InstanceInternal(
 		callCtx CallContext,
-		refOfInstToDel {{.type_name}}RefKey,
+		refOfInstToDel {{.ref_key_type_name}},
 		input {{.type_name}}InstanceDeletionInput,
 	) (instanceMutated bool, currentState {{.type_name}}InstanceInfo, err error)
 
 	{{- end}}
 }
 
+// {{.type_name}}InstanceCreationInput contains data to be passed
+// as an argument when invoking the method Create{{.type_name}}InstanceInternal
+// of {{.type_name}}InstanceServiceInternal.
+type {{.type_name}}InstanceCreationInput struct {
+	{{- /* TODO: generate embedded fields */}}
+}
+
 {{- if .lifecycle.deletion.enabled}}
 
 // {{.type_name}}InstanceDeletionInput contains data to be passed
 // as an argument when invoking the method Delete{{.type_name}}InstanceInternal
-// of {{.type_name}}InstanceInfoService.
+// of {{.type_name}}InstanceServiceInternal.
 type {{.type_name}}InstanceDeletionInput struct {
 {{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes string

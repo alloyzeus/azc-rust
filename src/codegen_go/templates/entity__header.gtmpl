@@ -1,15 +1,16 @@
 package {{.pkg_name}}
 
 import (
+	"crypto/rand"
 	"encoding/binary"
 	"strings"
 
-	errors "{{.base.azcore_import}}/errors"
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 	{{.base.azid_pkg}} "{{.base.azid_import}}"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"
 	{{- end}}
+	errors "{{.base.azcore_import}}/errors"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -21,3 +22,4 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = {{.base.azid_pkg}}.BinDataTypeUnspecified
 var _ = strings.Compare
+var _ = rand.Reader
