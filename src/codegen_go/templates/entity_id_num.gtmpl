@@ -147,9 +147,13 @@ func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
 	return readLen, err
 }
 
+{{- if .id_num_def.bitfield.sub_fields}}
+
 // Embedded fields
 const (
-{{- range .id_num_def.bitfield.sub_fields}}
+	{{.id_num_type_name}}EmbeddedFieldsMask = {{.id_num_def.bitfield.all_fields_mask}}
+
+{{range .id_num_def.bitfield.sub_fields}}
 	{{$.id_num_type_name}}{{.identifier}}Mask = {{.mask}}
 	{{$.id_num_type_name}}{{.identifier}}Bits = {{.flag}}
 {{- end}}
@@ -176,6 +180,8 @@ func (idNum {{$.id_num_type_name}}) Has{{.identifier}}Bits() bool {
 		{{$.id_num_type_name}}{{.identifier}}Mask) ==
 		{{$.id_num_type_name}}{{.identifier}}Bits
 }
+
+{{- end}}
 
 {{- end}}
 

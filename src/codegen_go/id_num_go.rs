@@ -23,7 +23,12 @@ impl From<&id_num::IntegerIdNum> for IntegerIdNumContext {
             identifier_bits: x.identifier_bits,
             identifier_bits_mask: identifier_bit_mask_bin(x.primitive_size(), x.identifier_bits),
             // one for zero-based index, one for skipping the most-significant bit (the sign bit)
-            bitfield: IntegerIdNumBitfieldContext::from(&x.bitfield, x.primitive_size() - 2, 0),
+            bitfield: IntegerIdNumBitfieldContext::from(
+                &x.bitfield,
+                x.primitive_size(),
+                x.primitive_size() - 2,
+                0,
+            ),
         }
     }
 }
@@ -38,12 +43,8 @@ fn identifier_bit_mask_bin(total_size: i8, identifier_size: i8) -> String {
     format_u64_as_bin(v, total_size)
 }
 
-fn format_u64_as_bin(i: u64, _width: i8) -> String {
-    // TODO: padding
-    // This, is somehow resulting in an infinite loop or something.
-    // let i_str = format!("{:0width$b}", i, width = (width as usize));
-
-    let i_str = format!("{:b}", i);
+fn format_u64_as_bin(i: u64, width: i8) -> String {
+    let i_str = format!("{:0width$b}", i, width = (width as usize));
 
     let a = i_str.chars().rev().enumerate();
     let mut s = String::new();
@@ -64,31 +65,40 @@ fn format_u64_as_bin(i: u64, _width: i8) -> String {
 #[derive(Clone, Gtmpl)]
 pub struct IntegerIdNumBitfieldContext {
     pub sub_fields: Vec<IntegerIdNumBitfieldSubFieldContext>,
+    pub all_fields_mask: String,
 }
 
 impl IntegerIdNumBitfieldContext {
     fn from(
         x: &id_num::IntegerIdNumBitfield,
+        total_size: i8,
         bitfield_size: i8,
         index_offset: i8,
     ) -> IntegerIdNumBitfieldContext {
         let mut all_fields: Vec<IntegerIdNumBitfieldSubFieldContext> = Vec::new();
         let mut idx: i8 = 0;
+        let mut accum_mask: u64 = 0;
         for v in &x.sub_fields {
             let fields = convert_field(
                 &v,
                 "".to_owned(),
-                x.size,
+                total_size,
                 bitfield_size,
                 index_offset + idx,
                 0,
                 0,
             );
+
+            for f in &fields {
+                accum_mask |= f.mask_i;
+            }
+
             all_fields.extend(fields);
             idx += 1;
         }
         IntegerIdNumBitfieldContext {
             sub_fields: all_fields,
+            all_fields_mask: format_u64_as_bin(accum_mask, total_size),
         }
     }
 }
@@ -101,6 +111,7 @@ impl IntegerIdNumBitfieldContext {
 pub struct IntegerIdNumBitfieldSubFieldContext {
     identifier: String,
     doc_lines: Vec<String>,
+    mask_i: u64,
     mask: String,
     flag: String,
 }
@@ -141,6 +152,7 @@ fn convert_field(
         vec![IntegerIdNumBitfieldSubFieldContext {
             identifier: field.identifier.to_owned(),
             doc_lines: field.documentation.lines().map(|x| x.to_owned()).collect(),
+            mask_i: mask,
             mask: format_u64_as_bin(mask, total_size),
             flag: format_u64_as_bin(flag, total_size),
         }]
@@ -161,6 +173,7 @@ fn convert_value(
         vec![IntegerIdNumBitfieldSubFieldContext {
             identifier: identifier.to_owned(),
             doc_lines: value.documentation.lines().map(|x| x.to_owned()).collect(),
+            mask_i: mask,
             mask: format_u64_as_bin(mask, total_size),
             flag: format_u64_as_bin(flag, total_size),
         }];
