@@ -336,6 +336,8 @@ symbols:
               inherits:
                 - host: 0
                   size: 5
+            generator:
+              name: RandomLocal
         attributes:
           - identifier: RegistrationIdentifier
             # TODO: union or interface

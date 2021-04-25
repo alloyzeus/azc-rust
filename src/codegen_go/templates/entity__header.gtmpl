@@ -7,10 +7,10 @@ import (
 
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 	{{.base.azid_pkg}} "{{.base.azid_import}}"
+	errors "{{.base.azcore_import}}/errors"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"
 	{{- end}}
-	errors "{{.base.azcore_import}}/errors"
 )
 
 // This is a compile-time assertion to ensure that this generated file

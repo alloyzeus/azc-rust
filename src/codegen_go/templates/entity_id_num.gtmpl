@@ -8,7 +8,8 @@ var _ {{.base.azid_pkg}}.IDNum = {{.id_num_type_name}}Zero
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
 var _ {{.base.azcore_pkg}}.EntityIDNum = {{.id_num_type_name}}Zero
 {{- if .implements}}
-var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero {{- end}}
+var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero
+{{- end}}
 
 // {{.id_num_type_name}}IdentifierBitsMask is used to
 // extract identifier bits from an instance of {{.id_num_type_name}}.
@@ -147,8 +148,6 @@ func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
 	return readLen, err
 }
 
-{{- if .id_num_def.bitfield.sub_fields}}
-
 // Embedded fields
 const (
 	{{.id_num_type_name}}EmbeddedFieldsMask = {{.id_num_def.bitfield.all_fields_mask}}
@@ -180,8 +179,6 @@ func (idNum {{$.id_num_type_name}}) Has{{.identifier}}Bits() bool {
 		{{$.id_num_type_name}}{{.identifier}}Mask) ==
 		{{$.id_num_type_name}}{{.identifier}}Bits
 }
-
-{{- end}}
 
 {{- end}}
 

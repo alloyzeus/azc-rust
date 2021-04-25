@@ -85,26 +85,6 @@ func (idNum {{.id_num_type_name}}) IsNotSound() bool {
 	return !idNum.IsSound()
 }
 
-// AZIDBinField is required for conformance
-// with {{.base.azid_pkg}}.IDNum.
-func (idNum {{.id_num_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
-	b := make([]byte, {{.id_num_def.primitive_size_bytes}})
-	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b, uint{{.id_num_def.primitive_size}}(idNum))
-	return b, {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}
-}
-
-// UnmarshalAZIDBinField is required for conformance
-// with {{.base.azid_pkg}}.BinFieldUnmarshalable.
-func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
-	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
-) (readLen int, err error) {
-	i, readLen, err := {{.id_num_type_name}}FromAZIDBinField(b, typeHint)
-	if err == nil {
-		*idNum = i
-	}
-	return readLen, err
-}
-
 // Equals is required as {{.id_num_type_name}} is a value-object.
 //
 // Use Equals{{.id_num_type_name}} method if the other value
@@ -131,4 +111,81 @@ func (idNum {{.id_num_type_name}}) Equals{{.id_num_type_name}}(
 	other {{.id_num_type_name}},
 ) bool {
 	return idNum == other
+}
+
+// AZIDBinField is required for conformance
+// with {{.base.azid_pkg}}.IDNum.
+func (idNum {{.id_num_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
+	b := make([]byte, {{.id_num_def.primitive_size_bytes}})
+	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b, uint{{.id_num_def.primitive_size}}(idNum))
+	return b, {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}
+}
+
+// UnmarshalAZIDBinField is required for conformance
+// with {{.base.azid_pkg}}.BinFieldUnmarshalable.
+func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+) (readLen int, err error) {
+	i, readLen, err := {{.id_num_type_name}}FromAZIDBinField(b, typeHint)
+	if err == nil {
+		*idNum = i
+	}
+	return readLen, err
+}
+
+// Embedded fields
+const (
+	{{.id_num_type_name}}EmbeddedFieldsMask = {{.id_num_def.bitfield.all_fields_mask}}
+
+{{range .id_num_def.bitfield.sub_fields}}
+	{{$.id_num_type_name}}{{.identifier}}Mask = {{.mask}}
+	{{$.id_num_type_name}}{{.identifier}}Bits = {{.flag}}
+{{- end}}
+)
+
+{{- $uid_type := print "uint" .id_num_def.primitive_size}}
+{{- range .id_num_def.bitfield.sub_fields}}
+
+// Is{{.identifier}} returns true if
+// the {{$.type_name}} instance this {{$.id_num_type_name}} is for
+// is a {{.identifier}} {{$.type_name}}.
+//
+{{range .doc_lines -}}
+{{if .}}// {{.}}{{else}}//{{end}}
+{{end -}}
+func (idNum {{$.id_num_type_name}}) Is{{.identifier}}() bool {
+	return idNum.IsSound() && idNum.Has{{.identifier}}Bits()
+}
+
+// Has{{.identifier}}Bits is only checking the bits
+// without validating other information.
+func (idNum {{$.id_num_type_name}}) Has{{.identifier}}Bits() bool {
+	return ({{$uid_type}}(idNum) &
+		{{$.id_num_type_name}}{{.identifier}}Mask) ==
+		{{$.id_num_type_name}}{{.identifier}}Bits
+}
+
+{{- end}}
+
+{{- /* TODO: generate the following generator function only when the id num is random */}}
+
+// Generate{{.id_num_type_name}} generates a new {{.id_num_type_name}}.
+// Note that this function does not consulting any database nor registry.
+// This methode will not create an instance of {{.type_name}}, i.e., the
+// resulting {{.id_num_type_name}} might or might not refer to valid instance
+// of {{.type_name}}. The resulting {{.id_num_type_name}} is designed to be
+// used to create a new instance of {{.type_name}}.
+//
+// The embeddedFieldBits argument could be constructed by combining
+// {{.id_num_type_name}}*Bits constants.
+func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}}) ({{.id_num_type_name}}, error) {
+	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
+	_, err := rand.Read(idBytes)
+	if err != nil {
+		return {{.id_num_type_name}}Zero, errors.ArgWrap("", "random source reading", err)
+	}
+
+	idUint := (embeddedFieldBits & {{.id_num_type_name}}EmbeddedFieldsMask) |
+		(binary.BigEndian.U{{.id_num_def.type_name}}(idBytes) & {{.id_num_type_name}}IdentifierBitsMask)
+	return {{.id_num_type_name}}(idUint), nil
 }
