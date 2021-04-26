@@ -2,19 +2,160 @@ package {{.pkg_name}}server
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/binary"
 
 	errors "{{.base.azcore_import}}/errors"
+	goqu "github.com/doug-martin/goqu/v9"
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/jmoiron/sqlx"
 
 	"{{.pkg_path}}"
 )
 
+const {{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
+
 // {{.service_name}}Serverbase is the server-side
-// base implementation for {{.service_name}}.
+// base implementation of {{.service_name}}.
 type {{.service_name}}ServerBase struct {
+	db *sqlx.DB
+
+	registered{{.id_num_type_name}}Cache *lru.ARCCache
+	deleted{{.id_num_type_name}}Cache    *lru.ARCCache
 }
 
-//var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}Server{}
+// Interface conformance assertions.
+var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}ServerBase{}
+var _ {{.pkg_name}}.{{.ref_key_type_name}}Service = &{{.service_name}}ServerBase{}
+
+func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(refKey {{.pkg_name}}.{{.ref_key_type_name}}) bool {
+	idNum := refKey.IDNum()
+
+	// Look up for the ID num in the cache.
+	if _, idRegistered := srv.registered{{.id_num_type_name}}Cache.Get(idNum); idRegistered {
+		return true
+	}
+
+	idRegistered, _, err := srv.
+		get{{.type_name}}InstanceStateByIDNum(idNum)
+	if err != nil {
+		panic(err)
+	}
+
+	if idRegistered {
+		srv.registered{{.id_num_type_name}}Cache.Add(idNum, nil)
+	}
+
+	return idRegistered
+}
+
+// Get{{.type_name}}InstanceInfo retrieves the state of an {{.type_name}} instance.
+// It includes the existence of the ID, and whether the instance
+// has been deleted.
+//
+// If it's required only to determine the existence of the ID,
+// Is{{.ref_key_type_name}}Registered is generally more efficient.
+func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceInfo(
+	callCtx {{.pkg_name}}.CallContext,
+	refKey {{.pkg_name}}.{{.ref_key_type_name}},
+) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
+	//TODO: access control
+	return srv.get{{.type_name}}InstanceInfoNoAC(callCtx, refKey)
+}
+
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoNoAC(
+	callCtx {{.pkg_name}}.CallContext,
+	refKey {{.pkg_name}}.{{.ref_key_type_name}},
+) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
+	idRegistered := false
+	idRegisteredCacheHit := false
+	instDeleted := false
+	instDeletionCacheHit := false
+
+	// Look up for the ID num in the cache.
+	if _, idRegistered = srv.registered{{.id_num_type_name}}Cache.Get(refKey); idRegistered {
+		// ID num is positively registered.
+		idRegisteredCacheHit = true
+	}
+
+	// Look up in the deletion cache
+	if _, instDeleted = srv.deleted{{.id_num_type_name}}Cache.Get(refKey); instDeleted {
+		// Instance is positively deleted
+		instDeletionCacheHit = true
+	}
+
+	if idRegisteredCacheHit && instDeletionCacheHit {
+		if !idRegistered {
+			return nil, nil
+		}
+		var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+		if instDeleted {
+			deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{Deleted: true}
+		}
+		//TODO: populate revision number
+		return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
+			Deletion: deletion,
+		}, nil
+	}
+
+	var err error
+	idRegistered, instDeleted, err = srv.
+		get{{.type_name}}InstanceStateByIDNum(refKey.IDNum())
+	if err != nil {
+		return nil, err
+	}
+
+	if !idRegisteredCacheHit && idRegistered {
+		srv.registered{{.id_num_type_name}}Cache.Add(refKey, nil)
+	}
+	if !instDeletionCacheHit && instDeleted {
+		srv.deleted{{.id_num_type_name}}Cache.Add(refKey, nil)
+	}
+
+	if !idRegistered {
+		return nil, nil
+	}
+
+	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+	if instDeleted {
+		//TODO: deletion notes. store the notes as the value in the cache
+		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{Deleted: true}
+	}
+
+	//TODO: populate revision number
+	return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
+		RevisionNumber: -1,
+		Deletion:       deletion,
+	}, nil
+}
+
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
+	idNum {{.pkg_name}}.{{.id_num_type_name}},
+) (idRegistered, instanceDeleted bool, err error) {
+	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
+		Select(
+			goqu.Case().
+				When(goqu.C("d_ts").IsNull(), false).
+				Else(true).
+				As("deleted"),
+		).
+		Where(
+			goqu.C("id").Eq(idNum.PrimitiveValue()),
+		).
+		ToSQL()
+
+	err = srv.db.
+		QueryRow(sqlString).
+		Scan(&instanceDeleted)
+	if err == sql.ErrNoRows {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, err
+	}
+
+	return true, instanceDeleted, nil
+}
 
 // Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.
 // Note that this function does not consulting any database nor registry.

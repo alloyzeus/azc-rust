@@ -2,11 +2,14 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{
-    attribute_go::AttributeContext,
-    id_num_go::IntegerIdNumContext,
-    ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
-    BaseContext, GoCodeGenerator, ImportContext,
+use crate::{
+    codegen_go::{
+        attribute_go::AttributeContext,
+        id_num_go::IntegerIdNumContext,
+        ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
+        BaseContext, GoCodeGenerator, ImportContext,
+    },
+    convert_case::{Case, Casing},
 };
 
 use azml::azml::{
@@ -56,6 +59,7 @@ impl GoCodeGenerator {
                 pkg_path: self.package_identifier.to_owned(),
                 imports: imports,
                 type_name: type_name.to_owned(),
+                type_name_snake: type_name.to_case(Case::Snake),
                 type_doc_lines: type_doc_lines.clone(),
                 id_num_type_name: id_num_type_name.to_owned(),
                 id_num_def: id_int.into(),
@@ -173,6 +177,7 @@ struct EntityContext {
     pkg_path: String,
     imports: Vec<ImportContext>,
     type_name: String,
+    type_name_snake: String,
     type_doc_lines: Vec<String>,
     id_num_type_name: String,
     id_num_def: IntegerIdNumContext,

@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate gtmpl_derive;
 
+extern crate convert_case;
+
 use std::{collections::HashMap, env, io, io::Write, process};
 
 use azml::azml::{adjunct::adjunct, compiler, entity::entity, error, module};

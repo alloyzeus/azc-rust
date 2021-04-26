@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 azml = { path = "azml" }
+convert_case = "0.4.0"
 gtmpl = "0.5"
 gtmpl_derive = "0.3"
 gtmpl_value = "0.3"
