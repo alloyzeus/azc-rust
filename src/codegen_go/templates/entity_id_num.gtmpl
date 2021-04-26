@@ -187,25 +187,4 @@ type {{.id_num_type_name}}Error interface {
 	{{.id_num_type_name}}Error()
 }
 
-// Generate{{.id_num_type_name}} generates a new {{.id_num_type_name}}.
-// Note that this function does not consulting any database nor registry.
-// This methode will not create an instance of {{.type_name}}, i.e., the
-// resulting {{.id_num_type_name}} might or might not refer to valid instance
-// of {{.type_name}}. The resulting {{.id_num_type_name}} is designed to be
-// used to create a new instance of {{.type_name}}.
-//
-// The embeddedFieldBits argument could be constructed by combining
-// {{.id_num_type_name}}*Bits constants.
-func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}}) ({{.id_num_type_name}}, error) {
-	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
-	_, err := rand.Read(idBytes)
-	if err != nil {
-		return {{.id_num_type_name}}Zero, errors.ArgWrap("", "random source reading", err)
-	}
-
-	idUint := (embeddedFieldBits & {{.id_num_type_name}}EmbeddedFieldsMask) |
-		(binary.BigEndian.U{{.id_num_def.type_name}}(idBytes) & {{.id_num_type_name}}IdentifierBitsMask)
-	return {{.id_num_type_name}}(idUint), nil
-}
-
 {{- /* TODO: (Un)MarshalText (for SQL?) */}}

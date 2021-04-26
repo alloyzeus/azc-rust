@@ -30,7 +30,7 @@ fn main() {
                 "github.com/alloyzeus/go-modules/telephony".to_owned(),
             );
 
-            let module_identifier = "github.com/alloyzeus/go-examples".to_owned();
+            let module_identifier = "github.com/kadisoka/kadisoka-framework/iam".to_owned();
 
             use codegen::CodeGenerator;
             let mut go_codegen = codegen_go::GoCodeGenerator {

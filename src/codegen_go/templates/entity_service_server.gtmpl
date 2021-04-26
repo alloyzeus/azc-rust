@@ -32,7 +32,7 @@ func (srv *{{.service_name}}Server) Observe{{.type_name}}Events(
 	return {{.pkg_name}}.{{.type_name}}EventsObserveOutput{}
 }
 
-{{if .creation.allow_cross_process_callers -}}
+{{if .lifecycle.creation.allow_cross_process_callers -}}
 
 // Create{{.type_name}} creates a new {{.type_name}}.
 //
@@ -79,8 +79,7 @@ type {{.type_name}}CreateResponseParameters struct {
 
 {{end -}}
 
-// Create{{.type_name}}Internal is for intra-process. It doesn't enforce any
-// access control.
+// Create{{.type_name}}Internal is for intra-process.
 //
 //TODO: create internal input-output as the non-internal might be not available.
 func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(

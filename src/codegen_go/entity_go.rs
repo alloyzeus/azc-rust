@@ -139,6 +139,15 @@ impl GoCodeGenerator {
             //     ""
             // );
 
+            // ServiceServer
+            render_file!(
+                format!("{}server", self.package_dir_base_name),
+                format!("{}ServerBase", service_name),
+                "templates/entity_service_server_base.gtmpl",
+                tpl_ctx,
+                ""
+            );
+
             // // ServiceServer
             // render_file!(
             //     format!("{}server", self.package_dir_base_name),

@@ -1,0 +1,39 @@
+package {{.pkg_name}}server
+
+import (
+	"crypto/rand"
+	"encoding/binary"
+
+	errors "{{.base.azcore_import}}/errors"
+
+	"{{.pkg_path}}"
+)
+
+// {{.service_name}}Serverbase is the server-side
+// base implementation for {{.service_name}}.
+type {{.service_name}}ServerBase struct {
+}
+
+//var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}Server{}
+
+// Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.
+// Note that this function does not consulting any database nor registry.
+// This method will not create an instance of {{.pkg_name}}.{{.type_name}}, i.e., the
+// resulting {{.pkg_name}}.{{.id_num_type_name}} might or might not refer to valid instance
+// of {{.pkg_name}}.{{.type_name}}. The resulting {{.pkg_name}}.{{.id_num_type_name}} is designed to be
+// used as an argument to create a new instance of {{.pkg_name}}.{{.type_name}}.
+//
+// The embeddedFieldBits argument could be constructed by combining
+// {{.pkg_name}}.{{.id_num_type_name}}*Bits constants. If none are defined,
+// use the value of 0.
+func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}}) ({{.pkg_name}}.{{.id_num_type_name}}, error) {
+	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
+	_, err := rand.Read(idBytes)
+	if err != nil {
+		return {{.pkg_name}}.{{.id_num_type_name}}Zero, errors.ArgWrap("", "random source reading", err)
+	}
+
+	idUint := (embeddedFieldBits & {{.pkg_name}}.{{.id_num_type_name}}EmbeddedFieldsMask) |
+		(binary.BigEndian.U{{.id_num_def.type_name}}(idBytes) & {{.pkg_name}}.{{.id_num_type_name}}IdentifierBitsMask)
+	return {{.pkg_name}}.{{.id_num_type_name}}(idUint), nil
+}
