@@ -9,6 +9,7 @@ import (
 	goqu "github.com/doug-martin/goqu/v9"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 
 	"{{.pkg_path}}"
 )
@@ -20,13 +21,18 @@ const {{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
 type {{.service_name}}ServerBase struct {
 	db *sqlx.DB
 
+	deletionTxHook func({{.pkg_name}}.CallContext, *sqlx.Tx) error
+
 	registered{{.id_num_type_name}}Cache *lru.ARCCache
 	deleted{{.id_num_type_name}}Cache    *lru.ARCCache
 }
 
 // Interface conformance assertions.
-var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}ServerBase{}
-var _ {{.pkg_name}}.{{.ref_key_type_name}}Service = &{{.service_name}}ServerBase{}
+var (
+	_ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}ServerBase{}
+	_ {{.pkg_name}}.{{.ref_key_type_name}}Service = &{{.service_name}}ServerBase{}
+	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.service_name}}ServerBase{}
+)
 
 func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(refKey {{.pkg_name}}.{{.ref_key_type_name}}) bool {
 	idNum := refKey.IDNum()
@@ -155,6 +161,158 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 	}
 
 	return true, instanceDeleted, nil
+}
+
+func (srv *{{.service_name}}ServerBase) Create{{.type_name}}InstanceInternal(
+	callCtx {{.pkg_name}}.CallContext,
+	input {{.pkg_name}}.{{.type_name}}InstanceCreationInput,
+) (refKey {{.pkg_name}}.{{.ref_key_type_name}}, initialState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+	//TODO: access control
+
+	refKey, err = srv.create{{.type_name}}InstanceNoAC(callCtx)
+
+	//TODO: revision number
+	return refKey, {{.pkg_name}}.{{.type_name}}InstanceInfo{RevisionNumber: -1}, err
+}
+
+func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceNoAC(
+	callCtx {{.pkg_name}}.CallContext,
+) ({{.pkg_name}}.{{.ref_key_type_name}}, error) {
+	ctxAuth := callCtx.Authorization()
+
+	const attemptNumMax = 5
+
+	var err error
+	var newInstanceIDNum {{.pkg_name}}.{{.id_num_type_name}}
+	cTime := callCtx.RequestInfo().ReceiveTime
+
+	for attemptNum := 0; ; attemptNum++ {
+		//TODO: obtain embedded fields from the argument which
+		// type is {{.pkg_name}}.{{.type_name}}InstanceCreationInput .
+		newInstanceIDNum, err = Generate{{.id_num_type_name}}(0)
+		if err != nil {
+			panic(err)
+		}
+
+		sqlString, _, _ := goqu.
+			Insert({{unexported_field .type_name}}DBTableName).
+			Rows(
+				goqu.Record{
+					"id":    newInstanceIDNum,
+					"c_ts":  cTime,
+					"c_uid": ctxAuth.UserIDNumPtr(),
+					"c_tid": ctxAuth.TerminalIDNumPtr(),
+				},
+			).
+			ToSQL()
+
+		_, err = srv.db.
+			Exec(sqlString)
+		if err == nil {
+			break
+		}
+
+		pqErr, _ := err.(*pq.Error)
+		if pqErr != nil &&
+			pqErr.Code == "23505" &&
+			pqErr.Constraint == {{unexported_field .type_name}}DBTableName+"_pkey" {
+			if attemptNum >= attemptNumMax {
+				return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), errors.Wrap("insert max attempts", err)
+			}
+			continue
+		}
+
+		return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), errors.Wrap("insert", err)
+	}
+
+	//TODO: update caches, emit an event
+
+	return {{.pkg_name}}.New{{.ref_key_type_name}}(newInstanceIDNum), nil
+}
+
+func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
+	callCtx {{.pkg_name}}.CallContext,
+	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
+) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+	if callCtx == nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil
+	}
+
+{{- /*TODO: only if it's trully implement User */}}
+{{- if eq .type_name "User"}}
+	ctxAuth := callCtx.Authorization()
+	if !ctxAuth.IsUser(toDelete) {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil //TODO: should be an error
+	}
+{{- end}}
+
+	//TODO: access control
+
+	return srv.delete{{.type_name}}InstanceNoAC(callCtx, toDelete, input)
+}
+
+func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
+	callCtx {{.pkg_name}}.CallContext,
+	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
+) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+	ctxAuth := callCtx.Authorization()
+	err = doTx(srv.db, func(dbTx *sqlx.Tx) error {
+		xres, txErr := dbTx.Exec(
+			`UPDATE `+{{unexported_field .type_name}}DBTableName+` `+
+				"SET d_ts = $1, d_uid = $2, d_tid = $3, d_notes = $4 "+
+				"WHERE id = $2 AND d_ts IS NULL",
+			callCtx.RequestInfo().ReceiveTime,
+			ctxAuth.UserIDNum().PrimitiveValue(),
+			ctxAuth.TerminalIDNum().PrimitiveValue(),
+			{{if .lifecycle.deletion.notes.enabled }}input.DeletionNotes{{else}}""{{end}})
+		if txErr != nil {
+			return txErr
+		}
+		n, txErr := xres.RowsAffected()
+		if txErr != nil {
+			return txErr
+		}
+		instanceMutated = n == 1
+
+		if srv.deletionTxHook != nil {
+			return srv.deletionTxHook(callCtx, dbTx)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
+	}
+
+	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+	if instanceMutated {
+		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+			Deleted: true,
+			{{- if .lifecycle.deletion.notes.enabled}}
+			DeletionNotes: input.DeletionNotes,
+			{{- end}}
+		}
+	} else {
+		di, err := srv.get{{.type_name}}InstanceInfoNoAC(callCtx, toDelete)
+		if err != nil {
+			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
+		}
+
+		if di != nil {
+			deletion = di.Deletion
+		}
+	}
+
+	currentState = {{.pkg_name}}.{{.type_name}}InstanceInfo{
+		RevisionNumber: -1, //TODO: get from the DB
+		Deletion:       deletion,
+	}
+
+	//TODO: update caches, emit an event if there's any changes
+
+	return instanceMutated, currentState, nil
 }
 
 // Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.
