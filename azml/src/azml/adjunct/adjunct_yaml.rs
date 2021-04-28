@@ -7,7 +7,7 @@ use crate::azml::{
         adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_value_object,
         adjunct_value_object_yaml,
     },
-    arity_yaml, yaml,
+    cardinality_yaml, yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -18,7 +18,7 @@ pub struct AdjunctYaml {
     hosts: Vec<AdjunctHostYaml>,
 
     #[serde(default)]
-    arity: arity_yaml::ArityConstraintYaml,
+    cardinality: cardinality_yaml::CardinalityConstraintYaml,
 
     parameters: yaml::Value,
 
@@ -35,7 +35,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                 let def: adjunct_entity_yaml::AdjunctEntityYaml = yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
-                    arity: x.arity.into(),
+                    cardinality: x.cardinality.into(),
                     definition: Box::new(adjunct_entity::AdjunctEntity::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
                 })
@@ -45,7 +45,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
-                    arity: x.arity.into(),
+                    cardinality: x.cardinality.into(),
                     definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
                         def.try_into()?,
                     )),

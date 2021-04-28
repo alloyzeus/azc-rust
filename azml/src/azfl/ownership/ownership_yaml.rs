@@ -3,11 +3,11 @@
 use std::{convert, convert::TryInto};
 
 use crate::azfl::ownership::ownership;
-use crate::azml::{arity, arity_yaml, error, mixin, mixin_yaml};
+use crate::azml::{cardinality, cardinality_yaml, error, mixin, mixin_yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct OwnershipYaml {
-    owner_arity: mixin_yaml::MixinFieldYaml<arity_yaml::ArityConstraintYaml>,
+    owner_cardinality: mixin_yaml::MixinFieldYaml<cardinality_yaml::CardinalityConstraintYaml>,
 }
 
 impl convert::TryFrom<OwnershipYaml> for ownership::Ownership {
@@ -15,12 +15,12 @@ impl convert::TryFrom<OwnershipYaml> for ownership::Ownership {
 
     fn try_from(x: OwnershipYaml) -> Result<Self, Self::Error> {
         //TODO: use generic TryFrom
-        let owner_arity = mixin::MixinField::<arity::ArityConstraint> {
-            overridable: x.owner_arity.overridable,
-            value: x.owner_arity.value.try_into()?,
+        let owner_cardinality = mixin::MixinField::<cardinality::CardinalityConstraint> {
+            overridable: x.owner_cardinality.overridable,
+            value: x.owner_cardinality.value.try_into()?,
         };
         Ok(ownership::Ownership {
-            owner_arity: owner_arity,
+            owner_cardinality: owner_cardinality,
         })
     }
 }

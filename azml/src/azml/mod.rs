@@ -3,10 +3,10 @@
 pub mod abstract_;
 pub mod abstract_yaml;
 pub mod adjunct;
-pub mod arity;
-pub mod arity_yaml;
 pub mod attribute;
 pub mod attribute_yaml;
+pub mod cardinality;
+pub mod cardinality_yaml;
 pub mod compiler;
 pub mod data_type;
 pub mod entity;

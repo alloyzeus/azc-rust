@@ -1,6 +1,6 @@
 //
 
-use crate::azml::{arity, symbol};
+use crate::azml::{cardinality, symbol};
 
 //region Adjunct
 
@@ -8,7 +8,7 @@ use crate::azml::{arity, symbol};
 pub struct Adjunct {
     pub hosts: Vec<AdjunctHost>,
 
-    pub arity: arity::ArityConstraint,
+    pub cardinality: cardinality::CardinalityConstraint,
 
     pub definition: Box<dyn AdjuctDefinition>,
 
@@ -64,7 +64,7 @@ mopafy!(AdjuctDefinition);
 #[derive(Clone, Debug)]
 pub struct AdjunctHost {
     pub kind: String,
-    //TODO: kind, arity, uniqueness
+    //TODO: kind, cardinality, uniqueness
 }
 
 //endregion

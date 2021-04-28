@@ -229,7 +229,7 @@ symbols:
       mixins:
         - kind: Ownership
           parameters:
-            owner_arity:
+            owner_cardinality:
               # overridable means that the configuration could be overriden
               # through, e.g., environment variables or config server.
               # RFC: should we, instead making these value here as value
@@ -245,7 +245,7 @@ symbols:
       name_is_prepared: true
       hosts:
         - kind: Application
-      arity:
+      cardinality:
         min: 0
         max: 4
       kind: entity
@@ -403,7 +403,7 @@ symbols:
           # only one instance of Session for a Terminal active at a time
           exclusive: true
         # TODO: parent session
-      arity:
+      cardinality:
         min: 0
         max: -1
       # this is a directive to expose a host of one of the hosts of this
@@ -542,7 +542,7 @@ symbols:
         # Instance methods
         methods:
           confirm:
-            # instance arity?
+            # instance cardinality?
             mutate: true
             authorization:
               - kind: oso
