@@ -131,7 +131,7 @@ impl DotNode for adjunct::Adjunct {
         identifier: String,
     ) -> Result<(), io::Error> {
         for ent in &self.hosts {
-            w.write(format!("  {} -> {}\n", identifier, ent.name).as_bytes())?;
+            w.write(format!("  {} -> {}\n", identifier, ent.kind).as_bytes())?;
         }
         Ok(())
     }

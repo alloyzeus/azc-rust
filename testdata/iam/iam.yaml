@@ -80,7 +80,7 @@ symbols:
     kind: adjunct
     parameters:
       hosts:
-        - name: User
+        - kind: User
       kind: value_object
       parameters:
         kind: telephony.PhoneNumber
@@ -244,7 +244,7 @@ symbols:
     parameters:
       name_is_prepared: true
       hosts:
-        - name: Application
+        - kind: Application
       arity:
         min: 0
         max: 4
@@ -303,8 +303,8 @@ symbols:
       kind: entity
       # At least one
       hosts:
-        - name: Application
-        - name: User
+        - kind: Application
+        - kind: User
           required: false
       # Options are 'id_num' and 'ref_key'. If it's set to 'id_num',
       # an id_num could be used to uniquely identify an instance. If it's
@@ -399,7 +399,7 @@ symbols:
       name_is_prepared: true
       kind: entity
       hosts:
-        - name: Terminal
+        - kind: Terminal
           # only one instance of Session for a Terminal active at a time
           exclusive: true
         # TODO: parent session

@@ -63,7 +63,8 @@ mopafy!(AdjuctDefinition);
 
 #[derive(Clone, Debug)]
 pub struct AdjunctHost {
-    pub name: String,
+    pub kind: String,
+    //TODO: kind, arity, uniqueness
 }
 
 //endregion

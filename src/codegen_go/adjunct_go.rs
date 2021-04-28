@@ -48,9 +48,10 @@ impl GoCodeGenerator {
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = sym.identifier.to_owned();
+        //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
             .into_iter()
-            .map(|x| x.name.to_owned())
+            .map(|x| x.kind.to_owned())
             .collect::<Vec<String>>();
         // If the adjunct is globally addressable, i.e., an instance's
         // id-num is unique system-wide, it must not derive its hosts' name
@@ -189,9 +190,10 @@ impl GoCodeGenerator {
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = sym.identifier.to_owned();
+        //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
             .into_iter()
-            .map(|x| x.name.to_owned())
+            .map(|x| x.kind.to_owned())
             .collect::<Vec<String>>();
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()

@@ -62,11 +62,11 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctHostYaml {
-    name: String,
+    kind: String,
 }
 
 impl From<AdjunctHostYaml> for adjunct::AdjunctHost {
     fn from(x: AdjunctHostYaml) -> adjunct::AdjunctHost {
-        adjunct::AdjunctHost { name: x.name }
+        adjunct::AdjunctHost { kind: x.kind }
     }
 }
