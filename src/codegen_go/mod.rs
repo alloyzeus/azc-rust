@@ -1,10 +1,10 @@
 //
 
-use std::{collections::HashMap, error, fs, io::Write};
+use std::{collections::HashMap, error, fs /*io::Write*/};
 
 use crate::codegen;
 
-use crate::codegen_go::template::render_template;
+//use crate::codegen_go::template::render_template;
 
 use azml::azml::{adjunct::adjunct, compiler, entity::entity, module, value_object::value_object};
 
@@ -87,53 +87,55 @@ impl GoCodeGenerator {
         module_name: &String,
         module_def: &module::ModuleDefinition,
     ) -> Result<(), Box<dyn error::Error>> {
-        let tpl_ctx = LibraryContext {
-            base: self.render_base_context(),
-            pkg_name: module_name.to_owned(),
-        };
+        // let tpl_ctx = LibraryContext {
+        //     base: self.render_base_context(),
+        //     pkg_name: module_name.to_owned(),
+        // };
 
         let target_dir = &self.package_dir_base_name;
-        let filename_prefix = self.azlib_prefix.to_lowercase();
+        fs::create_dir_all(target_dir)?;
 
-        render_file!(
-            target_dir,
-            format!("{}_service", filename_prefix),
-            "templates/azlib_service.gtmpl",
-            tpl_ctx,
-            ""
-        );
+        // let filename_prefix = self.azlib_prefix.to_lowercase();
 
-        render_file!(
-            target_dir,
-            format!("{}_entity", filename_prefix),
-            "templates/azlib_entity.gtmpl",
-            tpl_ctx,
-            ""
-        );
+        // render_file!(
+        //     target_dir,
+        //     format!("{}_service", filename_prefix),
+        //     "templates/azlib_service.gtmpl",
+        //     tpl_ctx,
+        //     ""
+        // );
 
-        render_file!(
-            target_dir,
-            format!("{}_entity_service_client", filename_prefix),
-            "templates/azlib_entity_service_client.gtmpl",
-            tpl_ctx,
-            ""
-        );
+        // render_file!(
+        //     target_dir,
+        //     format!("{}_entity", filename_prefix),
+        //     "templates/azlib_entity.gtmpl",
+        //     tpl_ctx,
+        //     ""
+        // );
 
-        render_file!(
-            target_dir,
-            format!("{}_entity_service_server", filename_prefix),
-            "templates/azlib_entity_service_server.gtmpl",
-            tpl_ctx,
-            ""
-        );
+        // render_file!(
+        //     target_dir,
+        //     format!("{}_entity_service_client", filename_prefix),
+        //     "templates/azlib_entity_service_client.gtmpl",
+        //     tpl_ctx,
+        //     ""
+        // );
 
-        render_file!(
-            target_dir,
-            format!("{}_adjunct", filename_prefix),
-            "templates/azlib_adjunct.gtmpl",
-            tpl_ctx,
-            ""
-        );
+        // render_file!(
+        //     target_dir,
+        //     format!("{}_entity_service_server", filename_prefix),
+        //     "templates/azlib_entity_service_server.gtmpl",
+        //     tpl_ctx,
+        //     ""
+        // );
+
+        // render_file!(
+        //     target_dir,
+        //     format!("{}_adjunct", filename_prefix),
+        //     "templates/azlib_adjunct.gtmpl",
+        //     tpl_ctx,
+        //     ""
+        // );
 
         for symbol in &module_def.symbols {
             let params = &symbol.definition;
@@ -180,6 +182,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 &compilation_state.entry_module,
                 &module::ModuleDefinition {
                     symbols: entry_module.symbols.to_vec(),
+                    options: entry_module.options.clone(),
                 },
             ),
             _ => Err(Box::new(azml::azml::Error::Msg(

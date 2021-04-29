@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, convert::TryFrom, fs, io, path};
 
-use crate::azml::{entity::entity, module, result, source_file, source_file_yaml, yaml};
+use super::{entity::entity, module, result, source_file, source_file_yaml, yaml};
 
 #[derive(Clone, Debug)]
 pub struct CompilationState {
@@ -43,6 +43,7 @@ impl Compiler {
             sf.module.to_owned(),
             module::ModuleDefinition {
                 symbols: sf.symbols.to_vec(),
+                options: sf.options.clone(),
             },
         );
 

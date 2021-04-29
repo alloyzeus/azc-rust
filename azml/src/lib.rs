@@ -3,7 +3,6 @@
 #[macro_use]
 extern crate mopa;
 
-pub mod azfl;
 pub mod azml;
 
 #[cfg(test)]

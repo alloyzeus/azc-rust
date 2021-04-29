@@ -1,14 +1,16 @@
 //
 
-use std::{convert::TryFrom, fs, io, path};
+use std::{collections::HashMap, convert::TryFrom, fs, io, path};
 
-use crate::azml::{result, source_file_yaml, symbol, yaml};
+use super::{result, source_file_yaml, symbol, yaml};
 
 #[derive(Debug)]
 pub struct SourceFile {
     pub module: String,
 
     pub symbols: Vec<symbol::Symbol>,
+
+    pub options: HashMap<String, String>,
 }
 
 pub fn load_from_file<P: AsRef<path::Path>>(path: P) -> result::Result<SourceFile> {

@@ -13,7 +13,10 @@ use crate::{
 };
 
 use azml::azml::{
-    entity::{entity, entity_id_num_integer},
+    entity::{
+        entity, entity_id_num_integer,
+        lifecycle::{creation::creation, deletion::deletion, lifecycle},
+    },
     symbol,
 };
 
@@ -197,8 +200,8 @@ struct EntityLifecycleContext {
     deletion: EntityDeletionContext,
 }
 
-impl From<&entity::EntityLifecycle> for EntityLifecycleContext {
-    fn from(s: &entity::EntityLifecycle) -> EntityLifecycleContext {
+impl From<&lifecycle::Lifecycle> for EntityLifecycleContext {
+    fn from(s: &lifecycle::Lifecycle) -> EntityLifecycleContext {
         EntityLifecycleContext {
             creation: (&s.creation).into(),
             deletion: (&s.deletion).into(),
@@ -211,8 +214,8 @@ struct EntityCreationContext {
     allow_cross_process_callers: bool,
 }
 
-impl From<&entity::EntityCreation> for EntityCreationContext {
-    fn from(s: &entity::EntityCreation) -> EntityCreationContext {
+impl From<&creation::Creation> for EntityCreationContext {
+    fn from(s: &creation::Creation) -> EntityCreationContext {
         EntityCreationContext {
             allow_cross_process_callers: s.allow_cross_process_callers,
         }
@@ -225,8 +228,8 @@ struct EntityDeletionContext {
     notes: EntityDeletionNotesContext,
 }
 
-impl From<&entity::EntityDeletion> for EntityDeletionContext {
-    fn from(s: &entity::EntityDeletion) -> EntityDeletionContext {
+impl From<&deletion::Deletion> for EntityDeletionContext {
+    fn from(s: &deletion::Deletion) -> EntityDeletionContext {
         EntityDeletionContext {
             enabled: s.enabled,
             notes: (&s.notes).into(),
@@ -240,8 +243,8 @@ struct EntityDeletionNotesContext {
     required: bool,
 }
 
-impl From<&entity::EntityDeletionNotes> for EntityDeletionNotesContext {
-    fn from(s: &entity::EntityDeletionNotes) -> EntityDeletionNotesContext {
+impl From<&deletion::DeletionNotes> for EntityDeletionNotesContext {
+    fn from(s: &deletion::DeletionNotes) -> EntityDeletionNotesContext {
         EntityDeletionNotesContext {
             enabled: s.enabled,
             required: s.required,

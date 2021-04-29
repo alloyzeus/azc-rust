@@ -68,3 +68,12 @@ pub struct AdjunctHost {
 }
 
 //endregion
+
+#[derive(Clone, Debug)]
+pub struct AdjunctNone {}
+
+impl AdjuctDefinition for AdjunctNone {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+        Vec::new()
+    }
+}

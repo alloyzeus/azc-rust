@@ -2,12 +2,12 @@
 
 use std::convert::{self, TryInto};
 
-use crate::{
-    azfl::{
-        deletion::{deletion, deletion_yaml},
+use super::{
+    entity::{
+        lifecycle::deletion::{deletion, deletion_yaml},
         ownership::{ownership, ownership_yaml},
     },
-    azml::{mixin, yaml},
+    mixin, yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]

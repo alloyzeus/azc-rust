@@ -9,6 +9,8 @@ use crate::azml::{abstract_, adjunct::adjunct, attribute, id_num, ref_key, symbo
 
 //region AdjunctEntity
 
+//TODO: cardinality
+
 #[derive(Clone, Debug)]
 pub struct AdjunctEntity {
     pub ordering: AdjunctEntityOrdering,

@@ -2,12 +2,10 @@
 
 use std::{convert, convert::TryInto};
 
-use crate::azml::{
-    adjunct::{
-        adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_value_object,
-        adjunct_value_object_yaml,
-    },
-    cardinality_yaml, yaml,
+use crate::azml::{cardinality_yaml, yaml};
+
+use super::{
+    adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_value_object, adjunct_value_object_yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -31,6 +29,18 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
 
     fn try_from(x: AdjunctYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
+            "" => Ok(adjunct::Adjunct {
+                hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                cardinality: x.cardinality.into(),
+                definition: Box::new(adjunct::AdjunctNone {}),
+                name_is_prepared: x.name_is_prepared,
+            }),
+            "none" => Ok(adjunct::Adjunct {
+                hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                cardinality: x.cardinality.into(),
+                definition: Box::new(adjunct::AdjunctNone {}),
+                name_is_prepared: x.name_is_prepared,
+            }),
             "entity" => {
                 let def: adjunct_entity_yaml::AdjunctEntityYaml = yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
@@ -68,5 +78,16 @@ pub struct AdjunctHostYaml {
 impl From<AdjunctHostYaml> for adjunct::AdjunctHost {
     fn from(x: AdjunctHostYaml) -> adjunct::AdjunctHost {
         adjunct::AdjunctHost { kind: x.kind }
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct AdjunctNoneYaml {}
+
+impl convert::TryFrom<AdjunctNoneYaml> for adjunct::AdjunctNone {
+    type Error = yaml::Error;
+
+    fn try_from(_x: AdjunctNoneYaml) -> Result<Self, Self::Error> {
+        Ok(adjunct::AdjunctNone {})
     }
 }

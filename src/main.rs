@@ -7,7 +7,12 @@ extern crate convert_case;
 
 use std::{collections::HashMap, env, io, io::Write, process};
 
-use azml::azml::{adjunct::adjunct, compiler, entity::entity, error, module};
+use azml::azml::{
+    adjunct::{adjunct, adjunct_entity},
+    compiler,
+    entity::entity,
+    error, module,
+};
 
 mod codegen;
 mod codegen_go;
@@ -32,7 +37,7 @@ fn main() {
                 "github.com/alloyzeus/go-modules/telephony".to_owned(),
             );
 
-            let module_identifier = "github.com/kadisoka/kadisoka-framework/iam".to_owned();
+            let module_identifier = "".to_owned();
 
             use codegen::CodeGenerator;
             let mut go_codegen = codegen_go::GoCodeGenerator {
@@ -65,6 +70,10 @@ fn main() {
                     )
                     .unwrap();
                     io::stdout().write_all(buf.buffer()).unwrap();
+
+                    if let Some(go_pkg) = entry_module.options.get("go_package") {
+                        go_codegen.module_identifier = go_pkg.to_owned();
+                    }
                 }
                 _ => panic!("No entry module"),
             }
@@ -122,7 +131,26 @@ impl DotNode for adjunct::Adjunct {
         w: &mut impl io::Write,
         identifier: String,
     ) -> Result<(), io::Error> {
-        w.write(format!("  {} [shape=ellipse]\n", identifier).as_bytes())?;
+        if let Some(_) = self
+            .definition
+            .downcast_ref::<adjunct_entity::AdjunctEntity>()
+        {
+            w.write(
+                format!(
+                    "  {} [shape=ellipse style=filled color=lightskyblue1]\n",
+                    identifier
+                )
+                .as_bytes(),
+            )?;
+        } else {
+            w.write(
+                format!(
+                    "  {} [shape=ellipse style=filled color=darkolivegreen1]\n",
+                    identifier
+                )
+                .as_bytes(),
+            )?;
+        }
         Ok(())
     }
     fn write_dot_relationships(
@@ -131,7 +159,18 @@ impl DotNode for adjunct::Adjunct {
         identifier: String,
     ) -> Result<(), io::Error> {
         for ent in &self.hosts {
-            w.write(format!("  {} -> {}\n", identifier, ent.kind).as_bytes())?;
+            w.write(
+                format!(
+                    "  {} -> {}\n",
+                    identifier,
+                    if ent.kind.contains(".") {
+                        format!("\"{}\"", ent.kind)
+                    } else {
+                        ent.kind.to_owned()
+                    }
+                )
+                .as_bytes(),
+            )?;
         }
         Ok(())
     }
@@ -143,7 +182,13 @@ impl DotNode for entity::Entity {
         w: &mut impl io::Write,
         identifier: String,
     ) -> Result<(), io::Error> {
-        w.write(format!("  {} [shape=rect]\n", identifier).as_bytes())?;
+        w.write(
+            format!(
+                "  {} [shape=rect color=lightskyblue1 style=filled]\n",
+                identifier
+            )
+            .as_bytes(),
+        )?;
         Ok(())
     }
     fn write_dot_relationships(
