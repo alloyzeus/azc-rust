@@ -1,6 +1,6 @@
 //
 
-use azml::azml::id_num;
+use azml::azml::id::id_num;
 
 //region IntegerIdNumContext
 

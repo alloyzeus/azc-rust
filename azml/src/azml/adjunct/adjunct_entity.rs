@@ -5,7 +5,13 @@ use std::{
     result,
 };
 
-use crate::azml::{abstract_, adjunct::adjunct, attribute, id_num, ref_key, symbol};
+use crate::azml::{
+    abstract_,
+    adjunct::adjunct,
+    attribute,
+    id::{id_num, ref_key},
+    symbol,
+};
 
 //region AdjunctEntity
 

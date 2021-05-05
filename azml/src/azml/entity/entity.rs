@@ -1,6 +1,6 @@
 //
 
-use crate::azml::{abstract_, attribute, mixin, ref_key, symbol};
+use crate::azml::{abstract_, attribute, id::ref_key, mixin, symbol};
 
 use super::{entity_id_num, lifecycle::lifecycle};
 

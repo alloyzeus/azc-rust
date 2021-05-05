@@ -2,7 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{id_num, yaml};
+use crate::azml::{id::id_num, yaml};
 
 //region IntegerIdNumYaml
 

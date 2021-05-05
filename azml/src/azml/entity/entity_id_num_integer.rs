@@ -2,7 +2,7 @@
 
 use crate::azml::symbol;
 
-use crate::azml::{entity::entity_id_num, id_num};
+use crate::azml::{entity::entity_id_num, id::id_num};
 
 pub type EntityIdNumInteger = id_num::IntegerIdNum;
 
