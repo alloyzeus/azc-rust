@@ -5,6 +5,30 @@ use std::convert::{self, TryInto};
 use crate::azml::{abstract_, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
+pub struct AbstractYaml {
+    #[serde(default)]
+    documentation: String,
+}
+
+impl convert::TryFrom<AbstractYaml> for abstract_::Abstract {
+    type Error = yaml::Error;
+
+    fn try_from(x: AbstractYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
+impl convert::TryFrom<&AbstractYaml> for abstract_::Abstract {
+    type Error = yaml::Error;
+
+    fn try_from(x: &AbstractYaml) -> Result<Self, Self::Error> {
+        Ok(abstract_::Abstract {
+            documentation: x.documentation.to_owned(),
+        })
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct AbstractImplementationYaml {
     kind: String,
 

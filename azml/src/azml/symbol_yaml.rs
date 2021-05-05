@@ -3,6 +3,7 @@
 use std::convert;
 
 use crate::azml::{
+    abstract_, abstract_yaml,
     adjunct::{adjunct, adjunct_yaml},
     entity::{entity, entity_yaml},
     symbol,
@@ -47,6 +48,14 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
                 Ok(symbol::Symbol {
                     identifier: x.identifier,
                     definition: Box::new(value_object::ValueObject::try_from(def)?),
+                    documentation: x.documentation,
+                })
+            }
+            "abstract" => {
+                let def: abstract_yaml::AbstractYaml = yaml::from_value(x.parameters)?;
+                Ok(symbol::Symbol {
+                    identifier: x.identifier,
+                    definition: Box::new(abstract_::Abstract::try_from(def)?),
                     documentation: x.documentation,
                 })
             }
