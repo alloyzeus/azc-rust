@@ -12,21 +12,19 @@ pub struct RefKeyYaml {
     pub azid_text: RefKeyAzidTextYaml,
 }
 
-// impl convert::TryFrom<&RefKeyYaml> for ref_key::RefKey {
-//     type Error = yaml::Error;
-//     fn try_from(x: &RefKeyYaml) -> Result<Self, Self::Error> {
-//         Ok(ref_key::RefKey {
-//             azid_text: x.azid_text.try_into()?,
-//         })
-//     }
-// }
+impl convert::TryFrom<&RefKeyYaml> for ref_key::RefKey {
+    type Error = yaml::Error;
+    fn try_from(x: &RefKeyYaml) -> Result<Self, Self::Error> {
+        Ok(ref_key::RefKey {
+            azid_text: (&x.azid_text).try_into()?,
+        })
+    }
+}
 
 impl convert::TryFrom<RefKeyYaml> for ref_key::RefKey {
     type Error = yaml::Error;
     fn try_from(x: RefKeyYaml) -> Result<Self, Self::Error> {
-        Ok(ref_key::RefKey {
-            azid_text: x.azid_text.try_into()?,
-        })
+        (&x).try_into()
     }
 }
 

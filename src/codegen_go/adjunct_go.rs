@@ -65,7 +65,7 @@ impl GoCodeGenerator {
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
-        let id_num_def = &adj_ent.id_num.definition;
+        let id_num_def = &adj_ent.id.num.definition;
 
         if let Some(id_int) = id_num_def.downcast_ref::<adjunct_entity::AdjunctEntityIdNumInteger>()
         {
@@ -106,10 +106,10 @@ impl GoCodeGenerator {
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
                     azid_text: RefKeyAzidTextContext {
-                        prefix: if adj_ent.ref_key.azid_text.prefix.is_empty() {
+                        prefix: if adj_ent.id.ref_key.azid_text.prefix.is_empty() {
                             type_name.to_owned()
                         } else {
-                            adj_ent.ref_key.azid_text.prefix.to_owned()
+                            adj_ent.id.ref_key.azid_text.prefix.to_owned()
                         },
                     },
                 },

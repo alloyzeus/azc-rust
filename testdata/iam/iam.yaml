@@ -18,44 +18,45 @@ symbols:
       # control.
       implements:
         kind: User
-      id_num:
-        # Only signed integer is supported for the highest compatibility with
-        # various languages and systems.
-        kind: integer
-        parameters:
-          # Only identifier_bits is required, but here, we also define the
-          # value of total_bits.
-          #
-          # This field is used to ensure that the IDs fit in the stated value;
-          # the compiler will return error if the IDs doesn't fit in
-          # total_bits.
-          #
-          # Valid value is any of 16 (analogous to int16_t in C/C++,
-          # smallint in SQL), 32 (analogous to int32_t in C/C++,
-          # int in SQL) and 64 (analogous to int64_t in C/C++, bigint in SQL).
-          #
-          # If not provided, total_bits will be determined by picking the
-          # option value a step larger than the value provided to
-          # identifier_bits.
-          total_bits: 64
-          # Max 63
-          identifier_bits: 48
-          bitfield:
-            sub_fields:
-              - size: 1
-                identifier: Bot
-                documentation: |
-                  Bot account is ....
-        generator:
-          # Other options: ShardedRandomIntegerGenerator
-          # The option for generator is defined by the registered generators
-          # to the compiler.
-          # Root entities can only use random generators.
-          name: LocalRandomIntegerIDGenerator
+      id:
+        num:
+          # Only signed integer is supported for the highest compatibility with
+          # various languages and systems.
+          kind: integer
           parameters:
-      ref_key:
-        azid_text:
-          prefix: "KUs0"
+            # Only identifier_bits is required, but here, we also define the
+            # value of total_bits.
+            #
+            # This field is used to ensure that the IDs fit in the stated value;
+            # the compiler will return error if the IDs doesn't fit in
+            # total_bits.
+            #
+            # Valid value is any of 16 (analogous to int16_t in C/C++,
+            # smallint in SQL), 32 (analogous to int32_t in C/C++,
+            # int in SQL) and 64 (analogous to int64_t in C/C++, bigint in SQL).
+            #
+            # If not provided, total_bits will be determined by picking the
+            # option value a step larger than the value provided to
+            # identifier_bits.
+            total_bits: 64
+            # Max 63
+            identifier_bits: 48
+            bitfield:
+              sub_fields:
+                - size: 1
+                  identifier: Bot
+                  documentation: |
+                    Bot account is ....
+          generator:
+            # Other options: ShardedRandomIntegerGenerator
+            # The option for generator is defined by the registered generators
+            # to the compiler.
+            # Root entities can only use random generators.
+            name: LocalRandomIntegerIDGenerator
+            parameters:
+        ref_key:
+          azid_text:
+            prefix: "KUs0"
       lifecycle:
         # Declares the creation rules. This defines how and who can create
         # an instance.
@@ -97,134 +98,135 @@ symbols:
     parameters:
       # TODO: encode application type into the ID. we will then use
       # the same method to encode the type into Terminal ID.
-      id_num:
-        kind: integer
-        parameters:
-          total_bits: 32
-          #TODO: reserve range?
-          #
-          # How this will be laid out:
-          #
-          # 0b00000000000000000000000000000000
-          #   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-          #   ||||||||||||||||||||||||||||||||
-          #   ||||||++++++++++++++++++++++++++- identifier (index 0-25)
-          #   ||||++- reserved 
-          #   |||+--- depends on index 29 (index 28)
-          #   ||+---- Service/UserAgent (index 29)
-          #   |+----- IsFirstParty (index 30)
-          #   +------ reserved for 32bit integer
-          identifier_bits: 26
-          # Bitfield is used to embed limited information to the IDs. This
-          # information will be part of the identity of an instance;
-          # information can not be changed without changing the identity of
-          # the instance.
-          #
-          # NOTE: changing the schema of bitfields is naturally more
-          # difficult than changing the value of entity attributes or adjuncts.
-          # Use bitfield only if the information is part of the identity of each
-          # instance and for optimization of a well-defined, stable
-          # practice.
-          #
-          # An example use case for bitfield is to allow resource servers to
-          # quickly determine if an access will be allowed or not based on the
-          # type of the application embedded into the ID of the application
-          # which made the request. By quickly here we mean that this check
-          # doesn't required to get this type information from the
-          # database. The limitation in this use case is that the type of the
-          # application can not be changed without changing the
-          # identity of the application.
-          #
-          # If we have 26bit identifier, and we want the whole ID num to fit
-          # in 32bit integers, first, we substract it by 1 (for ensuring it
-          # fits in 32bit signed integers), then substract it with the length
-          # of identifier bits, in this case 26. So it will be: 32 - 1 - 26 = 5.
-          # Five is the maximum size of the bitfield if we have 26bit
-          # identifier and we want it to fit in 32bit integers.
-          #
-          # For this particular case, we embed some information to the
-          # IDs to help services handle requests from the applications
-          # based on these information without requiring them to hit the
-          # database or contacting the service responsible for defining these
-          # information.
-          bitfield:
-            # The size of the bitfield, i.e., the number of bits we reserve for
-            # this bitfield. This field is optional as the compiler will
-            # infer this value by substracting total_bits with
-            # identifier_bits.
-            size: 5
-            sub_fields:
-              - size: 1
-                identifier: FirstParty
-                documentation: |
-                  FirstParty indicates that the application is a first-party
-                  application, i.e., the application was provided by the realm.
+      id:
+        num:
+          kind: integer
+          parameters:
+            total_bits: 32
+            #TODO: reserve range?
+            #
+            # How this will be laid out:
+            #
+            # 0b00000000000000000000000000000000
+            #   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            #   ||||||||||||||||||||||||||||||||
+            #   ||||||++++++++++++++++++++++++++- identifier (index 0-25)
+            #   ||||++- reserved 
+            #   |||+--- depends on index 29 (index 28)
+            #   ||+---- Service/UserAgent (index 29)
+            #   |+----- IsFirstParty (index 30)
+            #   +------ reserved for 32bit integer
+            identifier_bits: 26
+            # Bitfield is used to embed limited information to the IDs. This
+            # information will be part of the identity of an instance;
+            # information can not be changed without changing the identity of
+            # the instance.
+            #
+            # NOTE: changing the schema of bitfields is naturally more
+            # difficult than changing the value of entity attributes or adjuncts.
+            # Use bitfield only if the information is part of the identity of each
+            # instance and for optimization of a well-defined, stable
+            # practice.
+            #
+            # An example use case for bitfield is to allow resource servers to
+            # quickly determine if an access will be allowed or not based on the
+            # type of the application embedded into the ID of the application
+            # which made the request. By quickly here we mean that this check
+            # doesn't required to get this type information from the
+            # database. The limitation in this use case is that the type of the
+            # application can not be changed without changing the
+            # identity of the application.
+            #
+            # If we have 26bit identifier, and we want the whole ID num to fit
+            # in 32bit integers, first, we substract it by 1 (for ensuring it
+            # fits in 32bit signed integers), then substract it with the length
+            # of identifier bits, in this case 26. So it will be: 32 - 1 - 26 = 5.
+            # Five is the maximum size of the bitfield if we have 26bit
+            # identifier and we want it to fit in 32bit integers.
+            #
+            # For this particular case, we embed some information to the
+            # IDs to help services handle requests from the applications
+            # based on these information without requiring them to hit the
+            # database or contacting the service responsible for defining these
+            # information.
+            bitfield:
+              # The size of the bitfield, i.e., the number of bits we reserve for
+              # this bitfield. This field is optional as the compiler will
+              # infer this value by substracting total_bits with
+              # identifier_bits.
+              size: 5
+              sub_fields:
+                - size: 1
+                  identifier: FirstParty
+                  documentation: |
+                    FirstParty indicates that the application is a first-party
+                    application, i.e., the application was provided by the realm.
 
-                  First-party applications, in contrast to third party
-                  applications, are those of official applications, officially
-                  supported public applications, and internal-use only
-                  applications.
+                    First-party applications, in contrast to third party
+                    applications, are those of official applications, officially
+                    supported public applications, and internal-use only
+                    applications.
 
-                  First-party applications could be in various forms, e.g.,
-                  official mobile app, web app, or system dashboard.
-              - size: 1
-                identifier: Agency
-                documentation: |
-                  Application is divided into two types based on their agency:
-                  service and user agent.
-                values:
-                  - identifier: Service
-                    documentation: |
-                      A service application is an application which does not
-                      represent user. Note that this is different from, e.g.,
-                      bot, where it's a specialization of User; a bot is a User.
+                    First-party applications could be in various forms, e.g.,
+                    official mobile app, web app, or system dashboard.
+                - size: 1
+                  identifier: Agency
+                  documentation: |
+                    Application is divided into two types based on their agency:
+                    service and user agent.
+                  values:
+                    - identifier: Service
+                      documentation: |
+                        A service application is an application which does not
+                        represent user. Note that this is different from, e.g.,
+                        bot, where it's a specialization of User; a bot is a User.
 
-                      All service applications are confidential OAuth 2.0
-                      clients (RFC6749 section 2.1).
-                  - identifier: UserAgent
-                    documentation: |
-                      A user-agent application is an application which represents
-                      the user it got authorized by.
+                        All service applications are confidential OAuth 2.0
+                        clients (RFC6749 section 2.1).
+                    - identifier: UserAgent
+                      documentation: |
+                        A user-agent application is an application which represents
+                        the user it got authorized by.
 
-                      There are two types of user agent based on the flow they use
-                      to obtain authorization: public and confidential.
-                      These types align with OAuth 2.0 client types (RFC6749
-                      section 2.1).
-                    sub_fields:
-                      - size: 1
-                        identifier: Authorization
-                        documentation: |
-                          User-agent applications is divided into two types
-                          based on how can they secure the credentials: public
-                          and confidential. This
-                          differentiation affects how strongly the system
-                          identifies the application.
-                        values:
-                          - identifier: AuthorizationPublic
-                            documentation: |
-                              A public-authorization user-agent application is an
-                              application which can be used by users to authenticate
-                              themselves to the system. The application will automatically
-                              receive authorization upon successful authentication of
-                              the user.
-                              
-                              A public-authorization user-agent credentials should
-                              never be assumed to be secure, i.e., it can not securely
-                              authenticate itself. An authorized application of this
-                              kind has no strong identity. Access control checks should
-                              be focused on testing the user's claims and less of the
-                              application's claims.
-                          - identifier: AuthorizationConfidential
-                            documentation: |
-                              A confidential-authorization user-agent application
-                              is a user-agent application which could receive authorization
-                              from a consenting user through 3-legged authorization flow.
-                              A confidential user-agent can not be used for directly
-                              performing user authentication.
-            #TODO: copied sub_fields
-      ref_key:
-        azid_text:
-          prefix: KAp0
+                        There are two types of user agent based on the flow they use
+                        to obtain authorization: public and confidential.
+                        These types align with OAuth 2.0 client types (RFC6749
+                        section 2.1).
+                      sub_fields:
+                        - size: 1
+                          identifier: Authorization
+                          documentation: |
+                            User-agent applications is divided into two types
+                            based on how can they secure the credentials: public
+                            and confidential. This
+                            differentiation affects how strongly the system
+                            identifies the application.
+                          values:
+                            - identifier: AuthorizationPublic
+                              documentation: |
+                                A public-authorization user-agent application is an
+                                application which can be used by users to authenticate
+                                themselves to the system. The application will automatically
+                                receive authorization upon successful authentication of
+                                the user.
+                                
+                                A public-authorization user-agent credentials should
+                                never be assumed to be secure, i.e., it can not securely
+                                authenticate itself. An authorized application of this
+                                kind has no strong identity. Access control checks should
+                                be focused on testing the user's claims and less of the
+                                application's claims.
+                            - identifier: AuthorizationConfidential
+                              documentation: |
+                                A confidential-authorization user-agent application
+                                is a user-agent application which could receive authorization
+                                from a consenting user through 3-legged authorization flow.
+                                A confidential user-agent can not be used for directly
+                                performing user authentication.
+              #TODO: copied sub_fields
+        ref_key:
+          azid_text:
+            prefix: KAp0
       lifecycle:
         creation:
           allow_cross_process_callers: true
@@ -254,31 +256,32 @@ symbols:
         min: 0
         max: 4
       parameters:
-        id_num:
-          kind: integer
-          parameters:
-            total_bits: 64
-            identifier_bits: 56
-            bitfield:
-              # An adjunct can inherit its hosts' bitfields.
-              # This is similar to entity ID, but instead of encode own
-              # attributes, we encode host's attributes.
-              #
-              # For this specific case, we want to able to quickly determine
-              # some of the Application's attributes based on information
-              # embedded in this access key ID without the need
-              # to fetch the complete data of the Application.
-              inherits:
-                - host: 0
-                  # The size of the inherited bitfield from this host. This
-                  # value must be exactly same as host's. This is required
-                  # for ensuring consistency.
-                  size: 5
+        id:
+          num:
+            kind: integer
+            parameters:
+              total_bits: 64
+              identifier_bits: 56
+              bitfield:
+                # An adjunct can inherit its hosts' bitfields.
+                # This is similar to entity ID, but instead of encode own
+                # attributes, we encode host's attributes.
+                #
+                # For this specific case, we want to able to quickly determine
+                # some of the Application's attributes based on information
+                # embedded in this access key ID without the need
+                # to fetch the complete data of the Application.
+                inherits:
+                  - host: 0
+                    # The size of the inherited bitfield from this host. This
+                    # value must be exactly same as host's. This is required
+                    # for ensuring consistency.
+                    size: 5
 
-        ref_key:
-          azid_text:
-            prefix: "KAK0"
-              
+          ref_key:
+            azid_text:
+              prefix: "KAK0"
+
         attributes:
           - identifier: Secret
             kind: ApplicationAccessKeySecret
@@ -321,27 +324,25 @@ symbols:
       parameters:
         implements:
           kind: Terminal
-        #TODO: rules for ref-key validity.
-        # if the application has the type of user-agent, the user field
-        # must be valid. if the application has the type of service, the user
-        # field must be zero.
-        ref_key:
-          azid_text:
-            prefix: "KTx0"
-        #TODO: we want the ID to be unique without putting it in a composite
-        # with the hosts, but we don't want to make this adjunct-entity
-        # scoped globally.
-        id_num:
-          kind: integer
-          parameters:
-            total_bits: 64
-            identifier_bits: 56
-            bitfield:
-              inherits:
-                - host: 0
-                  size: 5
-            generator:
-              name: RandomLocal
+        id:
+          #TODO: rules for ref-key validity.
+          # if the application has the type of user-agent, the user field
+          # must be valid. if the application has the type of service, the user
+          # field must be zero.
+          ref_key:
+            azid_text:
+              prefix: "KTx0"
+          num:
+            kind: integer
+            parameters:
+              total_bits: 64
+              identifier_bits: 56
+              bitfield:
+                inherits:
+                  - host: 0
+                    size: 5
+              generator:
+                name: RandomLocal
         attributes:
           - identifier: RegistrationIdentifier
             # TODO: union or interface
@@ -421,18 +422,15 @@ symbols:
       parameters:
         implements:
           kind: Session
-        # a flag to indicate that a session is scoped within its host entities.
-        # An instance of local adjunct entity might have a same id_num with other
-        # instance under different hosts.
-        scope: local
-        id_num:
-          kind: integer
-          parameters:
-            total_bits: 32
-            identifier_bits: 24
-        ref_key:
-          azid_text:
-            prefix: "KSe0"
+        id:
+          num:
+            kind: integer
+            parameters:
+              total_bits: 32
+              identifier_bits: 24
+          ref_key:
+            azid_text:
+              prefix: "KSe0"
         service:
           enabled: true
           description: |
@@ -479,11 +477,12 @@ symbols:
       substrate:
         product:
           kind: Terminal
-      id_num:
-        kind: integer
-        parameters:
-          total_bits: 64
-          identifier_bits: 48
+      id:
+        num:
+          kind: integer
+          parameters:
+            total_bits: 64
+            identifier_bits: 48
       mixins:
         - kind: Deletion
           parameters:

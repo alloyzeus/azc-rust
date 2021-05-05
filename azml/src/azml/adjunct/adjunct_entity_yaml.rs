@@ -14,13 +14,10 @@ use crate::azml::{
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctEntityYaml {
+    id: AdjunctEntityIdYaml,
+
     #[serde(default)]
     ordering: String,
-
-    id_num: AdjunctEntityIdNumYaml,
-
-    #[serde(default)]
-    ref_key: ref_key_yaml::RefKeyYaml,
 
     #[serde(default)]
     implements: abstract_yaml::AbstractImplementationYaml,
@@ -37,9 +34,8 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
 
     fn try_from(x: AdjunctEntityYaml) -> Result<Self, Self::Error> {
         Ok(adjunct_entity::AdjunctEntity {
+            id: x.id.try_into()?,
             ordering: x.ordering.try_into()?,
-            id_num: x.id_num.try_into()?,
-            ref_key: x.ref_key.try_into()?,
             implements: x.implements.try_into()?,
             scope: x.scope.try_into()?,
             attributes: x
@@ -54,21 +50,49 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
 //----
 
 #[derive(serde::Deserialize, serde::Serialize)]
+pub struct AdjunctEntityIdYaml {
+    pub num: AdjunctEntityIdNumYaml,
+    pub ref_key: ref_key_yaml::RefKeyYaml,
+}
+
+impl convert::TryFrom<&AdjunctEntityIdYaml> for adjunct_entity::AdjunctEntityId {
+    type Error = yaml::Error;
+
+    fn try_from(x: &AdjunctEntityIdYaml) -> Result<Self, Self::Error> {
+        Ok(adjunct_entity::AdjunctEntityId {
+            num: (&x.num).try_into()?,
+            ref_key: (&x.ref_key).try_into()?,
+        })
+    }
+}
+
+impl convert::TryFrom<AdjunctEntityIdYaml> for adjunct_entity::AdjunctEntityId {
+    type Error = yaml::Error;
+
+    fn try_from(x: AdjunctEntityIdYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
+//----
+
+#[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctEntityIdNumYaml {
     pub kind: String,
     pub parameters: yaml::Value,
 }
 
-impl convert::TryFrom<AdjunctEntityIdNumYaml> for adjunct_entity::AdjunctEntityIdNum {
+impl convert::TryFrom<&AdjunctEntityIdNumYaml> for adjunct_entity::AdjunctEntityIdNum {
     type Error = yaml::Error;
 
-    fn try_from(x: AdjunctEntityIdNumYaml) -> Result<Self, Self::Error> {
+    fn try_from(x: &AdjunctEntityIdNumYaml) -> Result<Self, Self::Error> {
         if x.parameters.is_null() {
             Err(yaml::Error::Msg("Missing definition parameters".to_owned()))
         } else {
             match x.kind.as_str() {
                 "integer" => {
-                    let def: AdjunctEntityIdNumIntegerYaml = yaml::from_value(x.parameters)?;
+                    let def: AdjunctEntityIdNumIntegerYaml =
+                        yaml::from_value(x.parameters.clone())?;
                     Ok(adjunct_entity::AdjunctEntityIdNum {
                         definition: Box::new(adjunct_entity::AdjunctEntityIdNumInteger::try_from(
                             def,
@@ -81,6 +105,14 @@ impl convert::TryFrom<AdjunctEntityIdNumYaml> for adjunct_entity::AdjunctEntityI
                 ))),
             }
         }
+    }
+}
+
+impl convert::TryFrom<AdjunctEntityIdNumYaml> for adjunct_entity::AdjunctEntityIdNum {
+    type Error = yaml::Error;
+
+    fn try_from(x: AdjunctEntityIdNumYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
     }
 }
 

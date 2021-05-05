@@ -19,11 +19,13 @@ use crate::azml::{
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntity {
+    pub id: AdjunctEntityId,
+    //TODO: put into AdjunctEntityId?
     pub ordering: AdjunctEntityOrdering,
-    pub id_num: AdjunctEntityIdNum,
-    pub ref_key: ref_key::RefKey,
     pub implements: abstract_::AbstractImplementation,
     // This affects RefKey structure.
+    //NOTE: don't use this for now as we've lost our reason to use this
+    // attribute. We'll implement the 'identity' attribute instead.
     pub scope: AdjunctEntityScope,
     pub attributes: Vec<attribute::Attribute>,
 }
@@ -38,7 +40,7 @@ impl adjunct::AdjuctDefinition for AdjunctEntity {
                     .chain(b.collect_symbol_refs())
                     .collect::<Vec<_>>()
             });
-        let id_syms = self.id_num.definition.collect_symbol_refs();
+        let id_syms = self.id.num.definition.collect_symbol_refs();
         a_syms.into_iter().chain(id_syms.into_iter()).collect()
     }
 }
@@ -99,6 +101,12 @@ impl convert::TryFrom<&str> for AdjunctEntityScope {
 }
 
 //endregion
+
+#[derive(Clone, Debug)]
+pub struct AdjunctEntityId {
+    pub num: AdjunctEntityIdNum,
+    pub ref_key: ref_key::RefKey,
+}
 
 //region AdjunctEntityIdNum
 

@@ -30,7 +30,7 @@ impl GoCodeGenerator {
         symbol: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = symbol.identifier.to_owned();
-        let id_num_def = &ent.id_num.definition;
+        let id_num_def = &ent.id.num.definition;
 
         if let Some(id_int) = id_num_def.downcast_ref::<entity_id_num_integer::EntityIdNumInteger>()
         {
@@ -69,10 +69,10 @@ impl GoCodeGenerator {
                 ref_key_type_name: ref_key_type_name.to_owned(),
                 ref_key_def: RefKeyContext {
                     azid_text: RefKeyAzidTextContext {
-                        prefix: if ent.ref_key.azid_text.prefix.is_empty() {
+                        prefix: if ent.id.ref_key.azid_text.prefix.is_empty() {
                             type_name.to_owned()
                         } else {
-                            ent.ref_key.azid_text.prefix.to_owned()
+                            ent.id.ref_key.azid_text.prefix.to_owned()
                         },
                     },
                 },

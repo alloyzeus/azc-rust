@@ -1,6 +1,6 @@
 //
 
-use crate::azml::{abstract_, attribute, id::ref_key, mixin, symbol};
+use crate::azml::{abstract_, attribute, mixin, symbol};
 
 use super::{entity_id_num, lifecycle::lifecycle};
 
@@ -8,8 +8,7 @@ use super::{entity_id_num, lifecycle::lifecycle};
 
 #[derive(Clone, Debug)]
 pub struct Entity {
-    pub id_num: entity_id_num::EntityIdNum,
-    pub ref_key: ref_key::RefKey,
+    pub id: entity_id_num::EntityId,
     pub implements: abstract_::AbstractImplementation,
     pub lifecycle: lifecycle::Lifecycle,
     pub mixins: Vec<mixin::Mixin>,
@@ -27,7 +26,7 @@ impl symbol::SymbolDefinition for Entity {
                     .chain(b.collect_symbol_refs())
                     .collect::<Vec<_>>()
             });
-        let id_syms = self.id_num.definition.collect_symbol_refs();
+        let id_syms = self.id.num.definition.collect_symbol_refs();
         a_syms.into_iter().chain(id_syms.into_iter()).collect()
     }
 }

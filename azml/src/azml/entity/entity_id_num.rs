@@ -1,6 +1,12 @@
 //
 
-use crate::azml::symbol;
+use crate::azml::{id::ref_key, symbol};
+
+#[derive(Clone, Debug)]
+pub struct EntityId {
+    pub num: EntityIdNum,
+    pub ref_key: ref_key::RefKey,
+}
 
 //region EntityIdNum
 

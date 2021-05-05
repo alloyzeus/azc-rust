@@ -2,9 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{
-    abstract_yaml, attribute, attribute_yaml, id::ref_key_yaml, mixin, mixin_yaml, yaml,
-};
+use crate::azml::{abstract_yaml, attribute, attribute_yaml, mixin, mixin_yaml, yaml};
 
 use super::{entity, entity_id_num_yaml, lifecycle::lifecycle_yaml};
 
@@ -12,10 +10,7 @@ use super::{entity, entity_id_num_yaml, lifecycle::lifecycle_yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct EntityYaml {
-    id_num: entity_id_num_yaml::EntityIdNumYaml,
-
-    #[serde(default)]
-    ref_key: ref_key_yaml::RefKeyYaml,
+    id: entity_id_num_yaml::EntityIdYaml,
 
     #[serde(default)]
     implements: abstract_yaml::AbstractImplementationYaml,
@@ -37,8 +32,7 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
 
     fn try_from(x: EntityYaml) -> Result<Self, Self::Error> {
         Ok(entity::Entity {
-            id_num: x.id_num.try_into()?,
-            ref_key: x.ref_key.try_into()?,
+            id: x.id.try_into()?,
             implements: x.implements.try_into()?,
             lifecycle: x.lifecycle.try_into()?,
             mixins: x
