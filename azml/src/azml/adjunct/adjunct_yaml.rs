@@ -5,7 +5,8 @@ use std::{convert, convert::TryInto};
 use crate::azml::{cardinality_yaml, yaml};
 
 use super::{
-    adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_value_object, adjunct_value_object_yaml,
+    adjunct, adjunct_cardinal, adjunct_cardinal_yaml, adjunct_entity, adjunct_entity_yaml,
+    adjunct_value_object, adjunct_value_object_yaml,
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -47,6 +48,16 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
                     cardinality: x.cardinality.into(),
                     definition: Box::new(adjunct_entity::AdjunctEntity::from(def.try_into()?)),
+                    name_is_prepared: x.name_is_prepared,
+                })
+            }
+            "cardinal" => {
+                let def: adjunct_cardinal_yaml::AdjunctCardinalYaml =
+                    yaml::from_value(x.parameters)?;
+                Ok(adjunct::Adjunct {
+                    hosts: x.hosts.into_iter().map(|x| x.into()).collect(),
+                    cardinality: x.cardinality.into(),
+                    definition: Box::new(adjunct_cardinal::AdjunctCardinal::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
                 })
             }

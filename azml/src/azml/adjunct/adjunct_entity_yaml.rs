@@ -52,6 +52,8 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctEntityIdYaml {
     pub num: AdjunctEntityIdNumYaml,
+
+    #[serde(default)]
     pub ref_key: ref_key_yaml::RefKeyYaml,
 }
 
