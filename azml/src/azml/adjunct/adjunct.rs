@@ -31,29 +31,28 @@ impl symbol::SymbolDefinition for Adjunct {
 
 //region AdjunctDefinition
 
-pub trait AdjuctDefinition: mopa::Any + AdjuctDefinitionClone + std::fmt::Debug {
-    //NOTE: should simply add symbol::SymbolDefinition but we have some
-    // conflict for the clone_box.
-    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef>;
+pub trait AdjuctDefinition:
+    mopa::Any + AdjuctDefinitionClone + symbol::SymbolDefinition + std::fmt::Debug
+{
 }
 
 // Used to implement Clone for AdjunctDefinition
 pub trait AdjuctDefinitionClone {
-    fn clone_box(&self) -> Box<dyn AdjuctDefinition>;
+    fn clone_boxed_adjunct_definition(&self) -> Box<dyn AdjuctDefinition>;
 }
 
 impl<T> AdjuctDefinitionClone for T
 where
     T: AdjuctDefinition + Clone,
 {
-    fn clone_box(&self) -> Box<dyn AdjuctDefinition> {
+    fn clone_boxed_adjunct_definition(&self) -> Box<dyn AdjuctDefinition> {
         Box::new(self.clone())
     }
 }
 
 impl Clone for Box<dyn AdjuctDefinition> {
     fn clone(&self) -> Box<dyn AdjuctDefinition> {
-        self.clone_box()
+        self.clone_boxed_adjunct_definition()
     }
 }
 
@@ -74,7 +73,9 @@ pub struct AdjunctHost {
 #[derive(Clone, Debug)]
 pub struct AdjunctNone {}
 
-impl AdjuctDefinition for AdjunctNone {
+impl AdjuctDefinition for AdjunctNone {}
+
+impl symbol::SymbolDefinition for AdjunctNone {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
         Vec::new()
     }

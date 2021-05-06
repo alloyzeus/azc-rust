@@ -24,21 +24,21 @@ pub trait ValueObjectDefinition: mopa::Any + ValueObjectDefinitionClone + std::f
 
 // Used to implement Clone for AdjunctDefinition
 pub trait ValueObjectDefinitionClone {
-    fn clone_box(&self) -> Box<dyn ValueObjectDefinition>;
+    fn clone_boxed_value_object_definition(&self) -> Box<dyn ValueObjectDefinition>;
 }
 
 impl<T> ValueObjectDefinitionClone for T
 where
     T: ValueObjectDefinition + Clone,
 {
-    fn clone_box(&self) -> Box<dyn ValueObjectDefinition> {
+    fn clone_boxed_value_object_definition(&self) -> Box<dyn ValueObjectDefinition> {
         Box::new(self.clone())
     }
 }
 
 impl Clone for Box<dyn ValueObjectDefinition> {
     fn clone(&self) -> Box<dyn ValueObjectDefinition> {
-        self.clone_box()
+        self.clone_boxed_value_object_definition()
     }
 }
 

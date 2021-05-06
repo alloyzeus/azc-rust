@@ -18,6 +18,8 @@ pub struct RootEntity {
     pub attributes: Vec<attribute::Attribute>,
 }
 
+impl entity::Entity for RootEntity {}
+
 impl symbol::SymbolDefinition for RootEntity {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
         let a_syms = self

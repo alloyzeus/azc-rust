@@ -28,7 +28,9 @@ pub struct AdjunctCardinal {
     pub documentation: String,
 }
 
-impl adjunct::AdjuctDefinition for AdjunctCardinal {
+impl adjunct::AdjuctDefinition for AdjunctCardinal {}
+
+impl symbol::SymbolDefinition for AdjunctCardinal {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
         Vec::new()
     }
