@@ -6,7 +6,9 @@ use crate::codegen;
 
 //use crate::codegen_go::template::render_template;
 
-use azml::azml::{adjunct::adjunct, compiler, entity::entity, module, value_object::value_object};
+use azml::azml::{
+    adjunct::adjunct, compiler, entity::entity, module, symbol, value_object::value_object,
+};
 
 #[macro_use]
 mod render_macros;
@@ -71,6 +73,10 @@ impl GoCodeGenerator {
             Some(s) => s.to_owned(),
             _ => "???".to_owned(),
         }
+    }
+
+    fn get_symbol(&self, _ref: symbol::SymbolRef) -> Option<&symbol::Symbol> {
+        None
     }
 
     // fn get_entity(&self, module: String, entity_name: String) -> Option<&entity::Entity> {

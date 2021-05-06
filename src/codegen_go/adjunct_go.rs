@@ -51,8 +51,12 @@ impl GoCodeGenerator {
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
             .into_iter()
-            .map(|x| x.kind.to_owned())
+            .map(|x| String::from(&x.kind))
             .collect::<Vec<String>>();
+        let hosts = (&adj.hosts)
+            .into_iter()
+            .map(|x| self.get_symbol(x.kind.clone())) //TODO: specific to entity-ishes
+            .collect::<Vec<Option<&symbol::Symbol>>>();
         // If the adjunct is globally addressable, i.e., an instance's
         // id-num is unique system-wide, it must not derive its hosts' name
         // by default.
@@ -193,7 +197,7 @@ impl GoCodeGenerator {
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
             .into_iter()
-            .map(|x| x.kind.to_owned())
+            .map(|x| String::from(&x.kind))
             .collect::<Vec<String>>();
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()

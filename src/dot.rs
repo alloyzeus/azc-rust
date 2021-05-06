@@ -88,14 +88,15 @@ impl DotNode for adjunct::Adjunct {
         identifier: String,
     ) -> Result<(), io::Error> {
         for ent in &self.hosts {
+            let kind_str = String::from(&ent.kind);
             w.write(
                 format!(
                     "  {} -> {}\n",
                     identifier,
-                    if ent.kind.contains(".") {
-                        format!("\"{}\"", ent.kind)
+                    if kind_str.contains(".") {
+                        format!("\"{}\"", kind_str)
                     } else {
-                        ent.kind.to_owned()
+                        kind_str.to_owned()
                     }
                 )
                 .as_bytes(),

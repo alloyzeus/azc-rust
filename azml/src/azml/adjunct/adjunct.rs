@@ -65,8 +65,8 @@ mopafy!(AdjuctDefinition);
 
 #[derive(Clone, Debug)]
 pub struct AdjunctHost {
-    pub kind: String,
-    //TODO: kind, cardinality, uniqueness
+    pub kind: symbol::SymbolRef, //TODO: not symbol, but entity-ish
+                                 //TODO: kind, cardinality, uniqueness
 }
 
 //endregion
