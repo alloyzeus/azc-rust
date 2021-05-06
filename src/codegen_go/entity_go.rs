@@ -14,8 +14,9 @@ use crate::{
 
 use azml::azml::{
     entity::{
-        entity, entity_id_num_integer,
+        entity_id_num_integer,
         lifecycle::{creation::creation, deletion::deletion, lifecycle},
+        root_entity,
     },
     symbol,
 };
@@ -23,10 +24,10 @@ use azml::azml::{
 use crate::codegen_go::template::render_template;
 
 impl GoCodeGenerator {
-    pub fn generate_entity_codes(
+    pub fn generate_root_entity_codes(
         &self,
         module_name: &String,
-        ent: &entity::Entity,
+        ent: &root_entity::RootEntity,
         symbol: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = symbol.identifier.to_owned();

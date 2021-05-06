@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, convert::TryFrom, fs, io, path};
 
-use super::{entity::entity, module, result, source_file, source_file_yaml, yaml};
+use super::{entity::root_entity, module, result, source_file, source_file_yaml, yaml};
 
 #[derive(Clone, Debug)]
 pub struct CompilationState {
@@ -11,13 +11,17 @@ pub struct CompilationState {
 }
 
 impl CompilationState {
-    pub fn get_entity(&self, module: String, entity_name: String) -> Option<&entity::Entity> {
+    pub fn get_root_entity(
+        &self,
+        module: String,
+        entity_name: String,
+    ) -> Option<&root_entity::RootEntity> {
         let module = self.modules.get(&module);
         match module {
             Some(module) => {
                 let sym = module.symbols.iter().find(|&x| x.identifier == entity_name);
                 match sym {
-                    Some(sym) => sym.definition.downcast_ref::<entity::Entity>(),
+                    Some(sym) => sym.definition.downcast_ref::<root_entity::RootEntity>(),
                     _ => None,
                 }
             }

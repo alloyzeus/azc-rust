@@ -7,7 +7,7 @@ use crate::codegen;
 //use crate::codegen_go::template::render_template;
 
 use azml::azml::{
-    adjunct::adjunct, compiler, entity::entity, module, symbol, value_object::value_object,
+    adjunct::adjunct, compiler, entity::root_entity, module, symbol, value_object::value_object,
 };
 
 #[macro_use]
@@ -145,8 +145,8 @@ impl GoCodeGenerator {
 
         for symbol in &module_def.symbols {
             let params = &symbol.definition;
-            if let Some(ent) = params.downcast_ref::<entity::Entity>() {
-                self.generate_entity_codes(module_name, ent, &symbol)?;
+            if let Some(ent) = params.downcast_ref::<root_entity::RootEntity>() {
+                self.generate_root_entity_codes(module_name, ent, &symbol)?;
                 continue;
             }
             if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {

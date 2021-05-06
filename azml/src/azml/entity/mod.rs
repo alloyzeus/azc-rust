@@ -8,3 +8,4 @@ pub mod entity_id_num_yaml;
 pub mod entity_yaml;
 pub mod lifecycle;
 pub mod ownership;
+pub mod root_entity;

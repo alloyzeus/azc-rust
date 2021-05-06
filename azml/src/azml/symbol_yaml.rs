@@ -5,7 +5,7 @@ use std::convert;
 use crate::azml::{
     abstract_, abstract_yaml,
     adjunct::{adjunct, adjunct_yaml},
-    entity::{entity, entity_yaml},
+    entity::root_entity::{root_entity, root_entity_yaml},
     symbol,
     value_object::{value_object, value_object_yaml},
     yaml,
@@ -28,10 +28,10 @@ impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
     fn try_from(x: SymbolYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let def: entity_yaml::EntityYaml = yaml::from_value(x.parameters)?;
+                let def: root_entity_yaml::RootEntityYaml = yaml::from_value(x.parameters)?;
                 Ok(symbol::Symbol {
                     identifier: x.identifier,
-                    definition: Box::new(entity::Entity::try_from(def)?),
+                    definition: Box::new(root_entity::RootEntity::try_from(def)?),
                     documentation: x.documentation,
                 })
             }

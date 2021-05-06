@@ -2,14 +2,18 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{abstract_yaml, attribute, attribute_yaml, mixin, mixin_yaml, yaml};
+use crate::azml::{
+    abstract_yaml, attribute, attribute_yaml,
+    entity::{entity_id_num_yaml, entity_yaml, lifecycle::lifecycle_yaml},
+    mixin, mixin_yaml, yaml,
+};
 
-use super::{entity, entity_id_num_yaml, lifecycle::lifecycle_yaml};
+use super::root_entity;
 
-//region EntityYaml
+//region RootEntityYaml
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct EntityYaml {
+pub struct RootEntityYaml {
     id: entity_id_num_yaml::EntityIdYaml,
 
     #[serde(default)]
@@ -21,17 +25,17 @@ pub struct EntityYaml {
     mixins: Vec<mixin_yaml::MixinYaml>,
 
     #[serde(default)]
-    service: Option<EntityServiceYaml>,
+    service: Option<entity_yaml::EntityServiceYaml>,
 
     #[serde(default)]
     attributes: Vec<attribute_yaml::AttributeYaml>,
 }
 
-impl convert::TryFrom<EntityYaml> for entity::Entity {
+impl convert::TryFrom<RootEntityYaml> for root_entity::RootEntity {
     type Error = yaml::Error;
 
-    fn try_from(x: EntityYaml) -> Result<Self, Self::Error> {
-        Ok(entity::Entity {
+    fn try_from(x: RootEntityYaml) -> Result<Self, Self::Error> {
+        Ok(root_entity::RootEntity {
             id: x.id.try_into()?,
             implements: x.implements.try_into()?,
             lifecycle: x.lifecycle.try_into()?,
@@ -51,34 +55,6 @@ impl convert::TryFrom<EntityYaml> for entity::Entity {
                 .map(|attr| attribute::Attribute::try_from(attr).unwrap())
                 .collect(),
         })
-    }
-}
-
-//endregion
-
-//region EntityServiceYaml
-
-#[derive(Clone, serde::Deserialize, serde::Serialize, Debug)]
-pub struct EntityServiceYaml {
-    #[serde(default)]
-    documentation: String,
-
-    #[serde(default)]
-    enabled: bool,
-}
-
-impl From<&EntityServiceYaml> for entity::EntityService {
-    fn from(x: &EntityServiceYaml) -> entity::EntityService {
-        entity::EntityService {
-            documentation: x.documentation.to_owned(),
-            enabled: x.enabled,
-        }
-    }
-}
-
-impl From<EntityServiceYaml> for entity::EntityService {
-    fn from(x: EntityServiceYaml) -> entity::EntityService {
-        (&x).into()
     }
 }
 

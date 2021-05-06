@@ -5,7 +5,7 @@ use std::io;
 use azml::azml::{
     abstract_,
     adjunct::{adjunct, adjunct_entity},
-    entity::entity,
+    entity::root_entity,
     error, module,
 };
 
@@ -17,7 +17,7 @@ pub fn write_dot(
     w.write(format!("digraph {} {{\n", module_name).as_bytes())?;
     for symbol in &module_def.symbols {
         let params = &symbol.definition;
-        if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+        if let Some(ent) = params.downcast_ref::<root_entity::RootEntity>() {
             ent.write_dot_identifier(w, symbol.identifier.clone())?;
         } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
             adj.write_dot_identifier(w, symbol.identifier.clone())?;
@@ -28,7 +28,7 @@ pub fn write_dot(
     w.write_all(b"\n")?;
     for symbol in &module_def.symbols {
         let params = &symbol.definition;
-        if let Some(ent) = params.downcast_ref::<entity::Entity>() {
+        if let Some(ent) = params.downcast_ref::<root_entity::RootEntity>() {
             ent.write_dot_relationships(w, symbol.identifier.clone())?;
         } else if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
             adj.write_dot_relationships(w, symbol.identifier.clone())?;
@@ -106,7 +106,7 @@ impl DotNode for adjunct::Adjunct {
     }
 }
 
-impl DotNode for entity::Entity {
+impl DotNode for root_entity::RootEntity {
     fn write_dot_identifier(
         &self,
         w: &mut impl io::Write,
