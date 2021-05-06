@@ -7,8 +7,10 @@ use std::{
 
 use crate::azml::{
     abstract_, attribute,
-    entity::{entity, entity_id_num},
-    id::{id_num, ref_key},
+    entity::{
+        entity,
+        id::{id_num, ref_key},
+    },
     symbol,
 };
 
@@ -125,10 +127,7 @@ pub struct AdjunctEntityIdNum {
 //region AdjunctEntityIdNumDefinition
 
 pub trait AdjunctEntityIdNumDefinition:
-    mopa::Any
-    + AdjunctEntityIdNumDefinitionClone
-    + std::fmt::Debug
-    + entity_id_num::EntityIdNumDefinition
+    mopa::Any + AdjunctEntityIdNumDefinitionClone + std::fmt::Debug + id_num::IdNumDefinition
 {
 }
 

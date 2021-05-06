@@ -2,7 +2,9 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{id::ref_key, yaml};
+use crate::azml::yaml;
+
+use super::ref_key;
 
 //region RefKey
 

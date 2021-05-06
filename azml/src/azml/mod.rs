@@ -11,7 +11,6 @@ pub mod compiler;
 pub mod data_type;
 pub mod entity;
 pub mod error;
-pub mod id;
 pub mod mixin;
 pub mod mixin_yaml;
 pub mod module;

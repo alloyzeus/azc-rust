@@ -4,7 +4,7 @@ use std::convert::{self, TryInto};
 
 use crate::azml::{
     abstract_yaml, attribute, attribute_yaml,
-    entity::{entity_id_num_yaml, entity_yaml, lifecycle::lifecycle_yaml},
+    entity::{entity_yaml, id::id_yaml, lifecycle::lifecycle_yaml},
     mixin, mixin_yaml, yaml,
 };
 
@@ -14,7 +14,7 @@ use super::root_entity;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct RootEntityYaml {
-    id: entity_id_num_yaml::EntityIdYaml,
+    id: id_yaml::IdYaml,
 
     #[serde(default)]
     implements: abstract_yaml::AbstractImplementationYaml,

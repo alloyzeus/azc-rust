@@ -2,7 +2,7 @@
 
 use crate::azml::{
     abstract_, attribute,
-    entity::{entity, entity_id_num, lifecycle::lifecycle},
+    entity::{entity, id::id, lifecycle::lifecycle},
     mixin, symbol,
 };
 
@@ -10,7 +10,7 @@ use crate::azml::{
 
 #[derive(Clone, Debug)]
 pub struct RootEntity {
-    pub id: entity_id_num::EntityId,
+    pub id: id::Id,
     pub implements: abstract_::AbstractImplementation,
     pub lifecycle: lifecycle::Lifecycle,
     pub mixins: Vec<mixin::Mixin>,

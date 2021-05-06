@@ -2,6 +2,46 @@
 
 use crate::azml::symbol;
 
+// Id-num is the number part of an id.
+
+//region IdNum
+
+#[derive(Clone, Debug)]
+pub struct IdNum {
+    pub definition: Box<dyn IdNumDefinition>,
+}
+
+//endregion
+
+//region IdNumDefinition
+
+pub trait IdNumDefinition: mopa::Any + IdNumDefinitionClone + std::fmt::Debug {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef>;
+}
+
+mopafy!(IdNumDefinition);
+
+pub trait IdNumDefinitionClone {
+    fn clone_boxed_entity_id_num_definition(&self) -> Box<dyn IdNumDefinition>;
+}
+
+impl<T> IdNumDefinitionClone for T
+where
+    T: IdNumDefinition + Clone,
+{
+    fn clone_boxed_entity_id_num_definition(&self) -> Box<dyn IdNumDefinition> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn IdNumDefinition> {
+    fn clone(&self) -> Box<dyn IdNumDefinition> {
+        self.clone_boxed_entity_id_num_definition()
+    }
+}
+
+//endregion
+
 //region IntegerIdNum
 
 #[derive(Clone, Debug)]
@@ -73,7 +113,10 @@ impl IntegerIdNum {
             }
         }
     }
-    pub fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
+}
+
+impl IdNumDefinition for IntegerIdNum {
+    fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
         Vec::new()
     }
 }

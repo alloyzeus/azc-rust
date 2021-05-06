@@ -6,7 +6,7 @@ use crate::azml::{
     abstract_yaml,
     adjunct::adjunct_entity,
     attribute, attribute_yaml,
-    id::{id_num_yaml, ref_key_yaml},
+    entity::id::{id_num_yaml, ref_key_yaml},
     yaml,
 };
 

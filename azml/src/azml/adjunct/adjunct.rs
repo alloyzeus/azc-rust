@@ -3,6 +3,7 @@
 use crate::azml::{cardinality, symbol};
 
 // Adjunct can only be hosted by one or more entity-ish objects.
+// Adjunct is different from ownership.
 
 //region Adjunct
 

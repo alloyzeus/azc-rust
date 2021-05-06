@@ -2,7 +2,50 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{id::id_num, yaml};
+use crate::azml::yaml;
+
+use super::id_num;
+
+//region IdNumYaml
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct IdNumYaml {
+    pub kind: String,
+    pub parameters: yaml::Value,
+}
+
+impl convert::TryFrom<&IdNumYaml> for id_num::IdNum {
+    type Error = yaml::Error;
+
+    fn try_from(x: &IdNumYaml) -> Result<Self, Self::Error> {
+        if x.parameters.is_null() {
+            Err(yaml::Error::Msg("Missing definition parameters".to_owned()))
+        } else {
+            match x.kind.as_str() {
+                "integer" => {
+                    let def: IntegerIdNumYaml = yaml::from_value(x.parameters.clone())?;
+                    Ok(id_num::IdNum {
+                        definition: Box::new(id_num::IntegerIdNum::try_from(def)?),
+                    })
+                }
+                _ => Err(yaml::Error::Msg(format!(
+                    "Unrecognized entity id_num kind `{}`",
+                    x.kind
+                ))),
+            }
+        }
+    }
+}
+
+impl convert::TryFrom<IdNumYaml> for id_num::IdNum {
+    type Error = yaml::Error;
+
+    fn try_from(x: IdNumYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
+//endregion
 
 //region IntegerIdNumYaml
 

@@ -1,6 +1,6 @@
 //
 
-use azml::azml::id::ref_key;
+use azml::azml::entity::id::ref_key;
 
 //region RefKeyContext
 
