@@ -6,7 +6,7 @@ use crate::azml::{adjunct::adjunct, symbol};
 //
 // An AdjunctCardinal is a type of adjunct which have the characteristic
 // of an entity, similar to AdjunctEntity, but it doesn't have its own
-// identity.It gets the identifier from its host's, or the composite of its
+// identity. It gets the identifier from its host's, or the composite of its
 // hosts' identifiers if it has more than one host.
 // It implies that there will be only one instance of adjunct for
 // a host or a set of host entity (one-to-one relationship). The cardinality

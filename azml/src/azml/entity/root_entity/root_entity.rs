@@ -11,7 +11,7 @@ use crate::azml::{
 #[derive(Clone, Debug)]
 pub struct RootEntity {
     pub id: id::Id,
-    pub implements: abstract_::AbstractImplementation,
+    pub implements: Vec<abstract_::AbstractImplementation>,
     pub lifecycle: lifecycle::Lifecycle,
     pub mixins: Vec<mixin::Mixin>,
     pub service: Option<entity::EntityService>,
@@ -31,7 +31,11 @@ impl symbol::SymbolDefinition for RootEntity {
                     .collect::<Vec<_>>()
             });
         let id_syms = self.id.num.definition.collect_symbol_refs();
-        a_syms.into_iter().chain(id_syms.into_iter()).collect()
+        a_syms
+            .iter()
+            .chain(id_syms.iter())
+            .map(|x| x.clone())
+            .collect()
     }
 }
 

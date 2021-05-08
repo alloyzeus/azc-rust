@@ -21,9 +21,17 @@ impl convert::TryFrom<MixinYaml> for mixin::Mixin {
     type Error = yaml::Error;
 
     fn try_from(x: MixinYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
+impl convert::TryFrom<&MixinYaml> for mixin::Mixin {
+    type Error = yaml::Error;
+
+    fn try_from(x: &MixinYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "Deletion" => {
-                let params: Option<deletion_yaml::DeletionYaml> = yaml::from_value(x.parameters)?;
+                let params: Option<deletion_yaml::DeletionYaml> = yaml::from_value(x.parameters.clone())?;
                 Ok(mixin::Mixin {
                     definition: if let Some(p) = params {
                         Some(Box::new(deletion::Deletion::try_from(p)?))
@@ -33,7 +41,7 @@ impl convert::TryFrom<MixinYaml> for mixin::Mixin {
                 })
             }
             "Ownership" => {
-                let params: Option<ownership_yaml::OwnershipYaml> = yaml::from_value(x.parameters)?;
+                let params: Option<ownership_yaml::OwnershipYaml> = yaml::from_value(x.parameters.clone())?;
                 Ok(mixin::Mixin {
                     definition: if let Some(p) = params {
                         Some(Box::new(ownership::Ownership::try_from(p)?))

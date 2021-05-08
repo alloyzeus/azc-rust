@@ -7,9 +7,9 @@ type {{.id_num_type_name}} {{.id_num_def.type_name}}
 var _ {{.base.azid_pkg}}.IDNum = {{.id_num_type_name}}Zero
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
 var _ {{.base.azcore_pkg}}.EntityIDNum = {{.id_num_type_name}}Zero
-{{- if .implements}}
-var _ {{.base.azcore_pkg}}.{{.implements}}IDNum = {{.id_num_type_name}}Zero
-{{- end}}
+{{- range .implements}}{{- if .is_system}}
+var _ {{$.base.azcore_pkg}}.{{.type_name}}IDNum = {{$.id_num_type_name}}Zero
+{{- end}}{{- end}}
 
 // {{.id_num_type_name}}IdentifierBitsMask is used to
 // extract identifier bits from an instance of {{.id_num_type_name}}.
@@ -59,13 +59,13 @@ func ({{.id_num_type_name}}) AZIDNum() {}
 // with {{.base.azcore_pkg}}.EntityIDNum.
 func ({{.id_num_type_name}}) AZEntityIDNum() {}
 
-{{- if .implements}}
+{{- range .implements}}{{- if .is_system}}
 
-// AZ{{.implements}}IDNum is required for conformance
-// with {{.base.azcore_pkg}}.{{.implements}}IDNum.
-func ({{.id_num_type_name}}) AZ{{.implements}}IDNum() {}
+// AZ{{.type_name}}IDNum is required for conformance
+// with {{$.base.azcore_pkg}}.{{.type_name}}IDNum.
+func ({{$.id_num_type_name}}) AZ{{.type_name}}IDNum() {}
 
-{{- end}}
+{{- end}}{{- end}}
 
 // IsZero is required as {{.id_num_type_name}} is a value-object.
 func (idNum {{.id_num_type_name}}) IsZero() bool {

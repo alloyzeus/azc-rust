@@ -4,7 +4,7 @@ use std::convert::{self, TryInto};
 
 use crate::azml::{
     attribute, attribute_yaml,
-    entity::{abstract_yaml, entity_yaml, id::id_yaml, lifecycle::lifecycle_yaml},
+    entity::{abstract_, abstract_yaml, entity_yaml, id::id_yaml, lifecycle::lifecycle_yaml},
     mixin, mixin_yaml, yaml,
 };
 
@@ -17,7 +17,7 @@ pub struct RootEntityYaml {
     id: id_yaml::IdYaml,
 
     #[serde(default)]
-    implements: abstract_yaml::AbstractImplementationYaml,
+    implements: Vec<abstract_yaml::AbstractImplementationYaml>,
 
     lifecycle: lifecycle_yaml::LifecycleYaml,
 
@@ -37,11 +37,15 @@ impl convert::TryFrom<RootEntityYaml> for root_entity::RootEntity {
     fn try_from(x: RootEntityYaml) -> Result<Self, Self::Error> {
         Ok(root_entity::RootEntity {
             id: x.id.try_into()?,
-            implements: x.implements.try_into()?,
+            implements: x
+                .implements
+                .iter()
+                .map(|x| abstract_::AbstractImplementation::try_from(x))
+                .collect::<Result<Vec<abstract_::AbstractImplementation>, _>>()?,
             lifecycle: x.lifecycle.try_into()?,
             mixins: x
                 .mixins
-                .into_iter()
+                .iter()
                 .map(|x| mixin::Mixin::try_from(x))
                 .collect::<Result<Vec<mixin::Mixin>, _>>()?,
             service: if let Some(service) = x.service.clone() {
@@ -52,8 +56,8 @@ impl convert::TryFrom<RootEntityYaml> for root_entity::RootEntity {
             attributes: x
                 .attributes
                 .iter()
-                .map(|attr| attribute::Attribute::try_from(attr).unwrap())
-                .collect(),
+                .map(|attr| attribute::Attribute::try_from(attr))
+                .collect::<Result<Vec<attribute::Attribute>, _>>()?,
         })
     }
 }

@@ -17,9 +17,9 @@ var _ {{.base.azid_pkg}}.BinUnmarshalable = &{{unexported_global .ref_key_type_n
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azcore_pkg}}.EntityRefKey = {{unexported_global .ref_key_type_name}}Zero
-{{- if .implements}}
-var _ {{.base.azcore_pkg}}.{{.implements}}RefKey = {{unexported_global .ref_key_type_name}}Zero
-{{- end}}
+{{- range .implements}}{{- if .is_system}}
+var _ {{$.base.azcore_pkg}}.{{.type_name}}RefKey = {{unexported_global $.ref_key_type_name}}Zero
+{{- end}}{{- end}}
 
 const {{unexported_global .ref_key_type_name}}Zero =
 	{{.ref_key_type_name}}({{.id_num_type_name}}Zero)
@@ -59,15 +59,15 @@ func (refKey {{.ref_key_type_name}}) AZIDNum() {{.base.azid_pkg}}.IDNum {
 	return {{.id_num_type_name}}(refKey)
 }
 
-{{- if .implements}}
+{{- range .implements}}{{- if .is_system}}
 
-// {{.implements}}IDNum is required for conformance
-// with {{.base.azcore_pkg}}.{{.implements}}RefKey.
-func (refKey {{.ref_key_type_name}}) {{.implements}}IDNum() {{.base.azcore_pkg}}.{{.implements}}IDNum {
-	return {{.id_num_type_name}}(refKey)
+// {{.type_name}}IDNum is required for conformance
+// with {{$.base.azcore_pkg}}.{{.type_name}}RefKey.
+func (refKey {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.base.azcore_pkg}}.{{.type_name}}IDNum {
+	return {{$.id_num_type_name}}(refKey)
 }
 
-{{- end}}
+{{- end}}{{- end}}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (refKey {{.ref_key_type_name}}) IsZero() bool {
@@ -235,7 +235,7 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
 
 // MarshalJSON makes this type JSON-marshalable.
 func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
-	// We assume that there's no symbols in azid-text
+	// We assume that there are no symbols in azid-text
 	return []byte("\"" + refKey.AZIDText() + "\""), nil
 }
 

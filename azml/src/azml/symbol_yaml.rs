@@ -24,41 +24,42 @@ pub struct SymbolYaml {
     documentation: String,
 }
 
-impl convert::TryFrom<SymbolYaml> for symbol::Symbol {
+impl convert::TryFrom<&SymbolYaml> for symbol::Symbol {
     type Error = yaml::Error;
 
-    fn try_from(x: SymbolYaml) -> Result<Self, Self::Error> {
+    fn try_from(x: &SymbolYaml) -> Result<Self, Self::Error> {
         match x.kind.as_str() {
             "entity" => {
-                let def: root_entity_yaml::RootEntityYaml = yaml::from_value(x.parameters)?;
+                let def: root_entity_yaml::RootEntityYaml = yaml::from_value(x.parameters.clone())?;
                 Ok(symbol::Symbol {
-                    identifier: x.identifier,
+                    identifier: x.identifier.to_owned(),
                     definition: Box::new(root_entity::RootEntity::try_from(def)?),
-                    documentation: x.documentation,
+                    documentation: x.documentation.to_owned(),
                 })
             }
             "adjunct" => {
-                let def: adjunct_yaml::AdjunctYaml = yaml::from_value(x.parameters)?;
+                let def: adjunct_yaml::AdjunctYaml = yaml::from_value(x.parameters.clone())?;
                 Ok(symbol::Symbol {
-                    identifier: x.identifier,
+                    identifier: x.identifier.to_owned(),
                     definition: Box::new(adjunct::Adjunct::try_from(def)?),
-                    documentation: x.documentation,
+                    documentation: x.documentation.to_owned(),
                 })
             }
             "value_object" => {
-                let def: value_object_yaml::ValueObjectYaml = yaml::from_value(x.parameters)?;
+                let def: value_object_yaml::ValueObjectYaml =
+                    yaml::from_value(x.parameters.clone())?;
                 Ok(symbol::Symbol {
-                    identifier: x.identifier,
+                    identifier: x.identifier.to_owned(),
                     definition: Box::new(value_object::ValueObject::try_from(def)?),
-                    documentation: x.documentation,
+                    documentation: x.documentation.to_owned(),
                 })
             }
             "abstract" => {
-                let def: abstract_yaml::AbstractYaml = yaml::from_value(x.parameters)?;
+                let def: abstract_yaml::AbstractYaml = yaml::from_value(x.parameters.clone())?;
                 Ok(symbol::Symbol {
-                    identifier: x.identifier,
+                    identifier: x.identifier.to_owned(),
                     definition: Box::new(abstract_::Abstract::try_from(def)?),
-                    documentation: x.documentation,
+                    documentation: x.documentation.to_owned(),
                 })
             }
             _ => Err(yaml::Error::Msg(format!(

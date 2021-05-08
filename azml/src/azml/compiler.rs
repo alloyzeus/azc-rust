@@ -15,7 +15,7 @@ pub struct CompilationState {
 }
 
 impl CompilationState {
-    pub fn lookup_entity(&self, entity_ref: symbol::SymbolRef) -> Option<&dyn entity::Entity> {
+    pub fn lookup_entity(&self, entity_ref: symbol::SymbolRef) -> Option<Box<&dyn entity::Entity>> {
         let module = self.modules.get(&entity_ref.package_identifier);
         match module {
             Some(module) => {
@@ -25,20 +25,41 @@ impl CompilationState {
                     .find(|&x| x.identifier == entity_ref.symbol_name);
                 match sym {
                     Some(sym) => {
-                        //TODO: abstract entity
                         if let Some(e) = sym.definition.downcast_ref::<root_entity::RootEntity>() {
-                            return Some(e);
+                            return Some(Box::new(e));
                         }
                         if let Some(e) = sym
                             .definition
                             .downcast_ref::<adjunct_entity::AdjunctEntity>()
                         {
-                            return Some(e);
+                            return Some(Box::new(e));
                         }
                         if let Some(e) = sym.definition.downcast_ref::<abstract_::Abstract>() {
-                            return Some(e);
+                            return Some(Box::new(e));
                         }
                         None
+                    }
+                    _ => None,
+                }
+            }
+            _ => None,
+        }
+    }
+    pub fn lookup_abstract(&self, entity_ref: symbol::SymbolRef) -> Option<&abstract_::Abstract> {
+        let module = self.modules.get(&entity_ref.package_identifier);
+        match module {
+            Some(module) => {
+                let sym = module
+                    .symbols
+                    .iter()
+                    .find(|&x| x.identifier == entity_ref.symbol_name);
+                match sym {
+                    Some(sym) => {
+                        if let Some(e) = sym.definition.downcast_ref::<abstract_::Abstract>() {
+                            Some(e)
+                        } else {
+                            None
+                        }
                     }
                     _ => None,
                 }
@@ -76,6 +97,23 @@ impl Compiler {
         let sf: source_file_yaml::SourceFileYaml = yaml::from_reader(reader)?;
         let sf = source_file::SourceFile::try_from(sf)?;
         let mut modules = HashMap::new();
+
+        modules.insert(
+            "_azsys".to_owned(),
+            module::ModuleDefinition {
+                symbols: vec![symbol::Symbol {
+                    identifier: "User".to_owned(),
+                    documentation: "".to_owned(),
+                    definition: Box::new(abstract_::Abstract {
+                        documentation: "".to_owned(),
+                        singular: true,
+                        attributes: Vec::new(),
+                    }),
+                }],
+                options: HashMap::new(),
+            },
+        );
+
         modules.insert(
             sf.module.to_owned(),
             module::ModuleDefinition {

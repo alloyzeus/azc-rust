@@ -12,6 +12,9 @@ pub struct AbstractYaml {
     documentation: String,
 
     #[serde(default)]
+    singular: bool,
+
+    #[serde(default)]
     attributes: Vec<AbstractAttributeYaml>,
 }
 
@@ -29,8 +32,9 @@ impl convert::TryFrom<&AbstractYaml> for abstract_::Abstract {
     fn try_from(x: &AbstractYaml) -> Result<Self, Self::Error> {
         Ok(abstract_::Abstract {
             documentation: x.documentation.to_owned(),
+            singular: x.singular,
             attributes: (&x.attributes)
-                .into_iter()
+                .iter()
                 .map(|x| abstract_::AbstractAttribute::try_from(x))
                 .collect::<Result<Vec<abstract_::AbstractAttribute>, _>>()?,
         })

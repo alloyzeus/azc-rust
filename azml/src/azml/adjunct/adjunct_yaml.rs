@@ -29,7 +29,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
     type Error = yaml::Error;
 
     fn try_from(x: AdjunctYaml) -> Result<Self, Self::Error> {
-        let hosts = x.hosts.into_iter().map(|h| h.into()).collect();
+        let hosts = x.hosts.iter().map(|h| h.into()).collect();
         match x.kind.as_str() {
             "" => Ok(adjunct::Adjunct {
                 hosts: hosts,
@@ -89,8 +89,14 @@ pub struct AdjunctHostYaml {
 
 impl From<AdjunctHostYaml> for adjunct::AdjunctHost {
     fn from(x: AdjunctHostYaml) -> adjunct::AdjunctHost {
+        (&x).into()
+    }
+}
+
+impl From<&AdjunctHostYaml> for adjunct::AdjunctHost {
+    fn from(x: &AdjunctHostYaml) -> adjunct::AdjunctHost {
         adjunct::AdjunctHost {
-            kind: symbol::SymbolRef::from(x.kind),
+            kind: symbol::SymbolRef::from(x.kind.to_owned()),
         }
     }
 }

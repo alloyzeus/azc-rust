@@ -41,10 +41,8 @@ impl GoCodeGenerator {
             let service_name = format!("{}Service", type_name);
             let type_doc_lines: Vec<String> =
                 symbol.documentation.lines().map(|x| x.to_owned()).collect();
-            let attributes: Vec<AttributeContext> = (&ent.attributes)
-                .into_iter()
-                .map(|attr| attr.into())
-                .collect();
+            let attributes: Vec<AttributeContext> =
+                (&ent.attributes).iter().map(|attr| attr.into()).collect();
             let imports = symbol
                 .definition
                 .collect_symbol_refs()
@@ -55,6 +53,24 @@ impl GoCodeGenerator {
                     url: self.resolve_import(&x.package_identifier),
                 })
                 .collect();
+            //TODO: error when any abstract is unresolvable
+            let abstracts = ent
+                .implements
+                .iter()
+                .map(|x| {
+                    let y = self.lookup_abstract(x.kind.clone());
+                    match y {
+                        None => None,
+                        Some(a) => Some(AbstractContext {
+                            type_name: x.kind.symbol_name.to_owned(),
+                            singular: a.singular,
+                            is_system: x.kind.package_identifier == "_azsys",
+                        }),
+                    }
+                })
+                .filter(|x| !x.is_none())
+                .map(|x| x.unwrap())
+                .collect::<Vec<AbstractContext>>();
 
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
@@ -76,7 +92,7 @@ impl GoCodeGenerator {
                         },
                     },
                 },
-                implements: ent.implements.kind.to_owned(),
+                implements: abstracts,
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
                 event_interface_name: event_interface_name.to_owned(),
@@ -174,6 +190,14 @@ impl GoCodeGenerator {
 }
 
 #[derive(Clone, Gtmpl)]
+pub struct AbstractContext {
+    pub type_name: String,
+    pub singular: bool,
+    pub is_system: bool,
+    //TODO: attributes
+}
+
+#[derive(Clone, Gtmpl)]
 struct EntityContext {
     base: BaseContext,
     pkg_name: String,
@@ -186,7 +210,7 @@ struct EntityContext {
     id_num_def: IntegerIdNumContext,
     ref_key_type_name: String,
     ref_key_def: RefKeyContext,
-    implements: String, //TODO: attributes
+    implements: Vec<AbstractContext>,
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
     event_interface_name: String,

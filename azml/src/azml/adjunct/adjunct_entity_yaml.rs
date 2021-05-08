@@ -6,7 +6,7 @@ use crate::azml::{
     adjunct::adjunct_entity,
     attribute, attribute_yaml,
     entity::{
-        abstract_yaml,
+        abstract_, abstract_yaml,
         id::{id_num_yaml, ref_key_yaml},
     },
     yaml,
@@ -22,7 +22,7 @@ pub struct AdjunctEntityYaml {
     ordering: String,
 
     #[serde(default)]
-    implements: abstract_yaml::AbstractImplementationYaml,
+    implements: Vec<abstract_yaml::AbstractImplementationYaml>,
 
     #[serde(default)]
     scope: String,
@@ -38,13 +38,17 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
         Ok(adjunct_entity::AdjunctEntity {
             id: x.id.try_into()?,
             ordering: x.ordering.try_into()?,
-            implements: x.implements.try_into()?,
+            implements: x
+                .implements
+                .iter()
+                .map(|x| abstract_::AbstractImplementation::try_from(x))
+                .collect::<Result<Vec<abstract_::AbstractImplementation>, _>>()?,
             scope: x.scope.try_into()?,
             attributes: x
                 .attributes
                 .iter()
-                .map(|attr| attribute::Attribute::try_from(attr).unwrap())
-                .collect(),
+                .map(|attr| attribute::Attribute::try_from(attr))
+                .collect::<Result<Vec<attribute::Attribute>, _>>()?,
         })
     }
 }

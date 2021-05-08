@@ -17,7 +17,7 @@ symbols:
       # can have only one concrete. Not to be confused with 'role' in access
       # control.
       implements:
-        kind: User
+        - kind: "_azsys.User"
       id:
         num:
           # Only signed integer is supported for the highest compatibility with
@@ -323,7 +323,7 @@ symbols:
       identity: id_num
       parameters:
         implements:
-          kind: Terminal
+          - kind: "_azsys.Terminal"
         id:
           #TODO: rules for ref-key validity.
           # if the application has the type of user-agent, the user field
@@ -421,7 +421,7 @@ symbols:
           from: Terminal.User
       parameters:
         implements:
-          kind: Session
+          - kind: "_azsys.Session"
         id:
           num:
             kind: integer
@@ -464,7 +464,7 @@ symbols:
     kind: entity
     parameters:
       implements:
-        - TerminalRegistrationIdentifierVerification
+        - kind: TerminalRegistrationIdentifierVerification
       # The idea is that this entity is built upon a component. We are
       # encapsulating the component as an entity in this domain. A component
       # deals only with the value it contained.

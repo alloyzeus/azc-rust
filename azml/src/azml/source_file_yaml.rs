@@ -21,7 +21,7 @@ impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
     fn try_from(x: SourceFileYaml) -> Result<Self, Self::Error> {
         let symbols = x
             .symbols
-            .into_iter()
+            .iter()
             .map(|x| symbol::Symbol::try_from(x))
             .collect::<Result<Vec<symbol::Symbol>, _>>()?;
         let mut options = HashMap::new();

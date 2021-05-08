@@ -4,6 +4,7 @@ use std::{error, fs, io::Write};
 
 use crate::codegen_go::{
     attribute_go::AttributeContext,
+    entity_go::AbstractContext,
     id_num_go::IntegerIdNumContext,
     ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
     BaseContext, GoCodeGenerator, ImportContext,
@@ -51,13 +52,41 @@ impl GoCodeGenerator {
         let type_name = sym.identifier.to_owned();
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
-            .into_iter()
+            .iter()
             .map(|x| String::from(&x.kind))
             .collect::<Vec<String>>();
+        //TODO: generate code for each abstract host implementation
         let hosts = (&adj.hosts)
-            .into_iter()
-            .map(|x| self.lookup_entity(x.kind.clone())) //TODO: specific to entity-ishes
-            .collect::<Vec<Option<&dyn entity::Entity>>>();
+            .iter()
+            .map(|x| self.lookup_entity(x.kind.clone()))
+            .collect::<Vec<Option<Box<&dyn entity::Entity>>>>();
+        //TODO: move this to the compiler
+        let non_resolved = hosts.iter().any(|x| x.is_none());
+        if !non_resolved {
+            return Err(Box::new(azml::azml::Error::Msg(
+                //TODO: which host?
+                "One of the hosts is not resolvable or not an entity".to_owned(),
+            )));
+        }
+        //TODO: error when any abstract is unresolvable
+        let abstracts = adj_ent
+            .implements
+            .iter()
+            .map(|x| {
+                let y = self.lookup_abstract(x.kind.clone());
+                match y {
+                    None => None,
+                    Some(a) => Some(AbstractContext {
+                        type_name: x.kind.symbol_name.to_owned(),
+                        singular: a.singular,
+                        is_system: x.kind.package_identifier == "_azsys",
+                    }),
+                }
+            })
+            .filter(|x| !x.is_none())
+            .map(|x| x.unwrap())
+            .collect::<Vec<AbstractContext>>();
+
         // If the adjunct is globally addressable, i.e., an instance's
         // id-num is unique system-wide, it must not derive its hosts' name
         // by default.
@@ -81,7 +110,7 @@ impl GoCodeGenerator {
             let type_doc_lines: Vec<String> =
                 sym.documentation.lines().map(|x| x.to_owned()).collect();
             let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
-                .into_iter()
+                .iter()
                 .map(|attr| attr.into())
                 .collect();
             let imports = sym
@@ -118,7 +147,7 @@ impl GoCodeGenerator {
                         },
                     },
                 },
-                implements: adj_ent.implements.kind.to_owned(),
+                implements: abstracts,
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
                 service_name: service_name.to_owned(),
@@ -197,14 +226,14 @@ impl GoCodeGenerator {
         let type_name = sym.identifier.to_owned();
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
-            .into_iter()
+            .iter()
             .map(|x| String::from(&x.kind))
             .collect::<Vec<String>>();
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()
         } else {
             (&hosts_names)
-                .into_iter()
+                .iter()
                 .map(|x| {
                     let v = x.split(".").last();
                     if let Some(i) = v {
@@ -258,7 +287,7 @@ struct AdjunctEntityContext {
     id_num_def: IntegerIdNumContext,
     ref_key_type_name: String,
     ref_key_def: RefKeyContext,
-    implements: String, //TODO: attributes
+    implements: Vec<AbstractContext>,
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
     service_name: String,

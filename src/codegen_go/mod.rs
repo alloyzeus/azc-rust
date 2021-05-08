@@ -9,7 +9,7 @@ use crate::codegen;
 use azml::azml::{
     adjunct::adjunct,
     compiler,
-    entity::{entity, root_entity},
+    entity::{abstract_, entity, root_entity},
     module, symbol,
     value_object::value_object,
 };
@@ -79,9 +79,16 @@ impl GoCodeGenerator {
         }
     }
 
-    fn lookup_entity(&self, entity_ref: symbol::SymbolRef) -> Option<&dyn entity::Entity> {
+    fn lookup_entity(&self, entity_ref: symbol::SymbolRef) -> Option<Box<&dyn entity::Entity>> {
         match &self.compilation_state {
             Some(compilation_state) => compilation_state.lookup_entity(entity_ref),
+            _ => None,
+        }
+    }
+
+    fn lookup_abstract(&self, sym_ref: symbol::SymbolRef) -> Option<&abstract_::Abstract> {
+        match &self.compilation_state {
+            Some(compilation_state) => compilation_state.lookup_abstract(sym_ref),
             _ => None,
         }
     }

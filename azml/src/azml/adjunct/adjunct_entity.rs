@@ -25,7 +25,7 @@ pub struct AdjunctEntity {
     pub id: AdjunctEntityId,
     //TODO: put into AdjunctEntityId?
     pub ordering: AdjunctEntityOrdering,
-    pub implements: abstract_::AbstractImplementation,
+    pub implements: Vec<abstract_::AbstractImplementation>,
     // This affects RefKey structure.
     //NOTE: don't use this for now as we've lost our reason to use this
     // attribute. We'll implement the 'identity' attribute instead.
@@ -48,7 +48,11 @@ impl symbol::SymbolDefinition for AdjunctEntity {
                     .collect::<Vec<_>>()
             });
         let id_syms = self.id.num.definition.collect_symbol_refs();
-        a_syms.into_iter().chain(id_syms.into_iter()).collect()
+        a_syms
+            .iter()
+            .chain(id_syms.iter())
+            .map(|x| x.clone())
+            .collect()
     }
 }
 

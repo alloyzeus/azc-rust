@@ -12,6 +12,9 @@ use super::entity;
 pub struct Abstract {
     pub documentation: String,
 
+    // If true, only one implementation is allowed in a system
+    pub singular: bool,
+
     pub attributes: Vec<AbstractAttribute>,
 }
 
@@ -37,7 +40,7 @@ pub struct AbstractAttribute {
 
 #[derive(Clone, Debug)]
 pub struct AbstractImplementation {
-    pub kind: String,
+    pub kind: symbol::SymbolRef,
     pub attributes: Vec<AbstractImplementationAttribute>,
 }
 
