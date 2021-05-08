@@ -11,7 +11,7 @@ use crate::codegen_go::{
 };
 
 use azml::azml::{
-    adjunct::{adjunct, adjunct_entity, adjunct_value_object},
+    adjunct::{adjunct, adjunct_entity, adjunct_prime, adjunct_value_object},
     entity::entity,
     symbol,
 };
@@ -25,17 +25,20 @@ impl GoCodeGenerator {
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
-        if let Some(adj_ent) = adj
+        if let Some(adj_def) = adj
             .definition
             .downcast_ref::<adjunct_entity::AdjunctEntity>()
         {
-            self.generate_adjunct_entity_codes(module_name, adj_ent, &adj, &sym)?;
+            self.generate_adjunct_entity_codes(module_name, adj_def, &adj, &sym)?;
             Ok(())
-        } else if let Some(adj_vo) = adj
+        } else if let Some(adj_def) = adj
             .definition
             .downcast_ref::<adjunct_value_object::AdjunctValueObject>()
         {
-            self.generate_adjunct_value_object_codes(module_name, adj_vo, &adj, &sym)?;
+            self.generate_adjunct_value_object_codes(module_name, adj_def, &adj, &sym)?;
+            Ok(())
+        } else if let Some(adj_def) = adj.definition.downcast_ref::<adjunct_prime::AdjunctPrime>() {
+            self.generate_adjunct_prime_codes(module_name, adj_def, &adj, &sym)?;
             Ok(())
         } else {
             Ok(())
@@ -99,6 +102,17 @@ impl GoCodeGenerator {
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
+        let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
+        let imports = sym
+            .definition
+            .collect_symbol_refs()
+            .iter()
+            .filter(|x| !x.package_identifier.is_empty())
+            .map(|x| ImportContext {
+                alias: x.package_identifier.to_owned(),
+                url: self.resolve_import(&x.package_identifier),
+            })
+            .collect();
         let id_num_def = &adj_ent.id.num.definition;
 
         if let Some(id_int) = id_num_def.downcast_ref::<adjunct_entity::AdjunctEntityIdNumInteger>()
@@ -107,21 +121,9 @@ impl GoCodeGenerator {
             let ref_key_type_name = format!("{}RefKey", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let service_name = format!("{}Service", type_name);
-            let type_doc_lines: Vec<String> =
-                sym.documentation.lines().map(|x| x.to_owned()).collect();
             let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
                 .iter()
                 .map(|attr| attr.into())
-                .collect();
-            let imports = sym
-                .definition
-                .collect_symbol_refs()
-                .iter()
-                .filter(|x| !x.package_identifier.is_empty())
-                .map(|x| ImportContext {
-                    alias: x.package_identifier.to_owned(),
-                    url: self.resolve_import(&x.package_identifier),
-                })
                 .collect();
 
             if !id_int.bitfield.inherits.is_empty() {
@@ -177,9 +179,13 @@ impl GoCodeGenerator {
             if !type_doc_lines.is_empty() {
                 out_file.write_all("//\n".as_bytes())?;
                 for x in type_doc_lines {
-                    out_file.write_all("// ".as_bytes())?;
-                    out_file.write_all(x.as_bytes())?;
-                    out_file.write_all("\n".as_bytes())?;
+                    if x.is_empty() {
+                        out_file.write_all("//\n".as_bytes())?;
+                    } else {
+                        out_file.write_all("// ".as_bytes())?;
+                        out_file.write_all(x.as_bytes())?;
+                        out_file.write_all("\n".as_bytes())?;
+                    }
                 }
             }
             render_file_region!(
@@ -214,6 +220,93 @@ impl GoCodeGenerator {
                 "Unsupported id_num type".to_owned(),
             )))
         }
+    }
+
+    pub fn generate_adjunct_prime_codes(
+        &self,
+        module_name: &String,
+        _adj_prime: &adjunct_prime::AdjunctPrime,
+        adj: &adjunct::Adjunct,
+        sym: &symbol::Symbol,
+    ) -> Result<(), Box<dyn error::Error>> {
+        let type_name = sym.identifier.to_owned();
+        //TODO: collect the name with the kind as the default
+        let hosts_names = (&adj.hosts)
+            .iter()
+            .map(|x| String::from(&x.kind))
+            .collect::<Vec<String>>();
+        let base_type_name = if adj.name_is_prepared {
+            "".to_owned()
+        } else {
+            (&hosts_names)
+                .iter()
+                .map(|x| {
+                    let v = x.split(".").last();
+                    if let Some(i) = v {
+                        i.to_owned()
+                    } else {
+                        x.to_owned()
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("")
+        };
+
+        let type_name = format!("{}{}", base_type_name, type_name);
+        let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
+        let imports = sym
+            .definition
+            .collect_symbol_refs()
+            .iter()
+            .filter(|x| !x.package_identifier.is_empty())
+            .map(|x| ImportContext {
+                alias: x.package_identifier.to_owned(),
+                url: self.resolve_import(&x.package_identifier),
+            })
+            .collect();
+
+        let tpl_ctx = AdjunctPrimeContext {
+            base: self.render_base_context(),
+            pkg_name: module_name.to_lowercase(),
+            imports: imports,
+            type_name: type_name.to_owned(),
+            primitive_type_name: "".to_owned(),
+            hosts: hosts_names.clone(),
+        };
+
+        let header_tpl_bytes = include_bytes!("templates/adjunct_prime__header.gtmpl");
+        let header_code = render_template(
+            String::from_utf8_lossy(header_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
+
+        let mut out_file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
+        out_file.write_all(header_code.as_bytes())?;
+        out_file.write_all(
+            format!(
+                "\n// Adjunct-prime {} of {}.\n",
+                type_name,
+                hosts_names.join(", ")
+            )
+            .as_bytes(),
+        )?;
+        if !type_doc_lines.is_empty() {
+            out_file.write_all("//\n".as_bytes())?;
+            for x in type_doc_lines {
+                if x.is_empty() {
+                    out_file.write_all("//\n".as_bytes())?;
+                } else {
+                    out_file.write_all("// ".as_bytes())?;
+                    out_file.write_all(x.as_bytes())?;
+                    out_file.write_all("\n".as_bytes())?;
+                }
+            }
+        }
+
+        Ok(())
     }
 
     pub fn generate_adjunct_value_object_codes(
@@ -301,6 +394,16 @@ struct AdjunctValueObjectContext {
     pkg_name: String,
     type_name: String,
     type_doc_lines: Vec<String>,
+    primitive_type_name: String,
+    hosts: Vec<String>,
+}
+
+#[derive(Clone, Gtmpl)]
+struct AdjunctPrimeContext {
+    base: BaseContext,
+    pkg_name: String,
+    imports: Vec<ImportContext>,
+    type_name: String,
     primitive_type_name: String,
     hosts: Vec<String>,
 }

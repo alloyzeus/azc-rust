@@ -5,7 +5,7 @@ use std::{convert, convert::TryInto};
 use crate::azml::{cardinality_yaml, symbol, yaml};
 
 use super::{
-    adjunct, adjunct_cardinal, adjunct_cardinal_yaml, adjunct_entity, adjunct_entity_yaml,
+    adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_prime, adjunct_prime_yaml,
     adjunct_value_object, adjunct_value_object_yaml,
 };
 
@@ -52,13 +52,12 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     name_is_prepared: x.name_is_prepared,
                 })
             }
-            "cardinal" => {
-                let def: adjunct_cardinal_yaml::AdjunctCardinalYaml =
-                    yaml::from_value(x.parameters)?;
+            "prime" => {
+                let def: adjunct_prime_yaml::AdjunctPrimeYaml = yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
                     hosts: hosts,
                     cardinality: x.cardinality.into(),
-                    definition: Box::new(adjunct_cardinal::AdjunctCardinal::from(def.try_into()?)),
+                    definition: Box::new(adjunct_prime::AdjunctPrime::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
                 })
             }

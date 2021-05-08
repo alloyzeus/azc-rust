@@ -115,9 +115,13 @@ impl GoCodeGenerator {
             if !type_doc_lines.is_empty() {
                 out_file.write_all("//\n".as_bytes())?;
                 for x in type_doc_lines {
-                    out_file.write_all("// ".as_bytes())?;
-                    out_file.write_all(x.as_bytes())?;
-                    out_file.write_all("\n".as_bytes())?;
+                    if x.is_empty() {
+                        out_file.write_all("//\n".as_bytes())?;
+                    } else {
+                        out_file.write_all("// ".as_bytes())?;
+                        out_file.write_all(x.as_bytes())?;
+                        out_file.write_all("\n".as_bytes())?;
+                    }
                 }
             }
             render_file_region!(out_file, "IDNum", "templates/entity_id_num.gtmpl", tpl_ctx);

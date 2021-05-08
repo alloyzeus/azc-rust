@@ -280,11 +280,11 @@ func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error
 	if s == "" {
 		return {{.ref_key_type_name}}Zero(), nil
 	}
-	if !strings.HasPrefix(s, _{{.ref_key_type_name}}AZIDTextPrefix) {
+	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
 		return {{.ref_key_type_name}}Zero(),
 			errors.Arg("", errors.EntMsg("prefix", "mismatch"))
 	}
-	s = strings.TrimPrefix(s, _{{.ref_key_type_name}}AZIDTextPrefix)
+	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
 	b, err := {{.base.azid_pkg}}.TextDecode(s)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),

@@ -4,7 +4,7 @@ use crate::azml::{adjunct::adjunct, symbol};
 
 // NOTE: the terminology is not final.
 //
-// An AdjunctCardinal is a type of adjunct which have the characteristic
+// An AdjunctPrime is a type of adjunct which have the characteristic
 // of an entity, similar to AdjunctEntity, but it doesn't have its own
 // identity. It gets the identifier from its host's, or the composite of its
 // hosts' identifiers if it has more than one host.
@@ -24,13 +24,13 @@ use crate::azml::{adjunct::adjunct, symbol};
 // - identifier prefix that is different from host entity
 
 #[derive(Clone, Debug)]
-pub struct AdjunctCardinal {
+pub struct AdjunctPrime {
     pub documentation: String,
 }
 
-impl adjunct::AdjuctDefinition for AdjunctCardinal {}
+impl adjunct::AdjuctDefinition for AdjunctPrime {}
 
-impl symbol::SymbolDefinition for AdjunctCardinal {
+impl symbol::SymbolDefinition for AdjunctPrime {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
         Vec::new()
     }
