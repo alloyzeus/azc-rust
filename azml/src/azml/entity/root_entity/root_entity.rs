@@ -1,8 +1,8 @@
 //
 
 use crate::azml::{
-    abstract_, attribute,
-    entity::{entity, id::id, lifecycle::lifecycle},
+    attribute,
+    entity::{abstract_, entity, id::id, lifecycle::lifecycle},
     mixin, symbol,
 };
 

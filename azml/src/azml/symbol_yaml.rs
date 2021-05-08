@@ -3,9 +3,11 @@
 use std::convert;
 
 use crate::azml::{
-    abstract_, abstract_yaml,
     adjunct::{adjunct, adjunct_yaml},
-    entity::root_entity::{root_entity, root_entity_yaml},
+    entity::{
+        abstract_, abstract_yaml,
+        root_entity::{root_entity, root_entity_yaml},
+    },
     symbol,
     value_object::{value_object, value_object_yaml},
     yaml,

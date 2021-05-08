@@ -3,8 +3,8 @@
 use std::convert::{self, TryInto};
 
 use crate::azml::{
-    abstract_yaml, attribute, attribute_yaml,
-    entity::{entity_yaml, id::id_yaml, lifecycle::lifecycle_yaml},
+    attribute, attribute_yaml,
+    entity::{abstract_yaml, entity_yaml, id::id_yaml, lifecycle::lifecycle_yaml},
     mixin, mixin_yaml, yaml,
 };
 

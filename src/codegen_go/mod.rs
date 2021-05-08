@@ -7,7 +7,11 @@ use crate::codegen;
 //use crate::codegen_go::template::render_template;
 
 use azml::azml::{
-    adjunct::adjunct, compiler, entity::root_entity, module, symbol, value_object::value_object,
+    adjunct::adjunct,
+    compiler,
+    entity::{entity, root_entity},
+    module, symbol,
+    value_object::value_object,
 };
 
 #[macro_use]
@@ -75,16 +79,12 @@ impl GoCodeGenerator {
         }
     }
 
-    fn get_symbol(&self, _ref: symbol::SymbolRef) -> Option<&symbol::Symbol> {
-        None
+    fn lookup_entity(&self, entity_ref: symbol::SymbolRef) -> Option<&dyn entity::Entity> {
+        match &self.compilation_state {
+            Some(compilation_state) => compilation_state.lookup_entity(entity_ref),
+            _ => None,
+        }
     }
-
-    // fn get_entity(&self, module: String, entity_name: String) -> Option<&entity::Entity> {
-    //     match &self.compilation_state {
-    //         Some(compilation_state) => compilation_state.get_entity(module, entity_name),
-    //         _ => None,
-    //     }
-    // }
 }
 
 impl GoCodeGenerator {

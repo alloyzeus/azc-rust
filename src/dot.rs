@@ -3,9 +3,8 @@
 use std::io;
 
 use azml::azml::{
-    abstract_,
     adjunct::{adjunct, adjunct_entity},
-    entity::root_entity,
+    entity::{abstract_, root_entity},
     error, module,
 };
 

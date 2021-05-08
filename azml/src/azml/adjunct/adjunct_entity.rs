@@ -6,9 +6,9 @@ use std::{
 };
 
 use crate::azml::{
-    abstract_, attribute,
+    attribute,
     entity::{
-        entity,
+        abstract_, entity,
         id::{id_num, ref_key},
     },
     symbol,

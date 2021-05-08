@@ -2,12 +2,17 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{abstract_, yaml};
+use crate::azml::yaml;
+
+use super::abstract_;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct AbstractYaml {
     #[serde(default)]
     documentation: String,
+
+    #[serde(default)]
+    attributes: Vec<AbstractAttributeYaml>,
 }
 
 impl convert::TryFrom<AbstractYaml> for abstract_::Abstract {
@@ -24,9 +29,40 @@ impl convert::TryFrom<&AbstractYaml> for abstract_::Abstract {
     fn try_from(x: &AbstractYaml) -> Result<Self, Self::Error> {
         Ok(abstract_::Abstract {
             documentation: x.documentation.to_owned(),
+            attributes: (&x.attributes)
+                .into_iter()
+                .map(|x| abstract_::AbstractAttribute::try_from(x))
+                .collect::<Result<Vec<abstract_::AbstractAttribute>, _>>()?,
         })
     }
 }
+
+//region AbstractAttribute
+
+#[derive(serde::Deserialize, serde::Serialize, Debug)]
+pub struct AbstractAttributeYaml {
+    name: String,
+}
+
+impl convert::TryFrom<AbstractAttributeYaml> for abstract_::AbstractAttribute {
+    type Error = yaml::Error;
+
+    fn try_from(x: AbstractAttributeYaml) -> Result<Self, Self::Error> {
+        (&x).try_into()
+    }
+}
+
+impl convert::TryFrom<&AbstractAttributeYaml> for abstract_::AbstractAttribute {
+    type Error = yaml::Error;
+
+    fn try_from(x: &AbstractAttributeYaml) -> Result<Self, Self::Error> {
+        Ok(abstract_::AbstractAttribute {
+            name: x.name.to_owned(),
+        })
+    }
+}
+
+//endregion
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct AbstractImplementationYaml {

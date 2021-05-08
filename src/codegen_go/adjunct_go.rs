@@ -11,6 +11,7 @@ use crate::codegen_go::{
 
 use azml::azml::{
     adjunct::{adjunct, adjunct_entity, adjunct_value_object},
+    entity::entity,
     symbol,
 };
 
@@ -55,8 +56,8 @@ impl GoCodeGenerator {
             .collect::<Vec<String>>();
         let hosts = (&adj.hosts)
             .into_iter()
-            .map(|x| self.get_symbol(x.kind.clone())) //TODO: specific to entity-ishes
-            .collect::<Vec<Option<&symbol::Symbol>>>();
+            .map(|x| self.lookup_entity(x.kind.clone())) //TODO: specific to entity-ishes
+            .collect::<Vec<Option<&dyn entity::Entity>>>();
         // If the adjunct is globally addressable, i.e., an instance's
         // id-num is unique system-wide, it must not derive its hosts' name
         // by default.
