@@ -18,6 +18,11 @@ use azml::azml::{
 
 use crate::codegen_go::template::render_template;
 
+//TODO:
+// - if there are more than one hosts with the same type ensure that
+//   each has an assigned name and ensure to generate code to ensure that
+//   they are ordered
+
 impl GoCodeGenerator {
     pub fn generate_adjunct_codes(
         &self,
@@ -225,7 +230,7 @@ impl GoCodeGenerator {
     pub fn generate_adjunct_prime_codes(
         &self,
         module_name: &String,
-        _adj_prime: &adjunct_prime::AdjunctPrime,
+        adj_prime: &adjunct_prime::AdjunctPrime,
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
@@ -235,6 +240,10 @@ impl GoCodeGenerator {
             .iter()
             .map(|x| String::from(&x.kind))
             .collect::<Vec<String>>();
+        let hosts_ctx = (&adj.hosts)
+            .iter()
+            .map(|x| AdjunctHostContext::from(x))
+            .collect::<Vec<AdjunctHostContext>>();
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()
         } else {
@@ -251,6 +260,24 @@ impl GoCodeGenerator {
                 .collect::<Vec<String>>()
                 .join("")
         };
+        //TODO: error when any abstract is unresolvable
+        let abstracts = adj_prime
+            .implements
+            .iter()
+            .map(|x| {
+                let y = self.lookup_abstract(x.kind.clone());
+                match y {
+                    None => None,
+                    Some(a) => Some(AbstractContext {
+                        type_name: x.kind.symbol_name.to_owned(),
+                        singular: a.singular,
+                        is_system: x.kind.package_identifier == "_azsys",
+                    }),
+                }
+            })
+            .filter(|x| !x.is_none())
+            .map(|x| x.unwrap())
+            .collect::<Vec<AbstractContext>>();
 
         let type_name = format!("{}{}", base_type_name, type_name);
         let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
@@ -265,13 +292,25 @@ impl GoCodeGenerator {
             })
             .collect();
 
+        let ref_key_type_name = format!("{}RefKey", type_name);
+
         let tpl_ctx = AdjunctPrimeContext {
             base: self.render_base_context(),
             pkg_name: module_name.to_lowercase(),
             imports: imports,
             type_name: type_name.to_owned(),
-            primitive_type_name: "".to_owned(),
-            hosts: hosts_names.clone(),
+            ref_key_type_name: ref_key_type_name.to_owned(),
+            ref_key_def: RefKeyContext {
+                azid_text: RefKeyAzidTextContext {
+                    prefix: if adj_prime.identity.prefix.is_empty() {
+                        type_name.to_owned()
+                    } else {
+                        adj_prime.identity.prefix.to_owned()
+                    },
+                },
+            },
+            implements: abstracts,
+            hosts: hosts_ctx,
         };
 
         let header_tpl_bytes = include_bytes!("templates/adjunct_prime__header.gtmpl");
@@ -305,6 +344,13 @@ impl GoCodeGenerator {
                 }
             }
         }
+
+        render_file_region!(
+            out_file,
+            "RefKey",
+            "templates/adjunct_prime_ref_key.gtmpl",
+            tpl_ctx
+        );
 
         Ok(())
     }
@@ -404,6 +450,33 @@ struct AdjunctPrimeContext {
     pkg_name: String,
     imports: Vec<ImportContext>,
     type_name: String,
-    primitive_type_name: String,
-    hosts: Vec<String>,
+    ref_key_type_name: String,
+    ref_key_def: RefKeyContext,
+    implements: Vec<AbstractContext>,
+    hosts: Vec<AdjunctHostContext>,
+}
+
+#[derive(Clone, Gtmpl)]
+struct AdjunctHostContext {
+    full_type_name: String,
+    bare_type_name: String,
+    identifier_name: String,
+}
+
+impl From<&adjunct::AdjunctHost> for AdjunctHostContext {
+    fn from(x: &adjunct::AdjunctHost) -> Self {
+        Self {
+            full_type_name: if x.kind.package_identifier.is_empty() {
+                x.kind.symbol_name.to_owned()
+            } else {
+                format!("{}.{}", x.kind.package_identifier, x.kind.symbol_name)
+            },
+            bare_type_name: x.kind.symbol_name.to_owned(),
+            identifier_name: if x.name.is_empty() {
+                x.kind.symbol_name.to_owned()
+            } else {
+                x.name.to_owned()
+            },
+        }
+    }
 }

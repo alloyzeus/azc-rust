@@ -1,0 +1,332 @@
+// {{.ref_key_type_name}} is used to identify
+// an instance of adjunct entity {{.type_name}} system-wide.
+type {{.ref_key_type_name}} struct {
+	{{- range .hosts}}
+	{{unexported_field .identifier_name}} {{.full_type_name}}RefKey
+	{{- end}}
+}
+
+// The total number of fields in the struct.
+const {{unexported_global .ref_key_type_name}}FieldCount = {{len .hosts}}
+
+// New{{.ref_key_type_name}} returns a new instance
+// of {{.ref_key_type_name}} with the provided attribute values.
+func New{{.ref_key_type_name}}(
+	{{- range .hosts}}
+	{{arg_name .identifier_name}} {{.full_type_name}}RefKey,
+	{{- end}}
+) {{.ref_key_type_name}} {
+	return {{.ref_key_type_name}}{
+		{{- range .hosts}}
+		{{unexported_field .identifier_name}}: {{arg_name .identifier_name}},
+		{{- end}}
+	}
+}
+
+// To ensure that it conforms the interfaces. If any of these is failing,
+// there's a bug in the generator.
+var _ {{.base.azid_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.AdjunctEntityRefKey = {{unexported_global .ref_key_type_name}}Zero
+{{- range .implements}}{{- if .is_system}}
+var _ {{$.base.azcore_pkg}}.{{.type_name}}RefKey = {{unexported_global $.ref_key_type_name}}Zero
+{{- end}}{{- end}}
+
+var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
+	{{- range .hosts}}
+	{{unexported_field .identifier_name}}: {{.full_type_name}}RefKeyZero(),
+	{{- end}}
+}
+
+// {{.ref_key_type_name}}Zero returns
+// a zero-valued instance of {{.ref_key_type_name}}.
+func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
+	return {{unexported_global .ref_key_type_name}}Zero
+}
+
+// AZRefKey is required by {{.base.azid_pkg}}.RefKey interface.
+func ({{.ref_key_type_name}}) AZRefKey() {}
+
+// AZAdjunctEntityRefKey is required
+// by {{.base.azcore_pkg}}.AdjunctEntityRefKey interface.
+func ({{.ref_key_type_name}}) AZAdjunctEntityRefKey() {}
+
+{{- range .implements}}{{- if .is_system}}
+
+{{- end}}{{- end}}
+
+// IsZero is required as {{.ref_key_type_name}} is a value-object.
+func (refKey {{.ref_key_type_name}}) IsZero() bool {
+	return {{range .hosts -}}refKey.{{unexported_field .identifier_name}}.IsZero() &&
+		{{end -}} true
+}
+
+// IsSound returns true if this instance is valid independently as a ref-key.
+// It doesn't tell whether it refers to a valid instance of {{.type_name}}.
+func (refKey {{.ref_key_type_name}}) IsSound() bool {
+	return {{range .hosts -}}refKey.{{unexported_field .identifier_name}}.IsSound() &&
+		{{end -}} true
+}
+
+// IsNotSound returns the negation of value returned by IsSound.
+func (refKey {{.ref_key_type_name}}) IsNotSound() bool {
+	return !refKey.IsSound()
+}
+
+// Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
+func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
+	if x, ok := other.({{.ref_key_type_name}}); ok {
+		return {{range .hosts -}}refKey.{{unexported_field .identifier_name}}.Equals{{.bare_type_name}}RefKey(x.{{unexported_field .identifier_name}}) &&
+			{{end -}} true
+	}
+	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
+		return {{range .hosts -}}refKey.{{unexported_field .identifier_name}}.Equals{{.bare_type_name}}RefKey(x.{{unexported_field .identifier_name}}) &&
+			{{end -}} true
+	}
+	return false
+}
+
+// Equal is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityRefKey.
+func (refKey {{.ref_key_type_name}}) Equal(other interface{}) bool {
+	return refKey.Equals(other)
+}
+
+// Equals{{.ref_key_type_name}} returns true
+// if the other value has the same attributes as refKey.
+func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
+	other {{.ref_key_type_name}},
+) bool {
+	return {{range .hosts -}}refKey.{{unexported_field .identifier_name}}.Equals{{.bare_type_name}}RefKey(other.{{unexported_field .identifier_name}}) &&
+		{{end -}} true
+}
+
+// AZIDBin is required for conformance
+// with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDBin() []byte {
+	data, typ := refKey.AZIDBinField()
+	out := []byte{typ.Byte()}
+	return append(out, data...)
+}
+
+// {{.ref_key_type_name}}FromAZIDBin creates a new instance of
+// {{.ref_key_type_name}} from its azid-bin form.
+func {{.ref_key_type_name}}FromAZIDBin(
+	b []byte,
+) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(b[0])
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "type parsing", err)
+	}
+	if typ != {{.base.azid_pkg}}.BinDataTypeArray {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.Arg("", errors.EntMsg("type", "unsupported"))
+	}
+
+	refKey, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(b[1:], typ)
+	return refKey, readLen + 1, err
+}
+
+// AZIDBinField is required for conformance
+// with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
+	{{if .hosts -}}
+	var typesBytes []byte
+	var dataBytes []byte
+	var fieldBytes []byte
+	var fieldType {{.base.azid_pkg}}.BinDataType
+
+	{{- range $i, $h := .hosts}}
+
+	fieldBytes, fieldType = refKey.{{unexported_field $h.identifier_name}}.AZIDBinField()
+	typesBytes = append(typesBytes, fieldType.Byte())
+	dataBytes = append(dataBytes, fieldBytes...)
+
+	{{- end}}
+
+	var out = []byte{byte(len(typesBytes))}
+	out = append(out, typesBytes...)
+	out = append(out, dataBytes...)
+	return out, {{.base.azid_pkg}}.BinDataTypeArray
+	{{- end}}
+}
+
+// {{.ref_key_type_name}}FromAZIDBinField creates {{.ref_key_type_name}} from
+// its azid-bin field form.
+func {{.ref_key_type_name}}FromAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+	if typeHint != {{.base.azid_pkg}}.BinDataTypeArray {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.Arg("", errors.EntMsg("type", "unsupported"))
+	}
+
+	arrayLen := int(b[0])
+	if arrayLen != {{unexported_global .ref_key_type_name}}FieldCount {
+		return {{.ref_key_type_name}}Zero(), 0,
+			errors.Arg("", errors.EntMsg("field count", "mismatch"))
+	}
+
+	typeCursor := 1
+	dataCursor := typeCursor + arrayLen
+
+	var fieldType {{.base.azid_pkg}}.BinDataType
+
+	{{- range .hosts}}
+
+	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(b[typeCursor])
+	if err != nil {
+		return {{$.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "{{unexported_field .identifier_name}} ref-key type parsing", err)
+	}
+	typeCursor++
+	{{unexported_field .identifier_name}}RefKey, readLen, err := {{.full_type_name}}RefKeyFromAZIDBinField(
+		b[dataCursor:], fieldType)
+	if err != nil {
+		return {{$.ref_key_type_name}}Zero(), 0,
+			errors.ArgWrap("", "{{unexported_field .identifier_name}} ref-key data parsing", err)
+	}
+	dataCursor += readLen
+
+	{{- end}}
+
+	return {{.ref_key_type_name}}{
+		{{- range .hosts}}
+		{{unexported_field .identifier_name}}: {{arg_name .identifier_name}}RefKey,
+		{{- end}}
+	}, dataCursor, nil
+}
+
+// UnmarshalAZIDBinField is required for conformance
+// with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
+	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+) (readLen int, err error) {
+	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(b, typeHint)
+	if err == nil {
+		*refKey = i
+	}
+	return readLen, err
+}
+
+const {{unexported_global .ref_key_type_name}}AZIDTextPrefix = "{{.ref_key_def.azid_text.prefix}}"
+
+// AZIDText is required for conformance
+// with {{.base.azid_pkg}}.RefKey.
+func (refKey {{.ref_key_type_name}}) AZIDText() string {
+	if !refKey.IsSound() {
+		return ""
+	}
+
+	return {{unexported_global .ref_key_type_name}}AZIDTextPrefix +
+		{{.base.azid_pkg}}.TextEncode(refKey.AZIDBin())
+}
+
+// {{.ref_key_type_name}}FromAZIDText creates a new instance of
+// {{.ref_key_type_name}} from its azid-text form.
+func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error) {
+	if s == "" {
+		return {{.ref_key_type_name}}Zero(), nil
+	}
+	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
+		return {{.ref_key_type_name}}Zero(),
+			errors.Arg("", errors.EntMsg("prefix", "mismatch"))
+	}
+	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
+	b, err := {{.base.azid_pkg}}.TextDecode(s)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(),
+			errors.ArgWrap("", "data parsing", err)
+	}
+	refKey, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
+	if err != nil {
+		return {{.ref_key_type_name}}Zero(),
+			errors.ArgWrap("", "data decoding", err)
+	}
+	return refKey, nil
+}
+
+// UnmarshalAZIDText is required for conformance
+// with {{.base.azid_pkg}}.TextUnmarshalable.
+func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDText(s string) error {
+	r, err := {{.ref_key_type_name}}FromAZIDText(s)
+	if err == nil {
+		*refKey = r
+	}
+	return err
+}
+
+// MarshalText is for compatibility with Go's encoding.TextMarshaler
+func (refKey {{.ref_key_type_name}}) MarshalText() ([]byte, error) {
+	return []byte(refKey.AZIDText()), nil
+}
+
+// UnmarshalText is for conformance with Go's encoding.TextUnmarshaler
+func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
+	r, err := {{.ref_key_type_name}}FromAZIDText(string(b))
+	if err == nil {
+		*refKey = r
+	}
+	return err
+}
+
+// MarshalJSON makes this type JSON-marshalable.
+func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
+	// We assume that there are no symbols in azid-text
+	return []byte("\"" + refKey.AZIDText() + "\""), nil
+}
+
+// UnmarshalJSON parses a JSON value.
+func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	if s == "" {
+		*refKey = {{.ref_key_type_name}}Zero()
+		return nil
+	}
+	i, err := {{.ref_key_type_name}}FromAZIDText(s)
+	if err == nil {
+		*refKey = i
+	}
+	return err
+}
+
+{{- range .hosts}}
+
+// {{.identifier_name}} returns instance's {{.identifier_name}} value.
+func (refKey {{$.ref_key_type_name}}) {{.identifier_name}}() {{.full_type_name}}RefKey {
+	return refKey.{{unexported_field .identifier_name}}
+}
+
+// {{.identifier_name}}Ptr returns a pointer to a copy of
+// {{.identifier_name}}RefKey if it's considered valid.
+func (refKey {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.full_type_name}}RefKey {
+	if refKey.{{unexported_field .identifier_name}}.IsSound() {
+		rk := refKey.{{unexported_field .identifier_name}}
+		return &rk
+	}
+	return nil
+}
+
+// With{{.identifier_name}} returns a copy
+// of {{$.ref_key_type_name}}
+// with its {{unexported_field .identifier_name}} attribute set to the provided value.
+func (refKey {{$.ref_key_type_name}}) With{{.identifier_name}}(
+	{{arg_name .identifier_name}} {{.full_type_name}}RefKey,
+) {{$.ref_key_type_name}} {
+	{{- $p := .identifier_name}}
+	return {{$.ref_key_type_name}}{
+		{{- range $.hosts}}{{if eq .identifier_name $p}}
+		{{unexported_field .identifier_name}}: {{arg_name .identifier_name}},{{else}}
+		{{unexported_field .identifier_name}}: refKey.{{unexported_field .identifier_name}},{{end}}{{- end}}
+	}
+}
+
+{{- end}}
+
+// {{.ref_key_type_name}}Error defines an interface for all
+// {{.ref_key_type_name}}-related errors.
+type {{.ref_key_type_name}}Error interface {
+	error
+	{{.ref_key_type_name}}Error()
+}

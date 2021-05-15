@@ -84,6 +84,9 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctHostYaml {
     kind: String,
+
+    #[serde(default)]
+    name: String,
 }
 
 impl From<AdjunctHostYaml> for adjunct::AdjunctHost {
@@ -96,6 +99,7 @@ impl From<&AdjunctHostYaml> for adjunct::AdjunctHost {
     fn from(x: &AdjunctHostYaml) -> adjunct::AdjunctHost {
         adjunct::AdjunctHost {
             kind: symbol::SymbolRef::from(x.kind.to_owned()),
+            name: x.name.to_owned(),
         }
     }
 }

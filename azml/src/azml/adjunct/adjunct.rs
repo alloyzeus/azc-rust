@@ -9,6 +9,8 @@ use crate::azml::{cardinality, symbol};
 
 #[derive(Clone, Debug)]
 pub struct Adjunct {
+    // TODO: if there are more than one host with the same type,
+    // append an alphabet for each of them.
     pub hosts: Vec<AdjunctHost>,
 
     pub cardinality: cardinality::CardinalityConstraint,
@@ -65,8 +67,12 @@ mopafy!(AdjuctDefinition);
 
 #[derive(Clone, Debug)]
 pub struct AdjunctHost {
-    pub kind: symbol::SymbolRef, //TODO: not symbol, but entity-ish
-                                 //TODO: kind, cardinality, uniqueness
+    pub kind: symbol::SymbolRef, //TODO: not SymbolRef, but EntityRef
+
+    // The identifier to use. If empty, the compiler
+    // will derive from kind field.
+    pub name: String,
+    //TODO: kind, cardinality, uniqueness
 }
 
 //endregion
