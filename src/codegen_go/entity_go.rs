@@ -15,7 +15,7 @@ use crate::{
 use azml::azml::{
     entity::{
         id::id_num,
-        lifecycle::{creation::creation, deletion::deletion, lifecycle},
+        lifecycle::{creation, deletion, lifecycle},
         root_entity,
     },
     symbol,
@@ -100,7 +100,7 @@ impl GoCodeGenerator {
                 lifecycle: (&ent.lifecycle).into(),
             };
 
-            let header_tpl_bytes = include_bytes!("templates/entity__header.gtmpl");
+            let header_tpl_bytes = include_bytes!("templates/entity/entity__header.gtmpl");
             let header_code = render_template(
                 String::from_utf8_lossy(header_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -124,36 +124,41 @@ impl GoCodeGenerator {
                     }
                 }
             }
-            render_file_region!(out_file, "IDNum", "templates/entity_id_num.gtmpl", tpl_ctx);
+            render_file_region!(
+                out_file,
+                "IDNum",
+                "templates/entity/entity_id_num.gtmpl",
+                tpl_ctx
+            );
             render_file_region!(
                 out_file,
                 "RefKey",
-                "templates/entity_ref_key.gtmpl",
+                "templates/entity/entity_ref_key.gtmpl",
                 tpl_ctx
             );
             // render_file_region!(
             //     out_file,
             //     "Attributes",
-            //     "templates/entity_attributes.gtmpl",
+            //     "templates/entity/entity_attributes.gtmpl",
             //     tpl_ctx
             // );
-            // render_file_region!(out_file, "Events", "templates/entity_event.gtmpl", tpl_ctx);
+            // render_file_region!(out_file, "Events", "templates/entity/entity_event.gtmpl", tpl_ctx);
             render_file_region!(
                 out_file,
                 "Instance",
-                "templates/entity_instance.gtmpl",
+                "templates/entity/entity_instance.gtmpl",
                 tpl_ctx
             );
             render_file_region!(
                 out_file,
                 "Service",
-                "templates/entity_service.gtmpl",
+                "templates/entity/entity_service.gtmpl",
                 tpl_ctx
             );
             // render_file_region!(
             //     out_file,
             //     "ServiceBase",
-            //     "templates/entity_service_base.gtmpl",
+            //     "templates/entity/entity_service_base.gtmpl",
             //     tpl_ctx
             // );
 
@@ -161,16 +166,16 @@ impl GoCodeGenerator {
             // render_file!(
             //     format!("{}/client", self.package_dir_base_name),
             //     format!("{}ClientBase", service_name),
-            //     "templates/entity_service_client_base.gtmpl",
+            //     "templates/entity/entity_service_client_base.gtmpl",
             //     tpl_ctx,
             //     ""
             // );
 
-            // ServiceServer
+            // ServiceServerBase
             render_file!(
                 format!("{}server", self.package_dir_base_name),
                 format!("{}ServerBase", service_name),
-                "templates/entity_service_server_base.gtmpl",
+                "templates/entity/entity_service_server_base.gtmpl",
                 tpl_ctx,
                 ""
             );
@@ -179,7 +184,7 @@ impl GoCodeGenerator {
             // render_file!(
             //     format!("{}server", self.package_dir_base_name),
             //     format!("{}Server", service_name),
-            //     "templates/entity_service_server.gtmpl",
+            //     "templates/entity/entity_service_server.gtmpl",
             //     tpl_ctx,
             //     ""
             // );

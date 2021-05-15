@@ -14,8 +14,8 @@ pub struct Deletion {
 }
 
 impl Default for Deletion {
-    fn default() -> Deletion {
-        Deletion {
+    fn default() -> Self {
+        Self {
             enabled: false,
             notes: DeletionNotes::default(),
         }
@@ -34,8 +34,8 @@ pub struct DeletionNotes {
 }
 
 impl Default for DeletionNotes {
-    fn default() -> DeletionNotes {
-        DeletionNotes {
+    fn default() -> Self {
+        Self {
             enabled: false,
             required: false,
         }

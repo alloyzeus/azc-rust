@@ -68,6 +68,13 @@ impl GoCodeGenerator {
             azcore_version: "AZCorePackageIsVersion1".to_owned(),
             azid_import: self.azid_import.to_owned(),
             azid_pkg: self.azid_pkg.to_owned(),
+            //TODO: these below should be resolved by the compiler
+            terminal: TerminalContext {
+                pg_type: "bigint".to_owned(),
+            },
+            user: UserContext {
+                pg_type: "bigint".to_owned(),
+            },
         }
     }
 
@@ -214,6 +221,8 @@ struct BaseContext {
     azcore_version: String,
     azid_import: String,
     azid_pkg: String,
+    terminal: TerminalContext,
+    user: UserContext,
 }
 
 #[derive(Clone, Gtmpl)]
@@ -226,4 +235,14 @@ struct LibraryContext {
 struct ImportContext {
     alias: String,
     url: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct TerminalContext {
+    pg_type: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct UserContext {
+    pg_type: String,
 }

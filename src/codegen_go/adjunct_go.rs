@@ -2,12 +2,15 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{
-    attribute_go::AttributeContext,
-    entity_go::AbstractContext,
-    id_num_go::IntegerIdNumContext,
-    ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
-    BaseContext, GoCodeGenerator, ImportContext,
+use crate::{
+    codegen_go::{
+        attribute_go::AttributeContext,
+        entity_go::AbstractContext,
+        id_num_go::IntegerIdNumContext,
+        ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
+        BaseContext, GoCodeGenerator, ImportContext,
+    },
+    convert_case::{Case, Casing},
 };
 
 use azml::azml::{
@@ -141,6 +144,7 @@ impl GoCodeGenerator {
                 pkg_name: module_name.to_lowercase(),
                 pkg_path: self.package_identifier.to_owned(),
                 type_name: type_name.to_owned(),
+                type_name_snake: type_name.to_case(Case::Snake),
                 imports: imports,
                 id_num_type_name: id_num_type_name.to_owned(),
                 id_num_def: id_int.into(),
@@ -162,7 +166,8 @@ impl GoCodeGenerator {
                 global_scope: global_scope,
             };
 
-            let header_tpl_bytes = include_bytes!("templates/adjunct_entity__header.gtmpl");
+            let header_tpl_bytes =
+                include_bytes!("templates/adjunct_entity/adjunct_entity__header.gtmpl");
             let header_code = render_template(
                 String::from_utf8_lossy(header_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
@@ -196,28 +201,37 @@ impl GoCodeGenerator {
             render_file_region!(
                 out_file,
                 "IDNum",
-                "templates/adjunct_entity_id_num.gtmpl",
+                "templates/adjunct_entity/adjunct_entity_id_num.gtmpl",
                 tpl_ctx
             );
             render_file_region!(
                 out_file,
                 "RefKey",
-                "templates/adjunct_entity_ref_key.gtmpl",
+                "templates/adjunct_entity/adjunct_entity_ref_key.gtmpl",
                 tpl_ctx
             );
             // render_file_region!(
             //     out_file,
             //     "Attributes",
-            //     "templates/adjunct_entity_attributes.gtmpl",
+            //     "templates/adjunct_entity/adjunct_entity_attributes.gtmpl",
             //     tpl_ctx
             // );
-            // render_file_region!(out_file, "Events", "templates/adjunct_entity_event.gtmpl", tpl_ctx);
+            // render_file_region!(out_file, "Events", "templates/adjunct_entity/adjunct_entity_event.gtmpl", tpl_ctx);
             // render_file_region!(
             //     out_file,
             //     "Service",
-            //     "templates/adjunct_entity_service.gtmpl",
+            //     "templates/adjunct_entity/adjunct_entity_service.gtmpl",
             //     tpl_ctx
             // );
+
+            // ServiceServerBase
+            render_file!(
+                format!("{}server", self.package_dir_base_name),
+                format!("{}ServerBase", service_name),
+                "templates/adjunct_entity/adjunct_entity_service_server_base.gtmpl",
+                tpl_ctx,
+                ""
+            );
 
             Ok(())
         } else {
@@ -313,7 +327,8 @@ impl GoCodeGenerator {
             hosts: hosts_ctx,
         };
 
-        let header_tpl_bytes = include_bytes!("templates/adjunct_prime__header.gtmpl");
+        let header_tpl_bytes =
+            include_bytes!("templates/adjunct_prime/adjunct_prime__header.gtmpl");
         let header_code = render_template(
             String::from_utf8_lossy(header_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -348,7 +363,7 @@ impl GoCodeGenerator {
         render_file_region!(
             out_file,
             "RefKey",
-            "templates/adjunct_prime_ref_key.gtmpl",
+            "templates/adjunct_prime/adjunct_prime_ref_key.gtmpl",
             tpl_ctx
         );
 
@@ -422,6 +437,7 @@ struct AdjunctEntityContext {
     pkg_path: String,
     imports: Vec<ImportContext>,
     type_name: String,
+    type_name_snake: String,
     id_num_type_name: String,
     id_num_def: IntegerIdNumContext,
     ref_key_type_name: String,

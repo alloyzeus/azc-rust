@@ -2,7 +2,7 @@
 
 use crate::azml::{
     attribute,
-    entity::{abstract_, entity, id::id, lifecycle::lifecycle},
+    entity::{abstract_, entity, id::id, lifecycle},
     mixin, symbol,
 };
 

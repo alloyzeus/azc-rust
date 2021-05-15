@@ -7,7 +7,7 @@ pub struct CardinalityConstraint {
 }
 
 impl Default for CardinalityConstraint {
-    fn default() -> CardinalityConstraint {
-        CardinalityConstraint { min: -1, max: -1 }
+    fn default() -> Self {
+        Self { min: -1, max: -1 }
     }
 }

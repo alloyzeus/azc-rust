@@ -16,8 +16,8 @@ pub struct CreationYaml {
 }
 
 impl Default for CreationYaml {
-    fn default() -> CreationYaml {
-        CreationYaml {
+    fn default() -> Self {
+        Self {
             documentation: "".to_owned(),
             allow_cross_process_callers: false,
         }

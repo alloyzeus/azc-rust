@@ -9,8 +9,8 @@ pub struct CardinalityConstraintYaml {
 }
 
 impl Default for CardinalityConstraintYaml {
-    fn default() -> CardinalityConstraintYaml {
-        CardinalityConstraintYaml { min: -1, max: -1 }
+    fn default() -> Self {
+        Self { min: -1, max: -1 }
     }
 }
 

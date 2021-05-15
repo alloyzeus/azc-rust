@@ -5,7 +5,7 @@ use std::convert::{self, TryInto};
 use super::{
     entity::{
         lifecycle::deletion::{deletion, deletion_yaml},
-        ownership::{ownership, ownership_yaml},
+        ownership::{self, ownership_yaml},
     },
     mixin, yaml,
 };

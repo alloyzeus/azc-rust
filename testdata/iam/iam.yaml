@@ -435,16 +435,14 @@ symbols:
           enabled: true
           description: |
             Hello.
-        mixins:
-          - kind: Deletion
-            parameters:
-          - kind: Expiration
-            parameters:
-              duration:
-                overridable: true
-                value:
-                  quantity: 1440
-                  unit: hour
+        lifecycle:
+          deletion:
+          expiration:
+            duration:
+              overridable: true
+              value:
+                quantity: 1440
+                unit: hour
 
   # TODO: concept of something, which is required to create an instance of
   # an entity. One instance of this something can only be used for exactly one

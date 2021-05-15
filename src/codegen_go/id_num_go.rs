@@ -12,6 +12,7 @@ pub struct IntegerIdNumContext {
     identifier_bits: i8,
     identifier_bits_mask: String,
     bitfield: IntegerIdNumBitfieldContext,
+    pg_type: String,
 }
 
 impl From<&id_num::IntegerIdNum> for IntegerIdNumContext {
@@ -29,6 +30,12 @@ impl From<&id_num::IntegerIdNum> for IntegerIdNumContext {
                 x.primitive_size() - 2,
                 0,
             ),
+            pg_type: match x.primitive_size() {
+                16 => "smallint".to_owned(),
+                32 => "integer".to_owned(),
+                64 => "bigint".to_owned(),
+                _ => "".to_owned(),
+            },
         }
     }
 }

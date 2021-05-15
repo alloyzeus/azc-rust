@@ -2,7 +2,9 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{entity::lifecycle::deletion::deletion, error, yaml};
+use crate::azml::{error, yaml};
+
+use super::deletion;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct DeletionYaml {
@@ -14,9 +16,9 @@ pub struct DeletionYaml {
 }
 
 impl Default for DeletionYaml {
-    fn default() -> DeletionYaml {
+    fn default() -> Self {
         let x = deletion::Deletion::default();
-        DeletionYaml {
+        Self {
             enabled: x.enabled,
             notes: DeletionNotesYaml::default(),
         }
@@ -52,9 +54,9 @@ pub struct DeletionNotesYaml {
 }
 
 impl Default for DeletionNotesYaml {
-    fn default() -> DeletionNotesYaml {
+    fn default() -> Self {
         let x = deletion::DeletionNotes::default();
-        DeletionNotesYaml {
+        Self {
             enabled: x.enabled,
             required: x.required,
         }

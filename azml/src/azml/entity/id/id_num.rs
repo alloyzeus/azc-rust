@@ -140,8 +140,8 @@ impl IntegerIdNumBitfield {
 }
 
 impl Default for IntegerIdNumBitfield {
-    fn default() -> IntegerIdNumBitfield {
-        IntegerIdNumBitfield {
+    fn default() -> Self {
+        Self {
             size: IntegerIdNumBitfield::size_default(),
             sub_fields: Vec::new(),
             inherits: Vec::new(),
@@ -179,8 +179,8 @@ pub struct IntegerIdNumBitfieldSubFieldBit {
 }
 
 impl Default for IntegerIdNumBitfieldSubFieldBit {
-    fn default() -> IntegerIdNumBitfieldSubFieldBit {
-        IntegerIdNumBitfieldSubFieldBit {
+    fn default() -> Self {
+        Self {
             index: -1,
             set: false,
         }
@@ -198,8 +198,8 @@ pub struct IntegerIdNumBitfieldInherit {
 }
 
 impl Default for IntegerIdNumBitfieldInherit {
-    fn default() -> IntegerIdNumBitfieldInherit {
-        IntegerIdNumBitfieldInherit { host: -1, size: -1 }
+    fn default() -> Self {
+        Self { host: -1, size: -1 }
     }
 }
 

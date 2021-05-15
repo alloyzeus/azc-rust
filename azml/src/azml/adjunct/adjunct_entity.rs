@@ -85,8 +85,8 @@ pub enum AdjunctEntityScope {
 }
 
 impl Default for AdjunctEntityScope {
-    fn default() -> AdjunctEntityScope {
-        AdjunctEntityScope::Local
+    fn default() -> Self {
+        Self::Local
     }
 }
 
@@ -178,8 +178,8 @@ pub enum AdjunctEntityOrdering {
 }
 
 impl Default for AdjunctEntityOrdering {
-    fn default() -> AdjunctEntityOrdering {
-        AdjunctEntityOrdering::Unordered
+    fn default() -> Self {
+        Self::Unordered
     }
 }
 

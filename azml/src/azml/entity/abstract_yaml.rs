@@ -77,8 +77,8 @@ pub struct AbstractImplementationYaml {
 }
 
 impl Default for AbstractImplementationYaml {
-    fn default() -> AbstractImplementationYaml {
-        AbstractImplementationYaml {
+    fn default() -> Self {
+        Self {
             kind: "".to_owned(),
             attributes: Vec::new(),
         }

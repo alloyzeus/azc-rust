@@ -146,7 +146,7 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 				As("deleted"),
 		).
 		Where(
-			goqu.C("id").Eq(idNum.PrimitiveValue()),
+			goqu.C("id_num").Eq(idNum.PrimitiveValue()),
 		).
 		ToSQL()
 
@@ -198,10 +198,10 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceNoAC(
 			Insert({{unexported_field .type_name}}DBTableName).
 			Rows(
 				goqu.Record{
-					"id":    newInstanceIDNum,
-					"c_ts":  cTime,
-					"c_uid": ctxAuth.UserIDNumPtr(),
-					"c_tid": ctxAuth.TerminalIDNumPtr(),
+					"id_num": newInstanceIDNum,
+					"c_ts":   cTime,
+					"c_uid":  ctxAuth.UserIDNumPtr(),
+					"c_tid":  ctxAuth.TerminalIDNumPtr(),
 				},
 			).
 			ToSQL()
@@ -262,7 +262,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 		xres, txErr := dbTx.Exec(
 			`UPDATE `+{{unexported_field .type_name}}DBTableName+` `+
 				"SET d_ts = $1, d_uid = $2, d_tid = $3, d_notes = $4 "+
-				"WHERE id = $2 AND d_ts IS NULL",
+				"WHERE id_num = $2 AND d_ts IS NULL",
 			callCtx.RequestInfo().ReceiveTime,
 			ctxAuth.UserIDNum().PrimitiveValue(),
 			ctxAuth.TerminalIDNum().PrimitiveValue(),
@@ -315,8 +315,30 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 	return instanceMutated, currentState, nil
 }
 
+// Designed to perform the migration if required
+//TODO: context: target version, current version (assert), prefix, etc.
+func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
+	_, err := dbTx.Exec(
+		`CREATE TABLE ` + {{unexported_field .type_name}}DBTableName + ` ( ` +
+			`id_num   {{.id_num_def.pg_type}} PRIMARY KEY, ` +
+			`c_ts     timestamp with time zone NOT NULL DEFAULT now(), ` +
+			`c_tid    {{.base.terminal.pg_type}}, ` +
+			`c_uid    {{.base.user.pg_type}}, ` +
+			`d_ts     timestamp with time zone, ` +
+			`d_tid    {{.base.terminal.pg_type}}, ` +
+			`d_uid    {{.base.user.pg_type}}, ` +
+			`d_notes  jsonb, ` +
+			`CHECK (id_num > 0) ` +
+			`);`,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.
-// Note that this function does not consulting any database nor registry.
+// Note that this function does not consult any database nor registry.
 // This method will not create an instance of {{.pkg_name}}.{{.type_name}}, i.e., the
 // resulting {{.pkg_name}}.{{.id_num_type_name}} might or might not refer to valid instance
 // of {{.pkg_name}}.{{.type_name}}. The resulting {{.pkg_name}}.{{.id_num_type_name}} is designed to be
