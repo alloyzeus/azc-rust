@@ -283,7 +283,7 @@ symbols:
               prefix: "KAK0"
 
         attributes:
-          - identifier: Secret
+          - name: Secret
             kind: ApplicationAccessKeySecret
             # TODO: describe: can it be changed? by who? other requirements?
 
@@ -344,15 +344,32 @@ symbols:
               generator:
                 name: RandomLocal
         attributes:
-          - identifier: RegistrationIdentifier
+          # Here, we store data provided by context. These data become metadata.
+          - name:
+            kind: copy
+            source: $context.OriginEnvString
+          - name:
+            kind: copy
+            source: $context.OriginAddress
+          - name:
+            kind: copy
+            source: $context.AcceptLanguage
+          - name: RegistrationIdentifier
             # TODO: union or interface
             # we need to refer to TerminalRegistrationPhoneNumber and
             # other methods of authentication.
             kind: "@TerminalRegistrationIdentifierVerification"
             final: true
-          - identifier: DisplayName
+          - name: DisplayName
             kind: string
             final: true
+          - name: Secret
+            kind: string
+            finality: set-once
+            events:
+            final: true
+          - name: Verified
+            kind: bool with metadata
         lifecycle:
           creation:
             allow_cross_process_callers: false
@@ -379,13 +396,13 @@ symbols:
                   configs:
           methods:
 
-  # # Interface
-  # - identifier: TerminalRegistrationIdentifierVerification
-  #   kind: entity_abstraction
-  #   parameters:
-  #     attributes:
-  #       - identifier: Status
-  #         kind: TerminalRegistrationIdentifierVerificationStatus
+  # Interface
+  - identifier: TerminalRegistrationIdentifierVerification
+    kind: abstract
+    parameters:
+      attributes:
+        - name: Status
+          kind: TerminalRegistrationIdentifierVerificationStatus
 
   - identifier: Session
     documentation: |
@@ -532,10 +549,10 @@ symbols:
               input_parameters:
                 Self.phone_number:
       attributes:
-        - identifier: PhoneNumber
+        - name: PhoneNumber
           kind: telephony.PhoneNumber
           final: true
-        - identifier: VerificationCode
+        - name: VerificationCode
           kind: PhoneNumberVerificationCode
           final: true
       service:

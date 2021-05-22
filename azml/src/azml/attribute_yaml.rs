@@ -1,12 +1,14 @@
 //
 
-use std::convert;
+use std::convert::{self, TryInto};
 
-use crate::azml::{attribute, yaml};
+use crate::azml::yaml;
+
+use super::attribute;
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct AttributeYaml {
-    identifier: String,
+    name: String,
 
     kind: String,
 
@@ -21,13 +23,7 @@ impl convert::TryFrom<AttributeYaml> for attribute::Attribute {
     type Error = yaml::Error;
 
     fn try_from(x: AttributeYaml) -> Result<Self, Self::Error> {
-        Ok(attribute::Attribute {
-            identifier: x.identifier,
-            kind: x.kind.into(),
-            final_: x.final_,
-            identifier_options: attribute::AttributeIdentifierOptions {},
-            documentation: x.documentation,
-        })
+        (&x).try_into()
     }
 }
 
@@ -36,10 +32,10 @@ impl convert::TryFrom<&AttributeYaml> for attribute::Attribute {
 
     fn try_from(x: &AttributeYaml) -> Result<Self, Self::Error> {
         Ok(attribute::Attribute {
-            identifier: x.identifier.to_owned(),
+            name: x.name.to_owned(),
             kind: (&x.kind).into(),
             final_: x.final_,
-            identifier_options: attribute::AttributeIdentifierOptions {},
+            name_options: attribute::AttributeNameOptions {},
             documentation: x.documentation.to_owned(),
         })
     }

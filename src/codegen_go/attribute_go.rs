@@ -14,7 +14,7 @@ pub struct AttributeContext {
 impl From<&attribute::Attribute> for AttributeContext {
     fn from(x: &attribute::Attribute) -> AttributeContext {
         AttributeContext {
-            identifier: x.identifier.to_owned(),
+            identifier: x.name.to_owned(),
             kind: (&x.kind).into(),
             final_: x.final_,
         }
