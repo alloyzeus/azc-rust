@@ -41,5 +41,6 @@ impl symbol::SymbolDefinition for AdjunctPrime {
 
 #[derive(Clone, Debug)]
 pub struct AdjunctPrimeIdentity {
+    pub enabled: bool,
     pub prefix: String,
 }

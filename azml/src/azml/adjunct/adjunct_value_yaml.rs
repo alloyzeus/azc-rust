@@ -3,7 +3,7 @@
 use std::convert::{self, TryInto};
 
 use crate::azml::{
-    adjunct::adjunct_prime,
+    adjunct::adjunct_value,
     entity::{abstract_, abstract_yaml},
     yaml,
 };
@@ -20,11 +20,11 @@ pub struct AdjunctPrimeYaml {
     identity: AdjunctPrimeIdentityYaml,
 }
 
-impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_prime::AdjunctPrime {
+impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_value::AdjunctPrime {
     type Error = yaml::Error;
 
     fn try_from(x: &AdjunctPrimeYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_prime::AdjunctPrime {
+        Ok(adjunct_value::AdjunctPrime {
             documentation: x.documentation.to_owned(),
             implements: x
                 .implements
@@ -36,7 +36,7 @@ impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_prime::AdjunctPrime {
     }
 }
 
-impl convert::TryFrom<AdjunctPrimeYaml> for adjunct_prime::AdjunctPrime {
+impl convert::TryFrom<AdjunctPrimeYaml> for adjunct_value::AdjunctPrime {
     type Error = yaml::Error;
 
     fn try_from(x: AdjunctPrimeYaml) -> Result<Self, Self::Error> {
@@ -47,18 +47,22 @@ impl convert::TryFrom<AdjunctPrimeYaml> for adjunct_prime::AdjunctPrime {
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctPrimeIdentityYaml {
     #[serde(default)]
+    enabled: bool,
+
+    #[serde(default)]
     prefix: String,
 }
 
 impl Default for AdjunctPrimeIdentityYaml {
     fn default() -> Self {
         Self {
+            enabled: false,
             prefix: "".to_owned(),
         }
     }
 }
 
-impl convert::TryFrom<AdjunctPrimeIdentityYaml> for adjunct_prime::AdjunctPrimeIdentity {
+impl convert::TryFrom<AdjunctPrimeIdentityYaml> for adjunct_value::AdjunctPrimeIdentity {
     type Error = yaml::Error;
 
     fn try_from(x: AdjunctPrimeIdentityYaml) -> Result<Self, Self::Error> {
@@ -66,11 +70,12 @@ impl convert::TryFrom<AdjunctPrimeIdentityYaml> for adjunct_prime::AdjunctPrimeI
     }
 }
 
-impl convert::TryFrom<&AdjunctPrimeIdentityYaml> for adjunct_prime::AdjunctPrimeIdentity {
+impl convert::TryFrom<&AdjunctPrimeIdentityYaml> for adjunct_value::AdjunctPrimeIdentity {
     type Error = yaml::Error;
 
     fn try_from(x: &AdjunctPrimeIdentityYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_prime::AdjunctPrimeIdentity {
+        Ok(adjunct_value::AdjunctPrimeIdentity {
+            enabled: x.enabled,
             prefix: x.prefix.to_owned(),
         })
     }

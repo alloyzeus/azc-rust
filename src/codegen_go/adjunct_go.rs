@@ -14,7 +14,7 @@ use crate::{
 };
 
 use azml::azml::{
-    adjunct::{adjunct, adjunct_entity, adjunct_prime, adjunct_value_object},
+    adjunct::{adjunct, adjunct_entity, adjunct_value},
     entity::entity,
     symbol,
 };
@@ -39,14 +39,8 @@ impl GoCodeGenerator {
         {
             self.generate_adjunct_entity_codes(module_name, adj_def, &adj, &sym)?;
             Ok(())
-        } else if let Some(adj_def) = adj
-            .definition
-            .downcast_ref::<adjunct_value_object::AdjunctValueObject>()
-        {
-            self.generate_adjunct_value_object_codes(module_name, adj_def, &adj, &sym)?;
-            Ok(())
-        } else if let Some(adj_def) = adj.definition.downcast_ref::<adjunct_prime::AdjunctPrime>() {
-            self.generate_adjunct_prime_codes(module_name, adj_def, &adj, &sym)?;
+        } else if let Some(adj_def) = adj.definition.downcast_ref::<adjunct_value::AdjunctPrime>() {
+            self.generate_adjunct_value_codes(module_name, adj_def, &adj, &sym)?;
             Ok(())
         } else {
             Ok(())
@@ -241,10 +235,10 @@ impl GoCodeGenerator {
         }
     }
 
-    pub fn generate_adjunct_prime_codes(
+    pub fn generate_adjunct_value_codes(
         &self,
         module_name: &String,
-        adj_prime: &adjunct_prime::AdjunctPrime,
+        adj_prime: &adjunct_value::AdjunctPrime,
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
@@ -328,7 +322,7 @@ impl GoCodeGenerator {
         };
 
         let header_tpl_bytes =
-            include_bytes!("templates/adjunct_prime/adjunct_prime__header.gtmpl");
+            include_bytes!("templates/adjunct_value/adjunct_value__header.gtmpl");
         let header_code = render_template(
             String::from_utf8_lossy(header_tpl_bytes).as_ref(),
             tpl_ctx.to_owned(),
@@ -363,68 +357,9 @@ impl GoCodeGenerator {
         render_file_region!(
             out_file,
             "RefKey",
-            "templates/adjunct_prime/adjunct_prime_ref_key.gtmpl",
+            "templates/adjunct_value/adjunct_value_ref_key.gtmpl",
             tpl_ctx
         );
-
-        Ok(())
-    }
-
-    pub fn generate_adjunct_value_object_codes(
-        &self,
-        module_name: &String,
-        adj_vo: &adjunct_value_object::AdjunctValueObject,
-        adj: &adjunct::Adjunct,
-        sym: &symbol::Symbol,
-    ) -> Result<(), Box<dyn error::Error>> {
-        let type_name = sym.identifier.to_owned();
-        //TODO: collect the name with the kind as the default
-        let hosts_names = (&adj.hosts)
-            .iter()
-            .map(|x| String::from(&x.kind))
-            .collect::<Vec<String>>();
-        let base_type_name = if adj.name_is_prepared {
-            "".to_owned()
-        } else {
-            (&hosts_names)
-                .iter()
-                .map(|x| {
-                    let v = x.split(".").last();
-                    if let Some(i) = v {
-                        i.to_owned()
-                    } else {
-                        x.to_owned()
-                    }
-                })
-                .collect::<Vec<String>>()
-                .join("")
-        };
-
-        let type_name = format!("{}{}", base_type_name, type_name);
-
-        let tpl_ctx = AdjunctValueObjectContext {
-            base: self.render_base_context(),
-            pkg_name: module_name.to_lowercase(),
-            type_name: type_name.to_owned(),
-            type_doc_lines: sym.documentation.lines().map(|x| x.to_owned()).collect(),
-            primitive_type_name: adj_vo.kind.to_owned(),
-            hosts: hosts_names.clone(),
-        };
-
-        let out_tpl_bytes: &[u8];
-        out_tpl_bytes = include_bytes!("templates/adjunct_value_object.gtmpl");
-
-        let out_code = render_template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
-
-        fs::create_dir_all(self.package_dir_base_name.to_owned())?;
-        let mut service_file = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(format!("{}/{}.go", self.package_dir_base_name, type_name,))?;
-        service_file.write_all(out_code.as_bytes())?;
 
         Ok(())
     }

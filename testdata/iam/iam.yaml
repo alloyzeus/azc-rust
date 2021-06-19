@@ -84,10 +84,11 @@ symbols:
   - identifier: KeyPhoneNumber
     kind: adjunct
     parameters:
+      kind: value
       hosts:
         - kind: User
-      kind: value_object
       parameters:
+        documentation: Nice
         kind: telephony.PhoneNumber
         unique: true
 
@@ -306,12 +307,13 @@ symbols:
       an initial Session.
     kind: adjunct
     parameters:
-      name_is_prepared: true
       kind: entity
+      name_is_prepared: true
       # At least one
       hosts:
         - kind: Application
         - kind: User
+          #TODO: express this: requirement is based on the application's agency type
           required: false
       # Options are 'id_num' and 'ref_key'. If it's set to 'id_num',
       # an id_num could be used to uniquely identify an instance. If it's
@@ -345,31 +347,35 @@ symbols:
                 name: RandomLocal
         attributes:
           # Here, we store data provided by context. These data become metadata.
-          - name:
-            kind: copy
-            source: $context.OriginEnvString
-          - name:
-            kind: copy
-            source: $context.OriginAddress
-          - name:
-            kind: copy
-            source: $context.AcceptLanguage
-          - name: RegistrationIdentifier
-            # TODO: union or interface
-            # we need to refer to TerminalRegistrationPhoneNumber and
-            # other methods of authentication.
-            kind: "@TerminalRegistrationIdentifierVerification"
-            final: true
-          - name: DisplayName
-            kind: string
-            final: true
-          - name: Secret
-            kind: string
-            finality: set-once
-            events:
-            final: true
-          - name: Verified
-            kind: bool with metadata
+          - name: OriginEnvString
+            finality: on_creation
+            kind: '#infered'
+            value:
+              kind: ref
+              parameters:
+                source: $context.OriginEnvString
+        #   - name:
+        #     kind: copy
+        #     source: $context.OriginAddress
+        #   - name:
+        #     kind: copy
+        #     source: $context.AcceptLanguage
+        #   - name: RegistrationIdentifier
+        #     # TODO: union or interface
+        #     # we need to refer to TerminalRegistrationPhoneNumber and
+        #     # other methods of authentication.
+        #     kind: "@TerminalRegistrationIdentifierVerification"
+        #     final: true
+        #   - name: DisplayName
+        #     kind: string
+        #     final: true
+        #   - name: Secret
+        #     kind: string
+        #     finality: set-once
+        #     events:
+        #     final: true
+        #   - name: Verified
+        #     kind: bool with metadata
         lifecycle:
           creation:
             allow_cross_process_callers: false

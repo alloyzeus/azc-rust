@@ -4,10 +4,7 @@ use std::{convert, convert::TryInto};
 
 use crate::azml::{cardinality_yaml, symbol, yaml};
 
-use super::{
-    adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_prime, adjunct_prime_yaml,
-    adjunct_value_object, adjunct_value_object_yaml,
-};
+use super::{adjunct, adjunct_entity, adjunct_entity_yaml, adjunct_value, adjunct_value_yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctYaml {
@@ -52,24 +49,12 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
                     name_is_prepared: x.name_is_prepared,
                 })
             }
-            "prime" => {
-                let def: adjunct_prime_yaml::AdjunctPrimeYaml = yaml::from_value(x.parameters)?;
+            "value" => {
+                let def: adjunct_value_yaml::AdjunctPrimeYaml = yaml::from_value(x.parameters)?;
                 Ok(adjunct::Adjunct {
                     hosts: hosts,
                     cardinality: x.cardinality.into(),
-                    definition: Box::new(adjunct_prime::AdjunctPrime::from(def.try_into()?)),
-                    name_is_prepared: x.name_is_prepared,
-                })
-            }
-            "value_object" => {
-                let def: adjunct_value_object_yaml::AdjunctValueObjectYaml =
-                    yaml::from_value(x.parameters)?;
-                Ok(adjunct::Adjunct {
-                    hosts: hosts,
-                    cardinality: x.cardinality.into(),
-                    definition: Box::new(adjunct_value_object::AdjunctValueObject::from(
-                        def.try_into()?,
-                    )),
+                    definition: Box::new(adjunct_value::AdjunctPrime::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
                 })
             }

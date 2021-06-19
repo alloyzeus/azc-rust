@@ -13,7 +13,7 @@ type {{.type_name}}InstanceInfoService interface {
 	// This method returns nil if the refKey is not referencing to any valid
 	// instance.
 	Get{{.type_name}}InstanceInfo(
-		callCtx CallContext,
+		opInputCtx OpInputContext,
 		refKey {{.ref_key_type_name}},
 	) (*{{.type_name}}InstanceInfo, error)
 }
@@ -78,7 +78,7 @@ type {{.type_name}}InstanceDeletionInfo struct {
 // available to be called from another part of a process.
 type {{.type_name}}InstanceServiceInternal interface {
 	Create{{.type_name}}InstanceInternal(
-		callCtx CallContext,
+		opInputCtx OpInputContext,
 		input {{.type_name}}InstanceCreationInput,
 	 ) (refKey {{.ref_key_type_name}}, initialState {{.type_name}}InstanceInfo, err error);
 
@@ -90,7 +90,7 @@ type {{.type_name}}InstanceServiceInternal interface {
 	// true if this particular call resulted the deletion of the instance and
 	// it will have the value of false of subsequent calls to this method.
 	Delete{{.type_name}}InstanceInternal(
-		callCtx CallContext,
+		opInputCtx OpInputContext,
 		refOfInstToDel {{.ref_key_type_name}},
 		input {{.type_name}}InstanceDeletionInput,
 	) (instanceMutated bool, currentState {{.type_name}}InstanceInfo, err error)

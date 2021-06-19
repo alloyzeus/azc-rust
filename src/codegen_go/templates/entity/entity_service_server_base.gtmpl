@@ -21,7 +21,7 @@ const {{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
 type {{.service_name}}ServerBase struct {
 	db *sqlx.DB
 
-	deletionTxHook func({{.pkg_name}}.CallContext, *sqlx.Tx) error
+	deletionTxHook func({{.pkg_name}}.OpInputContext, *sqlx.Tx) error
 
 	registered{{.id_num_type_name}}Cache *lru.ARCCache
 	deleted{{.id_num_type_name}}Cache    *lru.ARCCache
@@ -62,15 +62,15 @@ func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(refKe
 // If it's required only to determine the existence of the ID,
 // Is{{.ref_key_type_name}}Registered is generally more efficient.
 func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceInfo(
-	callCtx {{.pkg_name}}.CallContext,
+	opInputCtx {{.pkg_name}}.OpInputContext,
 	refKey {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
 	//TODO: access control
-	return srv.get{{.type_name}}InstanceInfoNoAC(callCtx, refKey)
+	return srv.get{{.type_name}}InstanceInfoNoAC(opInputCtx, refKey)
 }
 
 func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoNoAC(
-	callCtx {{.pkg_name}}.CallContext,
+	opInputCtx {{.pkg_name}}.OpInputContext,
 	refKey {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
 	idRegistered := false
@@ -164,27 +164,27 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 }
 
 func (srv *{{.service_name}}ServerBase) Create{{.type_name}}InstanceInternal(
-	callCtx {{.pkg_name}}.CallContext,
+	opInputCtx {{.pkg_name}}.OpInputContext,
 	input {{.pkg_name}}.{{.type_name}}InstanceCreationInput,
 ) (refKey {{.pkg_name}}.{{.ref_key_type_name}}, initialState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	//TODO: access control
 
-	refKey, err = srv.create{{.type_name}}InstanceNoAC(callCtx)
+	refKey, err = srv.create{{.type_name}}InstanceNoAC(opInputCtx)
 
 	//TODO: revision number
 	return refKey, {{.pkg_name}}.{{.type_name}}InstanceInfo{RevisionNumber: -1}, err
 }
 
 func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceNoAC(
-	callCtx {{.pkg_name}}.CallContext,
+	opInputCtx {{.pkg_name}}.OpInputContext,
 ) ({{.pkg_name}}.{{.ref_key_type_name}}, error) {
-	ctxAuth := callCtx.Authorization()
+	ctxAuth := opInputCtx.Authorization()
 
 	const attemptNumMax = 5
 
 	var err error
 	var newInstanceIDNum {{.pkg_name}}.{{.id_num_type_name}}
-	cTime := callCtx.RequestInfo().ReceiveTime
+	cTime := opInputCtx.OpInputMetadata().ReceiveTime
 
 	for attemptNum := 0; ; attemptNum++ {
 		//TODO: obtain embedded fields from the argument which
@@ -231,17 +231,17 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceNoAC(
 }
 
 func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
-	callCtx {{.pkg_name}}.CallContext,
+	opInputCtx {{.pkg_name}}.OpInputContext,
 	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
-	if callCtx == nil {
+	if opInputCtx == nil {
 		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil
 	}
 
 {{- /*TODO: only if it's trully implement User */}}
 {{- if eq .type_name "User"}}
-	ctxAuth := callCtx.Authorization()
+	ctxAuth := opInputCtx.Authorization()
 	if !ctxAuth.IsUser(toDelete) {
 		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil //TODO: should be an error
 	}
@@ -249,21 +249,21 @@ func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 
 	//TODO: access control
 
-	return srv.delete{{.type_name}}InstanceNoAC(callCtx, toDelete, input)
+	return srv.delete{{.type_name}}InstanceNoAC(opInputCtx, toDelete, input)
 }
 
 func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
-	callCtx {{.pkg_name}}.CallContext,
+	opInputCtx {{.pkg_name}}.OpInputContext,
 	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
-	ctxAuth := callCtx.Authorization()
+	ctxAuth := opInputCtx.Authorization()
 	err = doTx(srv.db, func(dbTx *sqlx.Tx) error {
 		xres, txErr := dbTx.Exec(
 			`UPDATE `+{{unexported_field .type_name}}DBTableName+` `+
 				"SET d_ts = $1, d_uid = $2, d_tid = $3, d_notes = $4 "+
 				"WHERE id_num = $2 AND d_ts IS NULL",
-			callCtx.RequestInfo().ReceiveTime,
+			opInputCtx.OpInputMetadata().ReceiveTime,
 			ctxAuth.UserIDNum().PrimitiveValue(),
 			ctxAuth.TerminalIDNum().PrimitiveValue(),
 			{{if .lifecycle.deletion.notes.enabled }}input.DeletionNotes{{else}}""{{end}})
@@ -277,7 +277,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 		instanceMutated = n == 1
 
 		if srv.deletionTxHook != nil {
-			return srv.deletionTxHook(callCtx, dbTx)
+			return srv.deletionTxHook(opInputCtx, dbTx)
 		}
 
 		return nil
@@ -295,7 +295,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 			{{- end}}
 		}
 	} else {
-		di, err := srv.get{{.type_name}}InstanceInfoNoAC(callCtx, toDelete)
+		di, err := srv.get{{.type_name}}InstanceInfoNoAC(opInputCtx, toDelete)
 		if err != nil {
 			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
 		}
@@ -351,7 +351,7 @@ func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}})
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {
-		return {{.pkg_name}}.{{.id_num_type_name}}Zero, errors.ArgWrap("", "random source reading", err)
+		return {{.pkg_name}}.{{.id_num_type_name}}Zero, errors.Wrap("random number source reading", err)
 	}
 
 	idUint := (embeddedFieldBits & {{.pkg_name}}.{{.id_num_type_name}}EmbeddedFieldsMask) |
