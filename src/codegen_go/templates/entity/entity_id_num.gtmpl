@@ -72,24 +72,23 @@ func (idNum {{.id_num_type_name}}) IsZero() bool {
 	return idNum == {{.id_num_type_name}}Zero
 }
 
-// IsStaticallyValid returns true if this instance is valid independently
-// as an {{.id_num_type_name}}. It doesn't tell whether it refers to
+// IsStaticallyValid returns true if this instance is valid as an isolated value
+// of {{.id_num_type_name}}. It doesn't tell whether it refers to
 // a valid instance of {{.type_name}}.
 //
-// To elaborate, validity of a data depends on the perspective of the user.
-// For example, age 1000 is a valid as an instance of age, but on the context
+// What is considered valid in this context here is that the data
+// contained in this instance doesn't break any rule for an instance of
+// {{.id_num_type_name}}. Whether the instance is valid in a certain context,
+// it requires case-by-case validation which is out of the scope of this
+// method.
+//
+// For example, age 1000 is a valid as an instance of age, but in the context
 // of human living age, we can consider it as invalid.
 //
-// To use some analogy, a ticket has a date of validity for today, but
+// Another example, a ticket has a date of validity for today, but
 // after it got checked in to the counter, it turns out that its serial number
 // is not registered in the issuer's database. The ticket claims that it's
 // valid, but it's considered invalid because it's a fake.
-//
-// Similarly, what is considered valid in this context here is that the data
-// contained in this instance doesn't break any rule for an instance of
-// {{.id_num_type_name}}. Whether the instance is valid for certain context,
-// it requires case-by-case validation which is out of the scope of this
-// method.
 func (idNum {{.id_num_type_name}}) IsStaticallyValid() bool {
 	return int{{.id_num_def.primitive_size}}(idNum) > 0 &&
 		(uint{{.id_num_def.primitive_size}}(idNum) & {{.id_num_type_name}}IdentifierBitsMask) != 0
