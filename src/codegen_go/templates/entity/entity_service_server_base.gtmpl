@@ -141,7 +141,7 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
 		Select(
 			goqu.Case().
-				When(goqu.C("d_ts").IsNull(), false).
+				When(goqu.C("_md_ts").IsNull(), false).
 				Else(true).
 				As("deleted"),
 		).
@@ -198,10 +198,10 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceNoAC(
 			Insert({{unexported_field .type_name}}DBTableName).
 			Rows(
 				goqu.Record{
-					"id_num": newInstanceIDNum,
-					"c_ts":   cTime,
-					"c_uid":  ctxAuth.UserIDNumPtr(),
-					"c_tid":  ctxAuth.TerminalIDNumPtr(),
+					"id_num":  newInstanceIDNum,
+					"_mc_ts":  cTime,
+					"_mc_uid": ctxAuth.UserIDNumPtr(),
+					"_mc_tid": ctxAuth.TerminalIDNumPtr(),
 				},
 			).
 			ToSQL()
@@ -261,8 +261,8 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 	err = doTx(srv.db, func(dbTx *sqlx.Tx) error {
 		xres, txErr := dbTx.Exec(
 			`UPDATE `+{{unexported_field .type_name}}DBTableName+` `+
-				"SET d_ts = $1, d_uid = $2, d_tid = $3, d_notes = $4 "+
-				"WHERE id_num = $2 AND d_ts IS NULL",
+				"SET _md_ts = $1, _md_uid = $2, _md_tid = $3, _md_notes = $4 "+
+				"WHERE id_num = $2 AND _md_ts IS NULL",
 			opInputCtx.OpInputMetadata().ReceiveTime,
 			ctxAuth.UserIDNum().PrimitiveValue(),
 			ctxAuth.TerminalIDNum().PrimitiveValue(),
@@ -320,14 +320,14 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 	_, err := dbTx.Exec(
 		`CREATE TABLE ` + {{unexported_field .type_name}}DBTableName + ` ( ` +
-			`id_num   {{.id_num_def.pg_type}} PRIMARY KEY, ` +
-			`c_ts     timestamp with time zone NOT NULL DEFAULT now(), ` +
-			`c_tid    {{.base.terminal.pg_type}}, ` +
-			`c_uid    {{.base.user.pg_type}}, ` +
-			`d_ts     timestamp with time zone, ` +
-			`d_tid    {{.base.terminal.pg_type}}, ` +
-			`d_uid    {{.base.user.pg_type}}, ` +
-			`d_notes  jsonb, ` +
+			`id_num     {{.id_num_def.pg_type}} PRIMARY KEY, ` +
+			`_mc_ts     timestamp with time zone NOT NULL DEFAULT now(), ` +
+			`_mc_tid    {{.base.terminal.pg_type}}, ` +
+			`_mc_uid    {{.base.user.pg_type}}, ` +
+			`_md_ts     timestamp with time zone, ` +
+			`_md_tid    {{.base.terminal.pg_type}}, ` +
+			`_md_uid    {{.base.user.pg_type}}, ` +
+			`_md_notes  jsonb, ` +
 			`CHECK (id_num > 0) ` +
 			`);`,
 	)
