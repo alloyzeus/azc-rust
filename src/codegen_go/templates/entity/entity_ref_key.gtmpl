@@ -12,13 +12,13 @@ func New{{.ref_key_type_name}}(
 
 // To ensure that it conforms the interfaces. If any of these is failing,
 // there's a bug in the generator.
-var _ {{.base.azid_pkg}}.RefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.RefKey[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azid_pkg}}.BinUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
-var _ {{.base.azcore_pkg}}.EntityRefKey = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.EntityRefKey[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
 {{- range .implements}}{{- if .is_system}}
-var _ {{$.base.azcore_pkg}}.{{.type_name}}RefKey = {{unexported_global $.ref_key_type_name}}Zero
+var _ {{$.base.azcore_pkg}}.{{.type_name}}RefKey[{{.type_name}}IDNum] = {{unexported_global $.ref_key_type_name}}Zero
 {{- end}}{{- end}}
 
 const {{unexported_global .ref_key_type_name}}Zero =
@@ -55,7 +55,7 @@ func (refKey {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
 }
 
 // AZIDNum is required for conformance with {{.base.azid_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZIDNum() {{.base.azid_pkg}}.IDNum {
+func (refKey {{.ref_key_type_name}}) AZIDNum() {{.id_num_type_name}} {
 	return {{.id_num_type_name}}(refKey)
 }
 
@@ -63,7 +63,7 @@ func (refKey {{.ref_key_type_name}}) AZIDNum() {{.base.azid_pkg}}.IDNum {
 
 // {{.type_name}}IDNum is required for conformance
 // with {{$.base.azcore_pkg}}.{{.type_name}}RefKey.
-func (refKey {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.base.azcore_pkg}}.{{.type_name}}IDNum {
+func (refKey {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.id_num_type_name}} {
 	return {{$.id_num_type_name}}(refKey)
 }
 

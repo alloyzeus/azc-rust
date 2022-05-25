@@ -4,11 +4,11 @@ type {{.id_num_type_name}} {{.id_num_def.type_name}}
 
 // To ensure that it conforms the interfaces. If any of these is failing,
 // there's a bug in the generator.
-var _ {{.base.azid_pkg}}.IDNum = {{.id_num_type_name}}Zero
+var _ {{.base.azid_pkg}}.IDNumMethods = {{.id_num_type_name}}Zero
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
-var _ {{.base.azcore_pkg}}.EntityIDNum = {{.id_num_type_name}}Zero
+var _ {{.base.azcore_pkg}}.EntityIDNumMethods = {{.id_num_type_name}}Zero
 {{- range .implements}}{{- if .is_system}}
-var _ {{$.base.azcore_pkg}}.{{.type_name}}IDNum = {{$.id_num_type_name}}Zero
+var _ {{$.base.azcore_pkg}}.{{.type_name}}IDNumMethods = {{$.id_num_type_name}}Zero
 {{- end}}{{- end}}
 
 // {{.id_num_type_name}}IdentifierBitsMask is used to

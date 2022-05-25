@@ -33,7 +33,8 @@
 		"mutantdino.resourcemonitor",
 		"matklad.rust-analyzer",
 		"tamasfe.even-better-toml",
-		"serayuzgur.crates"
+		"serayuzgur.crates",
+		"casualjim.gotemplate"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
