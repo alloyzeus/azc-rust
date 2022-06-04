@@ -66,10 +66,10 @@ func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceInfo(
 	refKey {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
 	//TODO: access control
-	return srv.get{{.type_name}}InstanceInfoNoAC(opInputCtx, refKey)
+	return srv.get{{.type_name}}InstanceInfoInsecure(opInputCtx, refKey)
 }
 
-func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoNoAC(
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 	opInputCtx {{.pkg_name}}.OpInputContext,
 	refKey {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
@@ -169,13 +169,13 @@ func (srv *{{.service_name}}ServerBase) Create{{.type_name}}InstanceInternal(
 ) (refKey {{.pkg_name}}.{{.ref_key_type_name}}, initialState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	//TODO: access control
 
-	refKey, err = srv.create{{.type_name}}InstanceNoAC(opInputCtx)
+	refKey, err = srv.create{{.type_name}}InstanceInsecure(opInputCtx)
 
 	//TODO: revision number
 	return refKey, {{.pkg_name}}.{{.type_name}}InstanceInfo{RevisionNumber: -1}, err
 }
 
-func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceNoAC(
+func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
 	opInputCtx {{.pkg_name}}.OpInputContext,
 ) ({{.pkg_name}}.{{.ref_key_type_name}}, error) {
 	ctxAuth := opInputCtx.Authorization()
@@ -249,24 +249,39 @@ func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 
 	//TODO: access control
 
-	return srv.delete{{.type_name}}InstanceNoAC(opInputCtx, toDelete, input)
+	return srv.delete{{.type_name}}InstanceInsecure(opInputCtx, toDelete, input)
 }
 
-func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
+func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 	opInputCtx {{.pkg_name}}.OpInputContext,
 	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	ctxAuth := opInputCtx.Authorization()
+	ctxTime := opInputCtx.OpInputMetadata().ReceiveTime
+
 	err = doTx(srv.db, func(dbTx *sqlx.Tx) error {
-		xres, txErr := dbTx.Exec(
-			`UPDATE `+{{unexported_field .type_name}}DBTableName+` `+
-				"SET _md_ts = $1, _md_uid = $2, _md_tid = $3, _md_notes = $4 "+
-				"WHERE id_num = $2 AND _md_ts IS NULL",
-			opInputCtx.OpInputMetadata().ReceiveTime,
-			ctxAuth.UserIDNum().PrimitiveValue(),
-			ctxAuth.TerminalIDNum().PrimitiveValue(),
-			{{if .lifecycle.deletion.notes.enabled }}input.DeletionNotes{{else}}""{{end}})
+		sqlString, _, _ := goqu.
+			From({{unexported_field .type_name}}DBTableName).
+			Where(
+				goqu.C("id_num").Eq(ctxAuth.UserIDNum().PrimitiveValue()),
+				goqu.C("_md_ts").IsNull(),
+			).
+			Update().
+			Set(
+				goqu.Record{
+					"_md_ts":    ctxTime,
+					"_md_tid":   ctxAuth.TerminalIDNum().PrimitiveValue(),
+					"_md_uid":   ctxAuth.UserIDNum().PrimitiveValue(),
+					{{- if .lifecycle.deletion.notes.enabled}}
+					"_md_notes": input.DeletionNotes,
+					{{- end}}
+				},
+			).
+			ToSQL()
+
+		xres, txErr := dbTx.
+			Exec(sqlString)
 		if txErr != nil {
 			return txErr
 		}
@@ -295,7 +310,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceNoAC(
 			{{- end}}
 		}
 	} else {
-		di, err := srv.get{{.type_name}}InstanceInfoNoAC(opInputCtx, toDelete)
+		di, err := srv.get{{.type_name}}InstanceInfoInsecure(opInputCtx, toDelete)
 		if err != nil {
 			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
 		}
@@ -327,7 +342,9 @@ func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 			`_md_ts     timestamp with time zone, ` +
 			`_md_tid    {{.base.terminal.pg_type}}, ` +
 			`_md_uid    {{.base.user.pg_type}}, ` +
+			{{- if .lifecycle.deletion.notes.enabled}}
 			`_md_notes  jsonb, ` +
+			{{- end}}
 			`CHECK (id_num > 0) ` +
 			`);`,
 	)

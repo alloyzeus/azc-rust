@@ -101,15 +101,35 @@ impl Compiler {
         modules.insert(
             "_azsys".to_owned(),
             module::ModuleDefinition {
-                symbols: vec![symbol::Symbol {
-                    identifier: "User".to_owned(),
-                    documentation: "".to_owned(),
-                    definition: Box::new(abstract_::Abstract {
+                symbols: vec![
+                    symbol::Symbol {
+                        identifier: "User".to_owned(),
                         documentation: "".to_owned(),
-                        singular: true,
-                        attributes: Vec::new(),
-                    }),
-                }],
+                        definition: Box::new(abstract_::Abstract {
+                            documentation: "".to_owned(),
+                            singular: true,
+                            attributes: Vec::new(),
+                        }),
+                    },
+                    symbol::Symbol {
+                        identifier: "Terminal".to_owned(),
+                        documentation: "".to_owned(),
+                        definition: Box::new(abstract_::Abstract {
+                            documentation: "".to_owned(),
+                            singular: true,
+                            attributes: Vec::new(),
+                        }),
+                    },
+                    symbol::Symbol {
+                        identifier: "Session".to_owned(),
+                        documentation: "".to_owned(),
+                        definition: Box::new(abstract_::Abstract {
+                            documentation: "".to_owned(),
+                            singular: true,
+                            attributes: Vec::new(),
+                        }),
+                    },
+                ],
                 options: HashMap::new(),
             },
         );

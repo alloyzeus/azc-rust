@@ -80,7 +80,7 @@ func (refKey {{.ref_key_type_name}}) AZIDNum() {{.id_num_type_name}} {
 
 // {{.type_name}}IDNum is required for conformance
 // with {{$.base.azcore_pkg}}.{{.type_name}}RefKey.
-func (refKey {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.base.azcore_pkg}}.{{.type_name}}IDNum {
+func (refKey {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.id_num_type_name}} {
 	return refKey.idNum
 }
 
