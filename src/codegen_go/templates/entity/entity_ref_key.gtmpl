@@ -121,17 +121,17 @@ func {{.ref_key_type_name}}FromAZIDBin(b []byte) (refKey {{.ref_key_type_name}},
 	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(b[0])
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			errors.ArgWrap("", "type parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "type parsing", err)
 	}
 	if typ != {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			errors.Arg("", errors.EntMsg("type", "unsupported"))
+			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("type", "unsupported"))
 	}
 
 	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(b[1:], typ)
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			errors.ArgWrap("", "id-num data parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "id-num data parsing", err)
 	}
 
 	return {{.ref_key_type_name}}(i), 1 + readLen, nil
@@ -194,18 +194,18 @@ func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error
 	}
 	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
 		return {{.ref_key_type_name}}Zero(),
-			errors.Arg("", errors.EntMsg("prefix", "mismatch"))
+			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("prefix", "mismatch"))
 	}
 	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
 	b, err := {{.base.azid_pkg}}.TextDecode(s)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			errors.ArgWrap("", "data parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "data parsing", err)
 	}
 	refKey, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			errors.ArgWrap("", "data decoding", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "data decoding", err)
 	}
 	return refKey, nil
 }

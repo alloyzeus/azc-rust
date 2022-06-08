@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 
-	errors "{{.base.azcore_import}}/errors"
+	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
 
 	"{{.pkg_path}}"
 )
@@ -27,7 +27,7 @@ func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}})
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {
-		return {{.pkg_name}}.{{.id_num_type_name}}Zero, errors.Wrap("random number source reading", err)
+		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Wrap("random number source reading", err)
 	}
 
 	idUint := (embeddedFieldBits & {{.pkg_name}}.{{.id_num_type_name}}EmbeddedFieldsMask) |

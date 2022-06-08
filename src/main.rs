@@ -35,6 +35,8 @@ fn main() {
 
             let module_identifier = "".to_owned();
 
+            let azfl_pkg_identifier = "github.com/alloyzeus/go-azfl".to_owned();
+
             use codegen::CodeGenerator;
             let mut go_codegen = codegen_go::GoCodeGenerator {
                 base_dir: "testdata/output/go".to_owned(),
@@ -44,10 +46,12 @@ fn main() {
                 file_per_struct: false,
                 package_urls: package_urls,
                 azlib_prefix: "AZx".to_owned(),
-                azcore_import: "github.com/alloyzeus/go-azfl/azfl".to_owned(),
-                azcore_pkg: "azfl".to_owned(),
-                azid_import: "github.com/alloyzeus/go-azfl/azfl/azid".to_owned(),
+                azcore_import: azfl_pkg_identifier.to_string() + "/azcore",
+                azcore_pkg: "azcore".to_owned(),
+                azid_import: azfl_pkg_identifier.to_string() + "/azid",
                 azid_pkg: "azid".to_owned(),
+                azerrs_import: azfl_pkg_identifier.to_string() + "/errors",
+                azerrs_pkg: "errors".to_owned(),
                 compilation_state: None,
                 package_identifier: "".to_owned(),
                 package_dir_base_name: "".to_owned(),

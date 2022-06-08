@@ -7,7 +7,7 @@ import (
 
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 	{{.base.azid_pkg}} "{{.base.azid_import}}"
-	errors "{{.base.azcore_import}}/errors"
+	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
 	{{- range .imports}}
 	{{.alias}} "{{.url}}"
 	{{- end}}

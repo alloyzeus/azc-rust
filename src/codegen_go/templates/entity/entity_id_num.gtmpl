@@ -39,7 +39,7 @@ func {{.id_num_type_name}}FromAZIDBinField(
 ) (idNum {{.id_num_type_name}}, readLen int, err error) {
 	if typeHint != {{.base.azid_pkg}}.BinDataTypeUnspecified && typeHint != {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
 		return {{.id_num_type_name}}(0), 0,
-			errors.ArgMsg("typeHint", "unsupported")
+			{{.base.azerrs_pkg}}.ArgMsg("typeHint", "unsupported")
 	}
 	i := binary.BigEndian.Uint{{.id_num_def.primitive_size}}(b)
 	return {{.id_num_type_name}}(i), {{.id_num_def.primitive_size_bytes}}, nil

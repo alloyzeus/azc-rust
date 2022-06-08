@@ -49,6 +49,8 @@ pub struct GoCodeGenerator {
     pub azcore_pkg: String,
     pub azid_import: String,
     pub azid_pkg: String,
+    pub azerrs_import: String,
+    pub azerrs_pkg: String,
     // AZStd is a collection of well-thought, stable library
     // AZExt contains additional libraries which are generally optional
     // or they are in an experimental stage.
@@ -68,6 +70,8 @@ impl GoCodeGenerator {
             azcore_version: "AZCorePackageIsVersion1".to_owned(),
             azid_import: self.azid_import.to_owned(),
             azid_pkg: self.azid_pkg.to_owned(),
+            azerrs_import: self.azerrs_import.to_owned(),
+            azerrs_pkg: self.azerrs_pkg.to_owned(),
             //TODO: these below should be resolved by the compiler
             terminal: TerminalContext {
                 pg_type: "bigint".to_owned(),
@@ -221,6 +225,8 @@ struct BaseContext {
     azcore_version: String,
     azid_import: String,
     azid_pkg: String,
+    azerrs_import: String,
+    azerrs_pkg: String,
     terminal: TerminalContext,
     user: UserContext,
 }

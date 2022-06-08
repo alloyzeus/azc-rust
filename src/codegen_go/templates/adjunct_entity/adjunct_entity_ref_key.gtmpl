@@ -148,11 +148,11 @@ func {{.ref_key_type_name}}FromAZIDBin(
 	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(b[0])
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "type parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "type parsing", err)
 	}
 	if typ != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.Arg("", errors.EntMsg("type", "unsupported"))
+			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("type", "unsupported"))
 	}
 
 	refKey, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(b[1:], typ)
@@ -196,13 +196,13 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 ) (refKey {{.ref_key_type_name}}, readLen int, err error) {
 	if typeHint != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.Arg("", errors.EntMsg("type", "unsupported"))
+			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("type", "unsupported"))
 	}
 
 	arrayLen := int(b[0])
 	if arrayLen != {{unexported_global .ref_key_type_name}}FieldCount {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.Arg("", errors.EntMsg("field count", "mismatch"))
+			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("field count", "mismatch"))
 	}
 
 	typeCursor := 1
@@ -215,14 +215,14 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(b[typeCursor])
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "{{unexported_field .}} ref-key type parsing", err)
+			{{$.base.azerrs_pkg}}.ArgWrap("", "{{unexported_field .}} ref-key type parsing", err)
 	}
 	typeCursor++
 	{{unexported_field .}}RefKey, readLen, err := {{.}}RefKeyFromAZIDBinField(
 		b[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "{{unexported_field .}} ref-key data parsing", err)
+			{{$.base.azerrs_pkg}}.ArgWrap("", "{{unexported_field .}} ref-key data parsing", err)
 	}
 	dataCursor += readLen
 
@@ -231,14 +231,14 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 	fieldType, err = {{.base.azid_pkg}}.BinDataTypeFromByte(b[typeCursor])
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "id-num type parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "id-num type parsing", err)
 	}
 	typeCursor++
 	idNum, readLen, err := {{.id_num_type_name}}FromAZIDBinField(
 		b[dataCursor:], fieldType)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			errors.ArgWrap("", "id-num data parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "id-num data parsing", err)
 	}
 	dataCursor += readLen
 
@@ -283,18 +283,18 @@ func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error
 	}
 	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
 		return {{.ref_key_type_name}}Zero(),
-			errors.Arg("", errors.EntMsg("prefix", "mismatch"))
+			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("prefix", "mismatch"))
 	}
 	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
 	b, err := {{.base.azid_pkg}}.TextDecode(s)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			errors.ArgWrap("", "data parsing", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "data parsing", err)
 	}
 	refKey, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			errors.ArgWrap("", "data decoding", err)
+			{{.base.azerrs_pkg}}.ArgWrap("", "data decoding", err)
 	}
 	return refKey, nil
 }
