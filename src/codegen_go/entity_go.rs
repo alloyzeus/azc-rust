@@ -35,7 +35,7 @@ impl GoCodeGenerator {
 
         if let Some(id_int) = id_num_def.downcast_ref::<id_num::IntegerIdNum>() {
             let id_num_type_name = format!("{}IDNum", type_name);
-            let ref_key_type_name = format!("{}RefKey", type_name);
+            let ref_key_type_name = format!("{}ID", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let event_interface_name = format!("{}Event", type_name);
             let service_name = format!("{}Service", type_name);
@@ -132,7 +132,7 @@ impl GoCodeGenerator {
             );
             render_file_region!(
                 out_file,
-                "RefKey",
+                "ID",
                 "templates/entity/entity_ref_key.gtmpl",
                 tpl_ctx
             );

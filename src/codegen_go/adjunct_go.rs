@@ -120,7 +120,7 @@ impl GoCodeGenerator {
         if let Some(id_int) = id_num_def.downcast_ref::<adjunct_entity::AdjunctEntityIdNumInteger>()
         {
             let id_num_type_name = format!("{}IDNum", type_name);
-            let ref_key_type_name = format!("{}RefKey", type_name);
+            let ref_key_type_name = format!("{}ID", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let service_name = format!("{}Service", type_name);
             let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
@@ -200,7 +200,7 @@ impl GoCodeGenerator {
             );
             render_file_region!(
                 out_file,
-                "RefKey",
+                "ID",
                 "templates/adjunct_entity/adjunct_entity_ref_key.gtmpl",
                 tpl_ctx
             );
@@ -300,7 +300,7 @@ impl GoCodeGenerator {
             })
             .collect();
 
-        let ref_key_type_name = format!("{}RefKey", type_name);
+        let ref_key_type_name = format!("{}ID", type_name);
 
         let tpl_ctx = AdjunctPrimeContext {
             base: self.render_base_context(),
@@ -356,7 +356,7 @@ impl GoCodeGenerator {
 
         render_file_region!(
             out_file,
-            "RefKey",
+            "ID",
             "templates/adjunct_value/adjunct_value_ref_key.gtmpl",
             tpl_ctx
         );

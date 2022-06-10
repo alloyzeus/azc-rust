@@ -16,7 +16,7 @@ impl From<&symbol::SymbolRef> for SymbolRefContext {
             package_identifier: r.package_identifier.to_owned(),
             //TODO: should be RefObject instead of RefKey.
             symbol_name: if r.is_reference {
-                format!("{}RefKey", r.symbol_name)
+                format!("{}ID", r.symbol_name)
             } else {
                 r.symbol_name.to_owned()
             },

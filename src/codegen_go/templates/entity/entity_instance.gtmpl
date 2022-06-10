@@ -10,11 +10,11 @@ type {{.type_name}}InstanceInfoService interface {
 	// Get{{.type_name}}InstanceInfo checks if the provided
     // ref-key is valid and whether the instance is deleted.
 	//
-	// This method returns nil if the refKey is not referencing to any valid
+	// This method returns nil if the id is not referencing to any valid
 	// instance.
 	Get{{.type_name}}InstanceInfo(
-		opInputCtx OpInputContext,
-		refKey {{.ref_key_type_name}},
+		inputCtx CallInputContext,
+		id {{.ref_key_type_name}},
 	) (*{{.type_name}}InstanceInfo, error)
 }
 
@@ -78,9 +78,9 @@ type {{.type_name}}InstanceDeletionInfo struct {
 // available to be called from another part of a process.
 type {{.type_name}}InstanceServiceInternal interface {
 	Create{{.type_name}}InstanceInternal(
-		opInputCtx OpInputContext,
+		inputCtx CallInputContext,
 		input {{.type_name}}InstanceCreationInput,
-	 ) (refKey {{.ref_key_type_name}}, initialState {{.type_name}}InstanceInfo, err error);
+	 ) (id {{.ref_key_type_name}}, initialState {{.type_name}}InstanceInfo, err error);
 
 	{{- if .lifecycle.deletion.enabled}}
 
@@ -90,7 +90,7 @@ type {{.type_name}}InstanceServiceInternal interface {
 	// true if this particular call resulted the deletion of the instance and
 	// it will have the value of false of subsequent calls to this method.
 	Delete{{.type_name}}InstanceInternal(
-		opInputCtx OpInputContext,
+		inputCtx CallInputContext,
 		refOfInstToDel {{.ref_key_type_name}},
 		input {{.type_name}}InstanceDeletionInput,
 	) (instanceMutated bool, currentState {{.type_name}}InstanceInfo, err error)

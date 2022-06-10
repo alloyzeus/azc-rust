@@ -44,7 +44,7 @@ type {{.type_name}}CreationResponse struct {
 }
 
 type {{.type_name}}CreationResponseParameters struct {
-	RefKey {{.ref_key_type_name}}
+	ID {{.ref_key_type_name}}
 	CreationInfo *{{.base.azlib_prefix}}EntityCreationInfo
 
 	// TODO

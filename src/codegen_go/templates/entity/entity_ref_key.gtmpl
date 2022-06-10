@@ -12,13 +12,13 @@ func New{{.ref_key_type_name}}(
 
 // To ensure that it conforms the interfaces. If any of these is failing,
 // there's a bug in the generator.
-var _ {{.base.azid_pkg}}.RefKey[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azid_pkg}}.ID[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azid_pkg}}.BinUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
-var _ {{.base.azcore_pkg}}.EntityRefKey[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.EntityID[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
 {{- range .implements}}{{- if .is_system}}
-var _ {{$.base.azcore_pkg}}.{{.type_name}}RefKey[{{.type_name}}IDNum] = {{unexported_global $.ref_key_type_name}}Zero
+var _ {{$.base.azcore_pkg}}.{{.type_name}}ID[{{.type_name}}IDNum] = {{unexported_global $.ref_key_type_name}}Zero
 {{- end}}{{- end}}
 
 const {{unexported_global .ref_key_type_name}}Zero =
@@ -32,92 +32,92 @@ func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 	return {{unexported_global .ref_key_type_name}}Zero
 }
 
-// AZRefKey is required for conformance with {{.base.azid_pkg}}.RefKey.
-func ({{.ref_key_type_name}}) AZRefKey() {}
+// AZID is required for conformance with {{.base.azid_pkg}}.ID.
+func ({{.ref_key_type_name}}) AZID() {}
 
-// AZEntityRefKey is required for conformance
-// with {{.base.azcore_pkg}}.EntityRefKey.
-func ({{.ref_key_type_name}}) AZEntityRefKey() {}
+// AZEntityID is required for conformance
+// with {{.base.azcore_pkg}}.EntityID.
+func ({{.ref_key_type_name}}) AZEntityID() {}
 
 // IDNum returns the scoped identifier of the entity.
-func (refKey {{.ref_key_type_name}}) IDNum() {{.id_num_type_name}} {
-	return {{.id_num_type_name}}(refKey)
+func (id {{.ref_key_type_name}}) IDNum() {{.id_num_type_name}} {
+	return {{.id_num_type_name}}(id)
 }
 
 // IDNumPtr returns a pointer to a copy of the id-num if it's considered valid
 // otherwise it returns nil.
-func (refKey {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
-	if refKey.IsNotStaticallyValid() {
+func (id {{.ref_key_type_name}}) IDNumPtr() *{{.id_num_type_name}} {
+	if id.IsNotStaticallyValid() {
 		return nil
 	}
-	i := refKey.IDNum()
+	i := id.IDNum()
 	return &i
 }
 
-// AZIDNum is required for conformance with {{.base.azid_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZIDNum() {{.id_num_type_name}} {
-	return {{.id_num_type_name}}(refKey)
+// AZIDNum is required for conformance with {{.base.azid_pkg}}.ID.
+func (id {{.ref_key_type_name}}) AZIDNum() {{.id_num_type_name}} {
+	return {{.id_num_type_name}}(id)
 }
 
 {{- range .implements}}{{- if .is_system}}
 
 // {{.type_name}}IDNum is required for conformance
-// with {{$.base.azcore_pkg}}.{{.type_name}}RefKey.
-func (refKey {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.id_num_type_name}} {
-	return {{$.id_num_type_name}}(refKey)
+// with {{$.base.azcore_pkg}}.{{.type_name}}ID.
+func (id {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.id_num_type_name}} {
+	return {{$.id_num_type_name}}(id)
 }
 
 {{- end}}{{- end}}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
-func (refKey {{.ref_key_type_name}}) IsZero() bool {
-	return {{.id_num_type_name}}(refKey) == {{.id_num_type_name}}Zero
+func (id {{.ref_key_type_name}}) IsZero() bool {
+	return {{.id_num_type_name}}(id) == {{.id_num_type_name}}Zero
 }
 
 // IsStaticallyValid returns true if this instance is valid as an isolated value
 // of {{.ref_key_type_name}}.
 // It doesn't tell whether it refers to a valid instance of {{.type_name}}.
-func (refKey {{.ref_key_type_name}}) IsStaticallyValid() bool {
-	return {{.id_num_type_name}}(refKey).IsStaticallyValid()
+func (id {{.ref_key_type_name}}) IsStaticallyValid() bool {
+	return {{.id_num_type_name}}(id).IsStaticallyValid()
 }
 
 // IsNotStaticallyValid returns the negation of value returned by IsStaticallyValid.
-func (refKey {{.ref_key_type_name}}) IsNotStaticallyValid() bool {
-	return !refKey.IsStaticallyValid()
+func (id {{.ref_key_type_name}}) IsNotStaticallyValid() bool {
+	return !id.IsStaticallyValid()
 }
 
-// Equals is required for conformance with {{.base.azcore_pkg}}.EntityRefKey.
-func (refKey {{.ref_key_type_name}}) Equals(other interface{}) bool {
+// Equals is required for conformance with {{.base.azcore_pkg}}.EntityID.
+func (id {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
-		return x == refKey
+		return x == id
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
-		return *x == refKey
+		return *x == id
 	}
 	return false
 }
 
-// Equal is required for conformance with {{.base.azcore_pkg}}.EntityRefKey.
-func (refKey {{.ref_key_type_name}}) Equal(other interface{}) bool {
-	return refKey.Equals(other)
+// Equal is required for conformance with {{.base.azcore_pkg}}.EntityID.
+func (id {{.ref_key_type_name}}) Equal(other interface{}) bool {
+	return id.Equals(other)
 }
 
 // Equals{{.ref_key_type_name}} returs true
-// if the other value has the same attributes as refKey.
-func (refKey {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
+// if the other value has the same attributes as id.
+func (id {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {
-	return other == refKey
+	return other == id
 }
 
-func (refKey {{.ref_key_type_name}}) AZIDBin() []byte {
+func (id {{.ref_key_type_name}}) AZIDBin() []byte {
 	b := make([]byte, {{.id_num_def.primitive_size_bytes}} + 1)
 	b[0] = {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}}.Byte()
-	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b[1:], uint{{.id_num_def.primitive_size}}(refKey))
+	binary.BigEndian.PutUint{{.id_num_def.primitive_size}}(b[1:], uint{{.id_num_def.primitive_size}}(id))
 	return b
 }
 
-func {{.ref_key_type_name}}FromAZIDBin(b []byte) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+func {{.ref_key_type_name}}FromAZIDBin(b []byte) (id {{.ref_key_type_name}}, readLen int, err error) {
 	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(b[0])
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
@@ -139,21 +139,21 @@ func {{.ref_key_type_name}}FromAZIDBin(b []byte) (refKey {{.ref_key_type_name}},
 
 // UnmarshalAZIDBin is required for conformance
 // with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDBin(b []byte) (readLen int, err error) {
+func (id *{{.ref_key_type_name}}) UnmarshalAZIDBin(b []byte) (readLen int, err error) {
 	i, readLen, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err == nil {
-		*refKey = i
+		*id = i
 	}
 	return readLen, err
 }
 
-func (refKey {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
-	return {{.id_num_type_name}}(refKey).AZIDBinField()
+func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
+	return {{.id_num_type_name}}(id).AZIDBinField()
 }
 
 func {{.ref_key_type_name}}FromAZIDBinField(
 	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
-) (refKey {{.ref_key_type_name}}, readLen int, err error) {
+) (id {{.ref_key_type_name}}, readLen int, err error) {
 	idNum, n, err := {{.id_num_type_name}}FromAZIDBinField(b, typeHint)
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, n, err
@@ -163,12 +163,12 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 
 // UnmarshalAZIDBinField is required for conformance
 // with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
+func (id *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
 	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (readLen int, err error) {
 	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(b, typeHint)
 	if err == nil {
-		*refKey = i
+		*id = i
 	}
 	return readLen, err
 }
@@ -176,14 +176,14 @@ func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
 const {{unexported_global .ref_key_type_name}}AZIDTextPrefix = "{{.ref_key_def.azid_text.prefix}}"
 
 // AZIDText is required for conformance
-// with {{.base.azid_pkg}}.RefKey.
-func (refKey {{.ref_key_type_name}}) AZIDText() string {
-	if !refKey.IsStaticallyValid() {
+// with {{.base.azid_pkg}}.ID.
+func (id {{.ref_key_type_name}}) AZIDText() string {
+	if !id.IsStaticallyValid() {
 		return ""
 	}
 
 	return {{unexported_global .ref_key_type_name}}AZIDTextPrefix +
-		{{.base.azid_pkg}}.TextEncode(refKey.AZIDBin())
+		{{.base.azid_pkg}}.TextEncode(id.AZIDBin())
 }
 
 // {{.ref_key_type_name}}FromAZIDText creates a new instance of
@@ -202,54 +202,54 @@ func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error
 		return {{.ref_key_type_name}}Zero(),
 			{{.base.azerrs_pkg}}.ArgWrap("", "data parsing", err)
 	}
-	refKey, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
+	id, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
 			{{.base.azerrs_pkg}}.ArgWrap("", "data decoding", err)
 	}
-	return refKey, nil
+	return id, nil
 }
 
 // UnmarshalAZIDText is required for conformance
 // with {{.base.azid_pkg}}.TextUnmarshalable.
-func (refKey *{{.ref_key_type_name}}) UnmarshalAZIDText(s string) error {
+func (id *{{.ref_key_type_name}}) UnmarshalAZIDText(s string) error {
 	r, err := {{.ref_key_type_name}}FromAZIDText(s)
 	if err == nil {
-		*refKey = r
+		*id = r
 	}
 	return err
 }
 
 // MarshalText is for compatibility with Go's encoding.TextMarshaler
-func (refKey {{.ref_key_type_name}}) MarshalText() ([]byte, error) {
-	return []byte(refKey.AZIDText()), nil
+func (id {{.ref_key_type_name}}) MarshalText() ([]byte, error) {
+	return []byte(id.AZIDText()), nil
 }
 
 // UnmarshalText is for conformance with Go's encoding.TextUnmarshaler
-func (refKey *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
+func (id *{{.ref_key_type_name}}) UnmarshalText(b []byte) error {
 	r, err := {{.ref_key_type_name}}FromAZIDText(string(b))
 	if err == nil {
-		*refKey = r
+		*id = r
 	}
 	return err
 }
 
 // MarshalJSON makes this type JSON-marshalable.
-func (refKey {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
+func (id {{.ref_key_type_name}}) MarshalJSON() ([]byte, error) {
 	// We assume that there are no symbols in azid-text
-	return []byte("\"" + refKey.AZIDText() + "\""), nil
+	return []byte("\"" + id.AZIDText() + "\""), nil
 }
 
 // UnmarshalJSON parses a JSON value.
-func (refKey *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
+func (id *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
 	if s == "" {
-		*refKey = {{.ref_key_type_name}}Zero()
+		*id = {{.ref_key_type_name}}Zero()
 		return nil
 	}
 	i, err := {{.ref_key_type_name}}FromAZIDText(s)
 	if err == nil {
-		*refKey = i
+		*id = i
 	}
 	return err
 }
@@ -260,7 +260,7 @@ type {{.ref_key_type_name}}Service interface {
 	// Is{{.ref_key_type_name}} is to check if the ref-key is
 	// trully registered to system. It does not check whether the instance
 	// is active or not.
-	Is{{.ref_key_type_name}}Registered(refKey {{.ref_key_type_name}}) bool
+	Is{{.ref_key_type_name}}Registered(id {{.ref_key_type_name}}) bool
 }
 
 // {{.ref_key_type_name}}Error defines an interface for all

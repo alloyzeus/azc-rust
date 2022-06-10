@@ -71,7 +71,7 @@ type {{.type_name}}CreateResponse struct {
 }
 
 type {{.type_name}}CreateResponseParameters struct {
-	RefKey {{.pkg_name}}.{{.ref_key_type_name}}
+	ID {{.pkg_name}}.{{.ref_key_type_name}}
 	CreationInfo *{{.pkg_name}}.{{.base.azlib_prefix}}EntityCreationInfo
 
 	// TODO
