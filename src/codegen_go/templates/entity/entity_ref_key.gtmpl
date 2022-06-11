@@ -17,6 +17,7 @@ var _ {{.base.azid_pkg}}.BinUnmarshalable = &{{unexported_global .ref_key_type_n
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}ZeroVar
 var _ {{.base.azcore_pkg}}.EntityID[{{.id_num_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.ref_key_type_name}}] = {{unexported_global .ref_key_type_name}}Zero
 {{- range .implements}}{{- if .is_system}}
 var _ {{$.base.azcore_pkg}}.{{.type_name}}ID[{{.type_name}}IDNum] = {{unexported_global $.ref_key_type_name}}Zero
 {{- end}}{{- end}}
@@ -31,6 +32,9 @@ var {{unexported_global .ref_key_type_name}}ZeroVar =
 func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 	return {{unexported_global .ref_key_type_name}}Zero
 }
+
+// Clone returns a copy of self.
+func (id {{.ref_key_type_name}}) Clone() {{.ref_key_type_name}} { return id }
 
 // AZID is required for conformance with {{.base.azid_pkg}}.ID.
 func ({{.ref_key_type_name}}) AZID() {}

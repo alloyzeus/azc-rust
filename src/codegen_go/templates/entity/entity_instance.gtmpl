@@ -21,22 +21,45 @@ type {{.type_name}}InstanceInfoService interface {
 // {{.type_name}}InstanceInfo holds information about
 // an instance of {{.type_name}}.
 type {{.type_name}}InstanceInfo struct {
-    RevisionNumber int32
+    RevisionNumber_ int32
 
 {{- if .lifecycle.deletion.enabled}}
 
-    // Deletion holds information about the deletion of the instance. If
+    // Deletion_ holds information about the deletion of the instance. If
     // the instance has not been deleted, this field value will be nil.
-	Deletion *{{.type_name}}InstanceDeletionInfo
+	Deletion_ *{{.type_name}}InstanceDeletionInfo
 
 {{- end}}
 }
+
+var _ {{.base.azcore_pkg}}.EntityInstanceInfo[
+	int32, {{.type_name}}InstanceDeletionInfo,
+] = {{.type_name}}InstanceInfo{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}InstanceDeletionInfo] = {{.type_name}}InstanceDeletionInfo{}
 
 // {{.type_name}}InstanceInfoZero returns an instance of
 // {{.type_name}}InstanceInfo with attributes set their respective zero
 // value.
 func {{.type_name}}InstanceInfoZero() {{.type_name}}InstanceInfo {
 	return {{.type_name}}InstanceInfo{}
+}
+
+func (instInfo {{.type_name}}InstanceInfo) Clone() {{.type_name}}InstanceInfo {
+{{- if .lifecycle.deletion.enabled}}
+	if instInfo.Deletion_ != nil {
+		cp := instInfo
+		delInfo := cp.Deletion_.Clone()
+		cp.Deletion_ = &delInfo
+		return cp
+	}
+{{- end}}
+	// Already a copy and there's no shared underlying data instance
+	return instInfo
+}
+
+func (instInfo {{.type_name}}InstanceInfo) RevisionNumber() int32 { return instInfo.RevisionNumber_ }
+func (instInfo {{.type_name}}InstanceInfo) Deletion() *{{.type_name}}InstanceDeletionInfo {
+	return instInfo.Deletion_
 }
 
 // IsActive returns true if the instance is considered as active.
@@ -49,10 +72,11 @@ func (instInfo {{.type_name}}InstanceInfo) IsActive() bool {
 // IsDeleted returns true if the instance was deleted.
 func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
 {{- if .lifecycle.deletion.enabled}}
-    return instInfo.Deletion != nil && instInfo.Deletion.Deleted
-{{- else}}
-	return false
+	if delInfo := instInfo.Deletion(); delInfo != nil {
+		return delInfo.Deleted()
+	}
 {{- end}}
+	return false
 }
 
 {{- if .lifecycle.deletion.enabled}}
@@ -62,11 +86,24 @@ func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
 // {{.type_name}}InstanceDeletionInfo holds information about
 // the deletion of an instance if the instance has been deleted.
 type {{.type_name}}InstanceDeletionInfo struct {
-	Deleted       bool
+	Deleted_       bool
 {{- if .lifecycle.deletion.notes.enabled}}
-	DeletionNotes string
+	DeletionNotes_ string
 {{- end}}
 }
+
+var _ {{.base.azcore_pkg}}.EntityDeletionInfo = {{.type_name}}InstanceDeletionInfo{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}InstanceDeletionInfo] = {{.type_name}}InstanceDeletionInfo{}
+
+func (instDelInfo {{.type_name}}InstanceDeletionInfo) Clone() {{.type_name}}InstanceDeletionInfo {
+	// Already a copy and there's no shared underlying data instance
+	return instDelInfo
+}
+
+func (instDelInfo {{.type_name}}InstanceDeletionInfo) Deleted() bool { return instDelInfo.Deleted_ }
+{{- if .lifecycle.deletion.notes.enabled}}
+func (instDelInfo {{.type_name}}InstanceDeletionInfo) DeletionNotes() string { return instDelInfo.DeletionNotes_ }
+{{- end}}
 
 {{- end}}
 

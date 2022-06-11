@@ -8,6 +8,7 @@ type {{.id_num_type_name}} {{.id_num_def.type_name}}
 var _ {{.base.azid_pkg}}.IDNumMethods = {{.id_num_type_name}}Zero
 var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .id_num_type_name}}ZeroVar
 var _ {{.base.azcore_pkg}}.AdjunctEntityIDNumMethods = {{.id_num_type_name}}Zero
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.id_num_type_name}}] = {{.id_num_type_name}}Zero
 {{- range .implements}}{{- if .is_system}}
 var _ {{$.base.azcore_pkg}}.{{.type_name}}IDNumMethods = {{$.id_num_type_name}}Zero
 {{- end}}{{- end}}
@@ -50,6 +51,9 @@ func {{.id_num_type_name}}FromAZIDBinField(
 func (idNum {{.id_num_type_name}}) PrimitiveValue() {{.id_num_def.type_name}} {
 	return {{.id_num_def.type_name}}(idNum)
 }
+
+// Clone returns a copy of self.
+func (idNum {{.id_num_type_name}}) Clone() {{.id_num_type_name}} { return idNum }
 
 // AZIDNum is required
 // for conformance with {{.base.azid_pkg}}.IDNum.

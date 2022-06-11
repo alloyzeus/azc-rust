@@ -50,6 +50,8 @@ fn main() {
                 azcore_pkg: "azcore".to_owned(),
                 azid_import: azfl_pkg_identifier.to_string() + "/azid",
                 azid_pkg: "azid".to_owned(),
+                azob_import: azfl_pkg_identifier.to_string() + "/azob",
+                azob_pkg: "azob".to_owned(),
                 azerrs_import: azfl_pkg_identifier.to_string() + "/errors",
                 azerrs_pkg: "errors".to_owned(),
                 compilation_state: None,

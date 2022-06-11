@@ -96,11 +96,12 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 		}
 		var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
 		if instDeleted {
-			deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{Deleted: true}
+			deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+				Deleted_: true}
 		}
 		//TODO: populate revision number
 		return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
-			Deletion: deletion,
+			Deletion_: deletion,
 		}, nil
 	}
 
@@ -125,13 +126,14 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
 	if instDeleted {
 		//TODO: deletion notes. store the notes as the value in the cache
-		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{Deleted: true}
+		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+			Deleted_: true}
 	}
 
 	//TODO: populate revision number
 	return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
-		RevisionNumber: -1,
-		Deletion:       deletion,
+		RevisionNumber_: -1,
+		Deletion_:       deletion,
 	}, nil
 }
 
@@ -172,7 +174,9 @@ func (srv *{{.service_name}}ServerBase) Create{{.type_name}}InstanceInternal(
 	id, err = srv.create{{.type_name}}InstanceInsecure(inputCtx)
 
 	//TODO: revision number
-	return id, {{.pkg_name}}.{{.type_name}}InstanceInfo{RevisionNumber: -1}, err
+	return id, {{.pkg_name}}.{{.type_name}}InstanceInfo{
+		RevisionNumber_: -1,
+	}, err
 }
 
 func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
@@ -304,10 +308,10 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
 	if instanceMutated {
 		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
-			Deleted: true,
+			Deleted_: true,
 			{{- if .lifecycle.deletion.notes.enabled}}
-			DeletionNotes: input.DeletionNotes,
-			{{- end}}
+			DeletionNotes_: input.DeletionNotes,
+			{{- end -}}
 		}
 	} else {
 		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, toDelete)
@@ -316,14 +320,13 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		}
 
 		if di != nil {
-			deletion = di.Deletion
+			deletion = di.Deletion()
 		}
 	}
 
 	currentState = {{.pkg_name}}.{{.type_name}}InstanceInfo{
-		RevisionNumber: -1, //TODO: get from the DB
-		Deletion:       deletion,
-	}
+		RevisionNumber_: -1, //TODO: get from the DB
+		Deletion_:       deletion}
 
 	//TODO: update caches, emit an event if there's any changes
 
