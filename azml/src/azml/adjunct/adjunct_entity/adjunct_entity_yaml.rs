@@ -8,6 +8,7 @@ use crate::azml::{
     entity::{
         abstract_, abstract_yaml,
         id::{id_num_yaml, ref_key_yaml},
+        lifecycle::lifecycle_yaml,
     },
     yaml,
 };
@@ -23,6 +24,8 @@ pub struct AdjunctEntityYaml {
 
     #[serde(default)]
     implements: Vec<abstract_yaml::AbstractImplementationYaml>,
+
+    lifecycle: lifecycle_yaml::LifecycleYaml,
 
     #[serde(default)]
     scope: String,
@@ -43,6 +46,7 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
                 .iter()
                 .map(|x| abstract_::AbstractImplementation::try_from(x))
                 .collect::<Result<Vec<abstract_::AbstractImplementation>, _>>()?,
+            lifecycle: x.lifecycle.try_into()?,
             scope: x.scope.try_into()?,
             attributes: x
                 .attributes

@@ -283,6 +283,12 @@ symbols:
             azid_text:
               prefix: "KAK0"
 
+        lifecycle:
+          creation:
+            allow_cross_process_callers: false
+          deletion:
+            enabled: true
+
         attributes:
           - name: Secret
             kind: ApplicationAccessKeySecret
@@ -345,6 +351,11 @@ symbols:
                     size: 5
               generator:
                 name: RandomLocal
+        lifecycle:
+          creation:
+            allow_cross_process_callers: false
+          deletion:
+            enabled: true
         attributes:
           # Here, we store data provided by context. These data become metadata.
           - name: OriginEnvString
@@ -459,7 +470,10 @@ symbols:
           description: |
             Hello.
         lifecycle:
+          creation:
+            allow_cross_process_callers: false
           deletion:
+            enabled: true
           expiration:
             duration:
               overridable: true
@@ -505,8 +519,7 @@ symbols:
             total_bits: 64
             identifier_bits: 48
       mixins:
-        - kind: Deletion
-          parameters:
+        #TODO: migrate to 'lifecycle'
         - kind: Expiration
           parameters:
             duration:

@@ -9,7 +9,29 @@ import (
 	"{{.pkg_path}}"
 )
 
-const {{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
+const (
+	{{unexported_field .type_name}}DBTableName           = "{{.type_name_snake}}_dt"
+	{{unexported_field .type_name}}DBTablePrimaryKeyName = {{unexported_field .type_name}}DBTableName + "_pkey"
+)
+
+const (
+	{{unexported_field .type_name}}DBColMetaCreationTimestamp  = "_mc_ts"
+	{{unexported_field .type_name}}DBColMetaCreationTerminalID = "_mc_tid"
+	{{unexported_field .type_name}}DBColMetaCreationUserID     = "_mc_uid"
+	{{- if .lifecycle.deletion.enabled}}
+	{{unexported_field .type_name}}DBColMetaDeletionTimestamp  = "_md_ts"
+	{{unexported_field .type_name}}DBColMetaDeletionTerminalID = "_md_tid"
+	{{unexported_field .type_name}}DBColMetaDeletionUserID     = "_md_uid"
+	{{- if .lifecycle.deletion.notes.enabled}}
+	{{unexported_field .type_name}}DBColMetaDeletionNotes      = "_md_notes"
+	{{- end}}
+	{{- end}}
+	{{unexported_field .type_name}}DBColIDNum                  = "id_num"
+
+	{{if not .global_scope -}}{{range .hosts -}}
+	{{unexported_field $.type_name}}DBCol{{.}}ID = "{{adjunct_host_id_db_col_name .}}"
+	{{end}}{{- end}}
+)
 
 {{- /* TODO: generate the following generator function only when the id num is random */}}
 
@@ -23,7 +45,9 @@ const {{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
 // The embeddedFieldBits argument could be constructed by combining
 // {{.pkg_name}}.{{.id_num_type_name}}*Bits constants. If none are defined,
 // use the value of 0.
-func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}}) ({{.pkg_name}}.{{.id_num_type_name}}, error) {
+func Generate{{.id_num_type_name}}(
+	embeddedFieldBits u{{.id_num_def.type_name}},
+) ({{.pkg_name}}.{{.id_num_type_name}}, error) {
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {

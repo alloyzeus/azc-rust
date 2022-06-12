@@ -14,7 +14,10 @@ import (
 	"{{.pkg_path}}"
 )
 
-const {{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
+const (
+	{{unexported_field .type_name}}DBTableName           = "{{.type_name_snake}}_dt"
+	{{unexported_field .type_name}}DBTablePrimaryKeyName = {{unexported_field .type_name}}DBTableName + "_pkey"
+)
 
 // {{.service_name}}Serverbase is the server-side
 // base implementation of {{.service_name}}.
@@ -34,7 +37,9 @@ var (
 	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.service_name}}ServerBase{}
 )
 
-func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(id {{.pkg_name}}.{{.ref_key_type_name}}) bool {
+func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
+	id {{.pkg_name}}.{{.ref_key_type_name}},
+) bool {
 	idNum := id.IDNum()
 
 	// Look up for the ID num in the cache.
@@ -143,12 +148,12 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
 		Select(
 			goqu.Case().
-				When(goqu.C("_md_ts").IsNull(), false).
+				When(goqu.C({{unexported_field .type_name}}DBColMetaDeletionTimestamp).IsNull(), false).
 				Else(true).
 				As("deleted"),
 		).
 		Where(
-			goqu.C("id_num").Eq(idNum.PrimitiveValue()),
+			goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(idNum.PrimitiveValue()),
 		).
 		ToSQL()
 
@@ -202,10 +207,10 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
 			Insert({{unexported_field .type_name}}DBTableName).
 			Rows(
 				goqu.Record{
-					"id_num":  newInstanceIDNum,
-					"_mc_ts":  cTime,
-					"_mc_uid": ctxAuth.UserIDNumPtr(),
-					"_mc_tid": ctxAuth.TerminalIDNumPtr(),
+					{{unexported_field .type_name}}DBColIDNum: newInstanceIDNum,
+					{{unexported_field .type_name}}DBColMetaCreationTimestamp: cTime,
+					{{unexported_field .type_name}}DBColMetaCreationUserID: ctxAuth.UserIDNumPtr(),
+					{{unexported_field .type_name}}DBColMetaCreationTerminalID: ctxAuth.TerminalIDNumPtr(),
 				},
 			).
 			ToSQL()
@@ -219,7 +224,7 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
 		pqErr, _ := err.(*pq.Error)
 		if pqErr != nil &&
 			pqErr.Code == "23505" &&
-			pqErr.Constraint == {{unexported_field .type_name}}DBTableName+"_pkey" {
+			pqErr.Constraint == {{unexported_field .type_name}}DBTablePrimaryKeyName {
 			if attemptNum >= attemptNumMax {
 				return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), {{.base.azerrs_pkg}}.Wrap("insert max attempts", err)
 			}
@@ -268,17 +273,17 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		sqlString, _, _ := goqu.
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
-				goqu.C("id_num").Eq(ctxAuth.UserIDNum().PrimitiveValue()),
-				goqu.C("_md_ts").IsNull(),
+				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(ctxAuth.UserIDNum().PrimitiveValue()),
+				goqu.C({{unexported_field .type_name}}DBColMetaDeletionTimestamp).IsNull(),
 			).
 			Update().
 			Set(
 				goqu.Record{
-					"_md_ts":    ctxTime,
-					"_md_tid":   ctxAuth.TerminalIDNum().PrimitiveValue(),
-					"_md_uid":   ctxAuth.UserIDNum().PrimitiveValue(),
+					{{unexported_field .type_name}}DBColMetaDeletionTimestamp: ctxTime,
+					{{unexported_field .type_name}}DBColMetaDeletionTerminalID: ctxAuth.TerminalIDNum().PrimitiveValue(),
+					{{unexported_field .type_name}}DBColMetaDeletionUserID: ctxAuth.UserIDNum().PrimitiveValue(),
 					{{- if .lifecycle.deletion.notes.enabled}}
-					"_md_notes": input.DeletionNotes,
+					{{unexported_field .type_name}}DBColMetaDeletionNotes: input.DeletionNotes,
 					{{- end}}
 				},
 			).
@@ -338,17 +343,20 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 	_, err := dbTx.Exec(
 		`CREATE TABLE ` + {{unexported_field .type_name}}DBTableName + ` ( ` +
-			`id_num     {{.id_num_def.pg_type}} PRIMARY KEY, ` +
-			`_mc_ts     timestamp with time zone NOT NULL DEFAULT now(), ` +
-			`_mc_tid    {{.base.terminal.pg_type}}, ` +
-			`_mc_uid    {{.base.user.pg_type}}, ` +
-			`_md_ts     timestamp with time zone, ` +
-			`_md_tid    {{.base.terminal.pg_type}}, ` +
-			`_md_uid    {{.base.user.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColIDNum + `  {{.id_num_def.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMetaCreationTimestamp + `  timestamp with time zone NOT NULL DEFAULT now(), ` +
+			{{unexported_field .type_name}}DBColMetaCreationTerminalID + `  {{.base.terminal.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMetaCreationUserID + `  {{.base.user.pg_type}}, ` +
+			{{- if .lifecycle.deletion.enabled}}
+			{{unexported_field .type_name}}DBColMetaDeletionTimestamp + `  timestamp with time zone, ` +
+			{{unexported_field .type_name}}DBColMetaDeletionTerminalID + `  {{.base.terminal.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMetaDeletionUserID + `  {{.base.user.pg_type}}, ` +
 			{{- if .lifecycle.deletion.notes.enabled}}
-			`_md_notes  jsonb, ` +
+			{{unexported_field .type_name}}DBColMetaDeletionNotes + `  jsonb, ` +
 			{{- end}}
-			`CHECK (id_num > 0) ` +
+			{{- end}}
+			`CONSTRAINT `+ {{unexported_field .type_name}}DBTablePrimaryKeyName + ` PRIMARY KEY(` + {{unexported_field .type_name}}DBColIDNum + `), ` +
+			`CHECK (`+ {{unexported_field .type_name}}DBColIDNum +` > 0) ` +
 			`);`,
 	)
 	if err != nil {
@@ -356,6 +364,21 @@ func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 	}
 	return nil
 }
+
+const (
+	{{unexported_field .type_name}}DBColMetaCreationTimestamp  = "_mc_ts"
+	{{unexported_field .type_name}}DBColMetaCreationTerminalID = "_mc_tid"
+	{{unexported_field .type_name}}DBColMetaCreationUserID     = "_mc_uid"
+	{{- if .lifecycle.deletion.enabled}}
+	{{unexported_field .type_name}}DBColMetaDeletionTimestamp  = "_md_ts"
+	{{unexported_field .type_name}}DBColMetaDeletionTerminalID = "_md_tid"
+	{{unexported_field .type_name}}DBColMetaDeletionUserID     = "_md_uid"
+	{{- if .lifecycle.deletion.notes.enabled}}
+	{{unexported_field .type_name}}DBColMetaDeletionNotes      = "_md_notes"
+	{{- end}}
+	{{- end}}
+	{{unexported_field .type_name}}DBColIDNum                  = "id_num"
+)
 
 // Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.
 // Note that this function does not consult any database nor registry.
@@ -367,7 +390,9 @@ func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 // The embeddedFieldBits argument could be constructed by combining
 // {{.pkg_name}}.{{.id_num_type_name}}*Bits constants. If none are defined,
 // use the value of 0.
-func Generate{{.id_num_type_name}}(embeddedFieldBits u{{.id_num_def.type_name}}) ({{.pkg_name}}.{{.id_num_type_name}}, error) {
+func Generate{{.id_num_type_name}}(
+	embeddedFieldBits u{{.id_num_def.type_name}},
+) ({{.pkg_name}}.{{.id_num_type_name}}, error) {
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {

@@ -228,7 +228,7 @@ struct EntityContext {
 }
 
 #[derive(Clone, Gtmpl)]
-struct EntityLifecycleContext {
+pub struct EntityLifecycleContext {
     creation: EntityCreationContext,
     deletion: EntityDeletionContext,
 }

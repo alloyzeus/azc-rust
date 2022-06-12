@@ -1,5 +1,7 @@
 //
 
+use crate::convert_case::{Case, Casing};
+
 pub fn render_template<T: Into<gtmpl_value::Value>>(
     template_str: &str,
     context: T,
@@ -9,6 +11,7 @@ pub fn render_template<T: Into<gtmpl_value::Value>>(
     tmpl.add_func("unexported_global", unexported_global);
     tmpl.add_func("arg_name", arg_name);
     tmpl.add_func("sym_name", sym_name);
+    tmpl.add_func("adjunct_host_id_db_col_name", adjunct_host_id_db_col_name);
     tmpl.parse(template_str)?;
     tmpl.render(&gtmpl::Context::from(context)?)
 }
@@ -60,6 +63,14 @@ fn sym_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
         } else {
             Err(format!("String required, got: {:?}", args))
         }
+    } else {
+        Err(format!("String required, got: {:?}", args))
+    }
+}
+
+fn adjunct_host_id_db_col_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+    if let gtmpl_value::Value::String(ref o) = &args[0] {
+        Ok(gtmpl_value::Value::String(o.to_case(Case::Snake) + "_id"))
     } else {
         Err(format!("String required, got: {:?}", args))
     }

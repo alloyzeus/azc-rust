@@ -5,7 +5,7 @@ use std::{error, fs, io::Write};
 use crate::{
     codegen_go::{
         attribute_go::AttributeContext,
-        entity_go::AbstractContext,
+        entity_go::{AbstractContext, EntityLifecycleContext},
         id_num_go::IntegerIdNumContext,
         ref_key_go::{RefKeyAzidTextContext, RefKeyContext},
         BaseContext, GoCodeGenerator, ImportContext,
@@ -156,6 +156,7 @@ impl GoCodeGenerator {
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes: attributes,
                 service_name: service_name.to_owned(),
+                lifecycle: (&adj_ent.lifecycle).into(),
                 hosts: hosts_names.clone(),
                 global_scope: global_scope,
             };
@@ -381,6 +382,7 @@ struct AdjunctEntityContext {
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
     service_name: String,
+    lifecycle: EntityLifecycleContext,
     hosts: Vec<String>,
     global_scope: bool,
 }

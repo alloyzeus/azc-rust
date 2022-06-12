@@ -10,11 +10,12 @@ use crate::azml::{
     entity::{
         abstract_, entity,
         id::{id_num, ref_key},
+        lifecycle,
     },
     symbol,
 };
 
-use super::adjunct;
+use super::super::adjunct;
 
 //region AdjunctEntity
 
@@ -26,6 +27,7 @@ pub struct AdjunctEntity {
     //TODO: put into AdjunctEntityId?
     pub ordering: AdjunctEntityOrdering,
     pub implements: Vec<abstract_::AbstractImplementation>,
+    pub lifecycle: lifecycle::Lifecycle,
     // This affects RefKey structure.
     //NOTE: don't use this for now as we've lost our reason to use this
     // attribute. We'll implement the 'identity' attribute instead.
