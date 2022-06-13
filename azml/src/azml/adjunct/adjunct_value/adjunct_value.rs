@@ -29,6 +29,7 @@ pub struct AdjunctPrime {
     pub documentation: String,
     pub implements: Vec<abstract_::AbstractImplementation>,
     pub identity: AdjunctPrimeIdentity,
+    pub kind: String,
 }
 
 impl adjunct::AdjuctDefinition for AdjunctPrime {}

@@ -1,0 +1,10 @@
+// {{.service_name}} provides a contract
+// for methods related to adjunct {{.type_name}}.
+type {{.service_name}} interface {
+	{{.base.azlib_prefix}}AdjuncPrimeService
+
+	Get{{.type_name}}(
+		inputCtx CallInputContext,
+		userID UserID,
+	) (*{{.kind}}, error)
+}

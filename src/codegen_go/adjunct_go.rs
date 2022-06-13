@@ -290,6 +290,7 @@ impl GoCodeGenerator {
 
         let type_name = format!("{}{}", base_type_name, type_name);
         let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
+        let service_name = format!("{}Service", type_name);
         let imports = sym
             .definition
             .collect_symbol_refs()
@@ -308,6 +309,8 @@ impl GoCodeGenerator {
             pkg_name: module_name.to_lowercase(),
             imports: imports,
             type_name: type_name.to_owned(),
+            kind: adj_prime.kind.to_owned(),
+            ref_key_enabled: adj_prime.identity.enabled,
             ref_key_type_name: ref_key_type_name.to_owned(),
             ref_key_def: RefKeyContext {
                 azid_text: RefKeyAzidTextContext {
@@ -319,6 +322,7 @@ impl GoCodeGenerator {
                 },
             },
             implements: abstracts,
+            service_name: service_name,
             hosts: hosts_ctx,
         };
 
@@ -355,10 +359,19 @@ impl GoCodeGenerator {
             }
         }
 
+        if tpl_ctx.ref_key_enabled {
+            render_file_region!(
+                out_file,
+                "ID",
+                "templates/adjunct_value/adjunct_value_ref_key.gtmpl",
+                tpl_ctx
+            );
+        }
+
         render_file_region!(
             out_file,
-            "ID",
-            "templates/adjunct_value/adjunct_value_ref_key.gtmpl",
+            "Service",
+            "templates/adjunct_value/adjunct_value_service.gtmpl",
             tpl_ctx
         );
 
@@ -403,9 +416,12 @@ struct AdjunctPrimeContext {
     pkg_name: String,
     imports: Vec<ImportContext>,
     type_name: String,
+    kind: String,
+    ref_key_enabled: bool,
     ref_key_type_name: String,
     ref_key_def: RefKeyContext,
     implements: Vec<AbstractContext>,
+    service_name: String,
     hosts: Vec<AdjunctHostContext>,
 }
 

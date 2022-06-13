@@ -81,6 +81,7 @@ symbols:
             grpc:
               enabled: true
 
+  # TODO: must be unique when verified
   - identifier: KeyPhoneNumber
     kind: adjunct
     parameters:
@@ -88,8 +89,22 @@ symbols:
       hosts:
         - kind: User
       parameters:
-        documentation: Nice
+        documentation: |
+          Phone number that can be used as the identifier for logging in.
         kind: telephony.PhoneNumber
+        unique: true
+
+  # TODO: must be unique when verified
+  - identifier: KeyEmailAddress
+    kind: adjunct
+    parameters:
+      kind: value
+      hosts:
+        - kind: User
+      parameters:
+        documentation: |
+          Email address that can be used as the identifier for logging in.
+        kind: email.Address
         unique: true
 
   - identifier: Application

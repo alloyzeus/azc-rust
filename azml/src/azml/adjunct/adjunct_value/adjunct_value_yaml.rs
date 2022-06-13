@@ -18,6 +18,8 @@ pub struct AdjunctPrimeYaml {
 
     #[serde(default)]
     identity: AdjunctPrimeIdentityYaml,
+
+    kind: String,
 }
 
 impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_value::AdjunctPrime {
@@ -32,6 +34,7 @@ impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_value::AdjunctPrime {
                 .map(|x| abstract_::AbstractImplementation::try_from(x))
                 .collect::<Result<Vec<abstract_::AbstractImplementation>, _>>()?,
             identity: (&x.identity).try_into()?,
+            kind: x.kind.to_owned(),
         })
     }
 }
