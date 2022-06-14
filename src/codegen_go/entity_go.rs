@@ -126,14 +126,14 @@ impl GoCodeGenerator {
             }
             render_file_region!(
                 out_file,
-                "IDNum",
-                "templates/entity/entity_id_num.gtmpl",
+                "ID",
+                "templates/entity/entity_ref_key.gtmpl",
                 tpl_ctx
             );
             render_file_region!(
                 out_file,
-                "ID",
-                "templates/entity/entity_ref_key.gtmpl",
+                "IDNum",
+                "templates/entity/entity_id_num.gtmpl",
                 tpl_ctx
             );
             // render_file_region!(

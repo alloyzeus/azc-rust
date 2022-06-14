@@ -35,7 +35,9 @@ type {{.type_name}}InstanceInfo struct {
 var _ {{.base.azcore_pkg}}.EntityInstanceInfo[
 	int32, {{.type_name}}InstanceDeletionInfo,
 ] = {{.type_name}}InstanceInfo{}
-var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}InstanceDeletionInfo] = {{.type_name}}InstanceDeletionInfo{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[
+	{{.type_name}}InstanceDeletionInfo,
+] = {{.type_name}}InstanceDeletionInfo{}
 
 // {{.type_name}}InstanceInfoZero returns an instance of
 // {{.type_name}}InstanceInfo with attributes set their respective zero
@@ -93,7 +95,9 @@ type {{.type_name}}InstanceDeletionInfo struct {
 }
 
 var _ {{.base.azcore_pkg}}.EntityDeletionInfo = {{.type_name}}InstanceDeletionInfo{}
-var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}InstanceDeletionInfo] = {{.type_name}}InstanceDeletionInfo{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[
+	{{.type_name}}InstanceDeletionInfo,
+] = {{.type_name}}InstanceDeletionInfo{}
 
 func (instDelInfo {{.type_name}}InstanceDeletionInfo) Clone() {{.type_name}}InstanceDeletionInfo {
 	// Already a copy and there's no shared underlying data instance
@@ -122,15 +126,15 @@ type {{.type_name}}InstanceServiceInternal interface {
 	{{- if .lifecycle.deletion.enabled}}
 
 	// Delete{{.type_name}}InstanceInternal deletes an instance of
-	// {{.type_name}} entity based identfied by refOfInstToDel.
-	// The returned instanceMutated will have the value of
+	// {{.type_name}} entity based identfied by idOfInstToDel.
+	// The returned justDeleted will have the value of
 	// true if this particular call resulted the deletion of the instance and
 	// it will have the value of false of subsequent calls to this method.
 	Delete{{.type_name}}InstanceInternal(
 		inputCtx CallInputContext,
-		refOfInstToDel {{.ref_key_type_name}},
+		idOfInstToDel {{.ref_key_type_name}},
 		input {{.type_name}}InstanceDeletionInput,
-	) (instanceMutated bool, currentState {{.type_name}}InstanceInfo, err error)
+	) (justDeleted bool, currentState {{.type_name}}InstanceInfo, err error)
 
 	{{- end}}
 }
@@ -139,7 +143,7 @@ type {{.type_name}}InstanceServiceInternal interface {
 // as an argument when invoking the method Create{{.type_name}}InstanceInternal
 // of {{.type_name}}InstanceServiceInternal.
 type {{.type_name}}InstanceCreationInput struct {
-	{{- /* TODO: generate embedded fields */}}
+	{{- /* TODO: generate embedded fields or use {{.type_name}}Attributes */}}
 }
 
 {{- if .lifecycle.deletion.enabled}}

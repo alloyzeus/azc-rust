@@ -243,7 +243,7 @@ func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 	inputCtx {{.pkg_name}}.CallInputContext,
 	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
-) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	if inputCtx == nil {
 		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil
 	}
@@ -265,7 +265,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 	inputCtx {{.pkg_name}}.CallInputContext,
 	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
-) (instanceMutated bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	ctxAuth := inputCtx.Authorization()
 	ctxTime := inputCtx.CallInputMetadata().ReceiveTime
 
@@ -298,7 +298,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		if txErr != nil {
 			return txErr
 		}
-		instanceMutated = n == 1
+		justDeleted = n == 1
 
 		if srv.deletionTxHook != nil {
 			return srv.deletionTxHook(inputCtx, dbTx)
@@ -311,7 +311,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 	}
 
 	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
-	if instanceMutated {
+	if justDeleted {
 		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
 			Deleted_: true,
 			{{- if .lifecycle.deletion.notes.enabled}}
@@ -335,7 +335,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 
 	//TODO: update caches, emit an event if there's any changes
 
-	return instanceMutated, currentState, nil
+	return justDeleted, currentState, nil
 }
 
 // Designed to perform the migration if required

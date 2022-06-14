@@ -195,14 +195,14 @@ impl GoCodeGenerator {
             }
             render_file_region!(
                 out_file,
-                "IDNum",
-                "templates/adjunct_entity/adjunct_entity_id_num.gtmpl",
+                "ID",
+                "templates/adjunct_entity/adjunct_entity_ref_key.gtmpl",
                 tpl_ctx
             );
             render_file_region!(
                 out_file,
-                "ID",
-                "templates/adjunct_entity/adjunct_entity_ref_key.gtmpl",
+                "IDNum",
+                "templates/adjunct_entity/adjunct_entity_id_num.gtmpl",
                 tpl_ctx
             );
             // render_file_region!(

@@ -248,6 +248,23 @@ symbols:
           allow_cross_process_callers: true
         deletion:
           enabled: true
+      attributes:
+        - name: DisplayName
+          kind: string #TODO: define constraints
+          final: true
+        - name: Secret
+          kind: string #TODO: define constraints
+          final: false
+        - name: PlatformType
+          kind: string #TODO: enum
+          final: true
+          documentation: only for user-agent types
+        - name: RequiredScopes
+          kind: list of string
+          final: false
+        - name: OAuth2RedirectURI
+          kind: list of string
+          final: false
       mixins:
         - kind: Ownership
           parameters:
