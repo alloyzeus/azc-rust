@@ -15,15 +15,15 @@ const (
 )
 
 const (
-	{{unexported_field .type_name}}DBColMetaCreationTimestamp  = "_mc_ts"
-	{{unexported_field .type_name}}DBColMetaCreationTerminalID = "_mc_tid"
-	{{unexported_field .type_name}}DBColMetaCreationUserID     = "_mc_uid"
+	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
+	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
+	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
 	{{- if .lifecycle.deletion.enabled}}
-	{{unexported_field .type_name}}DBColMetaDeletionTimestamp  = "_md_ts"
-	{{unexported_field .type_name}}DBColMetaDeletionTerminalID = "_md_tid"
-	{{unexported_field .type_name}}DBColMetaDeletionUserID     = "_md_uid"
+	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
+	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
+	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
 	{{- if .lifecycle.deletion.notes.enabled}}
-	{{unexported_field .type_name}}DBColMetaDeletionNotes      = "_md_notes"
+	{{unexported_field .type_name}}DBColMDDeletionNotes      = "md_d_notes"
 	{{- end}}
 	{{- end}}
 	{{unexported_field .type_name}}DBColIDNum                  = "id_num"

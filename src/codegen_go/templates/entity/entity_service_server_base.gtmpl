@@ -148,7 +148,7 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
 		Select(
 			goqu.Case().
-				When(goqu.C({{unexported_field .type_name}}DBColMetaDeletionTimestamp).IsNull(), false).
+				When(goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(), false).
 				Else(true).
 				As("deleted"),
 		).
@@ -208,9 +208,9 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
 			Rows(
 				goqu.Record{
 					{{unexported_field .type_name}}DBColIDNum: newInstanceIDNum,
-					{{unexported_field .type_name}}DBColMetaCreationTimestamp: cTime,
-					{{unexported_field .type_name}}DBColMetaCreationUserID: ctxAuth.UserIDNumPtr(),
-					{{unexported_field .type_name}}DBColMetaCreationTerminalID: ctxAuth.TerminalIDNumPtr(),
+					{{unexported_field .type_name}}DBColMDCreationTimestamp: cTime,
+					{{unexported_field .type_name}}DBColMDCreationUserID: ctxAuth.UserIDNumPtr(),
+					{{unexported_field .type_name}}DBColMDCreationTerminalID: ctxAuth.TerminalIDNumPtr(),
 				},
 			).
 			ToSQL()
@@ -274,16 +274,16 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
 				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(ctxAuth.UserIDNum().PrimitiveValue()),
-				goqu.C({{unexported_field .type_name}}DBColMetaDeletionTimestamp).IsNull(),
+				goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
 			).
 			Update().
 			Set(
 				goqu.Record{
-					{{unexported_field .type_name}}DBColMetaDeletionTimestamp: ctxTime,
-					{{unexported_field .type_name}}DBColMetaDeletionTerminalID: ctxAuth.TerminalIDNum().PrimitiveValue(),
-					{{unexported_field .type_name}}DBColMetaDeletionUserID: ctxAuth.UserIDNum().PrimitiveValue(),
+					{{unexported_field .type_name}}DBColMDDeletionTimestamp: ctxTime,
+					{{unexported_field .type_name}}DBColMDDeletionTerminalID: ctxAuth.TerminalIDNum().PrimitiveValue(),
+					{{unexported_field .type_name}}DBColMDDeletionUserID: ctxAuth.UserIDNum().PrimitiveValue(),
 					{{- if .lifecycle.deletion.notes.enabled}}
-					{{unexported_field .type_name}}DBColMetaDeletionNotes: input.DeletionNotes,
+					{{unexported_field .type_name}}DBColMDDeletionNotes: input.DeletionNotes,
 					{{- end}}
 				},
 			).
@@ -344,15 +344,15 @@ func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 	_, err := dbTx.Exec(
 		`CREATE TABLE ` + {{unexported_field .type_name}}DBTableName + ` ( ` +
 			{{unexported_field .type_name}}DBColIDNum + `  {{.id_num_def.pg_type}}, ` +
-			{{unexported_field .type_name}}DBColMetaCreationTimestamp + `  timestamp with time zone NOT NULL DEFAULT now(), ` +
-			{{unexported_field .type_name}}DBColMetaCreationTerminalID + `  {{.base.terminal.pg_type}}, ` +
-			{{unexported_field .type_name}}DBColMetaCreationUserID + `  {{.base.user.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMDCreationTimestamp + `  timestamp with time zone NOT NULL DEFAULT now(), ` +
+			{{unexported_field .type_name}}DBColMDCreationTerminalID + `  {{.base.terminal.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMDCreationUserID + `  {{.base.user.pg_type}}, ` +
 			{{- if .lifecycle.deletion.enabled}}
-			{{unexported_field .type_name}}DBColMetaDeletionTimestamp + `  timestamp with time zone, ` +
-			{{unexported_field .type_name}}DBColMetaDeletionTerminalID + `  {{.base.terminal.pg_type}}, ` +
-			{{unexported_field .type_name}}DBColMetaDeletionUserID + `  {{.base.user.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMDDeletionTimestamp + `  timestamp with time zone, ` +
+			{{unexported_field .type_name}}DBColMDDeletionTerminalID + `  {{.base.terminal.pg_type}}, ` +
+			{{unexported_field .type_name}}DBColMDDeletionUserID + `  {{.base.user.pg_type}}, ` +
 			{{- if .lifecycle.deletion.notes.enabled}}
-			{{unexported_field .type_name}}DBColMetaDeletionNotes + `  jsonb, ` +
+			{{unexported_field .type_name}}DBColMDDeletionNotes + `  jsonb, ` +
 			{{- end}}
 			{{- end}}
 			`CONSTRAINT `+ {{unexported_field .type_name}}DBTablePrimaryKeyName + ` PRIMARY KEY(` + {{unexported_field .type_name}}DBColIDNum + `), ` +
@@ -366,15 +366,15 @@ func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 }
 
 const (
-	{{unexported_field .type_name}}DBColMetaCreationTimestamp  = "_mc_ts"
-	{{unexported_field .type_name}}DBColMetaCreationTerminalID = "_mc_tid"
-	{{unexported_field .type_name}}DBColMetaCreationUserID     = "_mc_uid"
+	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
+	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
+	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
 	{{- if .lifecycle.deletion.enabled}}
-	{{unexported_field .type_name}}DBColMetaDeletionTimestamp  = "_md_ts"
-	{{unexported_field .type_name}}DBColMetaDeletionTerminalID = "_md_tid"
-	{{unexported_field .type_name}}DBColMetaDeletionUserID     = "_md_uid"
+	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
+	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
+	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
 	{{- if .lifecycle.deletion.notes.enabled}}
-	{{unexported_field .type_name}}DBColMetaDeletionNotes      = "_md_notes"
+	{{unexported_field .type_name}}DBColMDDeletionNotes      = "md_d_notes"
 	{{- end}}
 	{{- end}}
 	{{unexported_field .type_name}}DBColIDNum                  = "id_num"

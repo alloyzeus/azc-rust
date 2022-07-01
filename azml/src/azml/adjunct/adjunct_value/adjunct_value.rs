@@ -36,7 +36,7 @@ impl adjunct::AdjuctDefinition for AdjunctPrime {}
 
 impl symbol::SymbolDefinition for AdjunctPrime {
     fn collect_symbol_refs(&self) -> Vec<symbol::SymbolRef> {
-        Vec::new()
+        vec![symbol::SymbolRef::from(self.kind.to_owned())]
     }
 }
 

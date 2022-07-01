@@ -30,7 +30,11 @@ fn main() {
             let mut package_urls = HashMap::new();
             package_urls.insert(
                 "telephony".to_owned(),
-                "github.com/alloyzeus/go-modules/telephony".to_owned(),
+                "github.com/kadisoka/kadisoka-framework/volib/pkg/telephony".to_owned(),
+            );
+            package_urls.insert(
+                "email".to_owned(),
+                "github.com/kadisoka/kadisoka-framework/volib/pkg/email".to_owned(),
             );
 
             let module_identifier = "".to_owned();

@@ -83,33 +83,54 @@ symbols:
 
   # TODO: must be unique when verified
   - identifier: KeyPhoneNumber
+    documentation: |
+      A key phone number is a phone number that can be used as the identifier
+      for logging in by the specified user.
     kind: adjunct
     parameters:
       kind: value
       hosts:
         - kind: User
       parameters:
-        documentation: |
-          Phone number that can be used as the identifier for logging in.
         kind: telephony.PhoneNumber
         unique: true
 
   # TODO: must be unique when verified
   - identifier: KeyEmailAddress
+    documentation: |
+      A key email address is an email address that can be used as the identifier
+      for logging in by the specified user.
     kind: adjunct
     parameters:
       kind: value
       hosts:
         - kind: User
       parameters:
-        documentation: |
-          Email address that can be used as the identifier for logging in.
         kind: email.Address
+        unique: true
+
+  # TODO: must be unique when verified
+  - identifier: KeyBlockchainAddress
+    documentation: |
+      A key blockchain address is a blockchain address that can be used as
+      the identifier for logging in by the specified user.
+    kind: adjunct
+    parameters:
+      kind: value
+      hosts:
+        - kind: User
+      parameters:
+        kind: BlockchainAddress
         unique: true
 
   - identifier: Application
     documentation: |
-      An Application is an ....
+      An Application is a class of application that is part of or communicates
+      with our realm. It's coming in form of web apps, mobile apps, servers
+      of services from all domains, worker services, etc.
+
+      An instance of Application that has made successful authentication with
+      the identity service is called Terminal.
     kind: entity
     parameters:
       # TODO: encode application type into the ID. we will then use
@@ -328,7 +349,10 @@ symbols:
 
   - identifier: Terminal
     documentation: |
-      A Terminal is an authorized instance of application. As long the the
+      A Terminal is an authorized instance of application. A new instance of
+      Terminal will be created upon sucessful authorization-authentication.
+
+      As long the the
       authorization is still valid, a terminal could be used to access the
       service within the limit of the granted authorization. An
       authorization of a Terminal will become invalid when it is expired, or
@@ -341,8 +365,8 @@ symbols:
       instance of an Application will generate a new Terminal. A
       de-authorized Terminal is no longer usable.
 
-      A sucessful authorization will generate both a new Terminal and
-      an initial Session.
+      A sucessful authorization will generate both a new instance of
+      Terminal and an instance of initial Session.
     kind: adjunct
     parameters:
       kind: entity

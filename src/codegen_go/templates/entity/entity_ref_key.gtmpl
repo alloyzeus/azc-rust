@@ -1,5 +1,5 @@
 // {{.ref_key_type_name}} is used to identify
-// an instance of entity {{.type_name}} system-wide.
+// an instance of entity {{.type_name}}.
 type {{.ref_key_type_name}} {{.id_num_type_name}}
 
 // New{{.ref_key_type_name}} returns a new instance
