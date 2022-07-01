@@ -45,11 +45,11 @@ impl Attribute {
 #[derive(Clone, Debug)]
 pub struct AttributeNameOptions {
     //TODO: a list of strategies. pick the best one or twos.
-// - prepared name
-// - scoped name
-// - based on the generators / target languages.
-// - based on cases: IdentifierPascalCase, identifierCamelCase, identifier_snake_case, ...
-// - plural options (focus on English but keep an eye at other cultures)
+    // - prepared name
+    // - scoped name
+    // - based on the generators / target languages.
+    // - based on cases: IdentifierPascalCase, identifierCamelCase, identifier_snake_case, ...
+    // - plural options (focus on English but keep an eye at other cultures)
 }
 
 //endregion

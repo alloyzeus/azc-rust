@@ -7,7 +7,7 @@ extern crate convert_case;
 
 use std::{collections::HashMap, env, io, io::Write, process};
 
-use azml::azml::compiler;
+use azml::azml::{compiler, generator_go};
 
 mod codegen;
 mod codegen_go;
@@ -77,8 +77,12 @@ fn main() {
                     .unwrap();
                     io::stdout().write_all(buf.buffer()).unwrap();
 
-                    if let Some(go_pkg) = entry_module.options.get("go_package") {
-                        go_codegen.module_identifier = go_pkg.to_owned();
+                    if let Some(go_pkg) = entry_module.options.get("go") {
+                        if let Some(go_opts) =
+                            go_pkg.downcast_ref::<generator_go::GeneratorGoOptions>()
+                        {
+                            go_codegen.module_identifier = go_opts.package_identifier.to_owned();
+                        }
                     }
                 }
                 _ => panic!("No entry module"),

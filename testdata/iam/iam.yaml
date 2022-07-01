@@ -1,8 +1,9 @@
 module: iam
 
 options:
-  - key: "go_package"
-    value: "github.com/kadisoka/kadisoka-framework/iam"
+  - key: "go"
+    value:
+      package_identifier: "github.com/kadisoka/kadisoka-framework/pkg/iam"
 
 server:
   #TODO: directives for generating server packages and applications.

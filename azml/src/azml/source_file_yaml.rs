@@ -2,7 +2,9 @@
 
 use std::{collections::HashMap, convert};
 
-use super::{error, source_file, symbol, symbol_yaml};
+use super::{
+    error, generator, generator_go, generator_go_yaml, source_file, symbol, symbol_yaml, yaml,
+};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct SourceFileYaml {
@@ -24,9 +26,19 @@ impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
             .iter()
             .map(|x| symbol::Symbol::try_from(x))
             .collect::<Result<Vec<symbol::Symbol>, _>>()?;
-        let mut options = HashMap::new();
+        let mut options: HashMap<String, Box<dyn generator::GeneratorOptions>> = HashMap::new();
         for o in x.options {
-            options.insert(o.key, o.value);
+            match o.key.as_str() {
+                "go" => {
+                    let def: generator_go_yaml::GeneratorGoOptionsYaml =
+                        yaml::from_value(o.value.clone())?;
+                    options.insert(
+                        o.key,
+                        Box::new(generator_go::GeneratorGoOptions::try_from(def)?),
+                    );
+                }
+                _ => (), //TODO: error
+            }
         }
         Ok(source_file::SourceFile {
             module: x.module,
@@ -39,5 +51,5 @@ impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
 #[derive(serde::Deserialize, serde::Serialize)]
 struct SourceFileOption {
     key: String,
-    value: String,
+    value: yaml::Value,
 }

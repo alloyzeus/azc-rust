@@ -4,9 +4,11 @@ use std::{convert, convert::TryInto};
 
 use crate::azml::{cardinality_yaml, symbol, yaml};
 
-use super::{adjunct,
+use super::{
+    adjunct,
     adjunct_entity::{self, adjunct_entity_yaml},
-    adjunct_value::{self, adjunct_value_yaml}};
+    adjunct_value::{self, adjunct_value_yaml},
+};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AdjunctYaml {
