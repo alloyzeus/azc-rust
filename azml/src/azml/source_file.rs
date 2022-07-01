@@ -10,7 +10,7 @@ pub struct SourceFile {
 
     pub symbols: Vec<symbol::Symbol>,
 
-    pub options: HashMap<String, Box<dyn generator::GeneratorOptions>>,
+    pub generator_options: HashMap<String, Box<dyn generator::GeneratorOptions>>,
 }
 
 pub fn load_from_file<P: AsRef<path::Path>>(path: P) -> result::Result<SourceFile> {

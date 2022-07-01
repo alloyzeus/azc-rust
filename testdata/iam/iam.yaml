@@ -1,9 +1,14 @@
 module: iam
 
-options:
-  - key: "go"
-    value:
+generator_options:
+  - generator: "go"
+    options:
       package_identifier: "github.com/kadisoka/kadisoka-framework/pkg/iam"
+      package_opts:
+        - identifier: telephony
+          uri: "github.com/kadisoka/kadisoka-framework/volib/pkg/telephony"
+        - identifier: email
+          uri: "github.com/kadisoka/kadisoka-framework/volib/pkg/email"
 
 server:
   #TODO: directives for generating server packages and applications.

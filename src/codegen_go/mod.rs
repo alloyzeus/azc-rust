@@ -210,7 +210,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 &compilation_state.entry_module,
                 &module::ModuleDefinition {
                     symbols: entry_module.symbols.to_vec(),
-                    options: entry_module.options.clone(),
+                    generator_options: entry_module.generator_options.clone(),
                 },
             ),
             _ => Err(Box::new(azml::azml::Error::Msg(

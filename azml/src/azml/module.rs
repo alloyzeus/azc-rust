@@ -9,5 +9,5 @@ pub struct ModuleDefinition {
     //pub realms: Vec<String>,
     pub symbols: Vec<symbol::Symbol>,
 
-    pub options: HashMap<String, Box<dyn generator::GeneratorOptions>>,
+    pub generator_options: HashMap<String, Box<dyn generator::GeneratorOptions>>,
 }

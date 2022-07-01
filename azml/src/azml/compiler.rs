@@ -130,7 +130,7 @@ impl Compiler {
                         }),
                     },
                 ],
-                options: HashMap::new(),
+                generator_options: HashMap::new(),
             },
         );
 
@@ -138,7 +138,7 @@ impl Compiler {
             sf.module.to_owned(),
             module::ModuleDefinition {
                 symbols: sf.symbols.to_vec(),
-                options: sf.options.clone(),
+                generator_options: sf.generator_options.clone(),
             },
         );
 

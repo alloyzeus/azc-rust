@@ -14,7 +14,7 @@ pub struct SourceFileYaml {
     symbols: Vec<symbol_yaml::SymbolYaml>,
 
     #[serde(default)]
-    options: Vec<SourceFileOption>,
+    generator_options: Vec<SourceFileGeneratorOptions>,
 }
 
 impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
@@ -27,13 +27,13 @@ impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
             .map(|x| symbol::Symbol::try_from(x))
             .collect::<Result<Vec<symbol::Symbol>, _>>()?;
         let mut options: HashMap<String, Box<dyn generator::GeneratorOptions>> = HashMap::new();
-        for o in x.options {
-            match o.key.as_str() {
+        for o in x.generator_options {
+            match o.generator.as_str() {
                 "go" => {
                     let def: generator_go_yaml::GeneratorGoOptionsYaml =
-                        yaml::from_value(o.value.clone())?;
+                        yaml::from_value(o.options.clone())?;
                     options.insert(
-                        o.key,
+                        o.generator,
                         Box::new(generator_go::GeneratorGoOptions::try_from(def)?),
                     );
                 }
@@ -43,13 +43,13 @@ impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
         Ok(source_file::SourceFile {
             module: x.module,
             symbols: symbols,
-            options: options,
+            generator_options: options,
         })
     }
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
-struct SourceFileOption {
-    key: String,
-    value: yaml::Value,
+struct SourceFileGeneratorOptions {
+    generator: String,
+    options: yaml::Value,
 }

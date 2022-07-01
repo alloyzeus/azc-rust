@@ -27,19 +27,14 @@ fn main() {
     match &compilation_state {
         Ok(compilation_state) => {
             println!("{:?}", compilation_state);
-            let mut package_urls = HashMap::new();
-            package_urls.insert(
-                "telephony".to_owned(),
-                "github.com/kadisoka/kadisoka-framework/volib/pkg/telephony".to_owned(),
-            );
-            package_urls.insert(
-                "email".to_owned(),
-                "github.com/kadisoka/kadisoka-framework/volib/pkg/email".to_owned(),
-            );
 
             let module_identifier = "".to_owned();
 
             let azfl_pkg_identifier = "github.com/alloyzeus/go-azfl".to_owned();
+            let azcore_pkg_path = "/azcore";
+            let azid_pkg_path = "/azid";
+            let azob_pkg_path = "/azob";
+            let azerrs_pkg_path = "/errors";
 
             use codegen::CodeGenerator;
             let mut go_codegen = codegen_go::GoCodeGenerator {
@@ -48,15 +43,15 @@ fn main() {
                 module_identifier: module_identifier,
                 generate_servers: true,
                 file_per_struct: false,
-                package_urls: package_urls,
+                package_urls: HashMap::new(),
                 azlib_prefix: "AZx".to_owned(),
-                azcore_import: azfl_pkg_identifier.to_string() + "/azcore",
+                azcore_import: azfl_pkg_identifier.to_string() + azcore_pkg_path,
                 azcore_pkg: "azcore".to_owned(),
-                azid_import: azfl_pkg_identifier.to_string() + "/azid",
+                azid_import: azfl_pkg_identifier.to_string() + azid_pkg_path,
                 azid_pkg: "azid".to_owned(),
-                azob_import: azfl_pkg_identifier.to_string() + "/azob",
+                azob_import: azfl_pkg_identifier.to_string() + azob_pkg_path,
                 azob_pkg: "azob".to_owned(),
-                azerrs_import: azfl_pkg_identifier.to_string() + "/errors",
+                azerrs_import: azfl_pkg_identifier.to_string() + azerrs_pkg_path,
                 azerrs_pkg: "errors".to_owned(),
                 compilation_state: None,
                 package_identifier: "".to_owned(),
@@ -77,11 +72,26 @@ fn main() {
                     .unwrap();
                     io::stdout().write_all(buf.buffer()).unwrap();
 
-                    if let Some(go_pkg) = entry_module.options.get("go") {
+                    if let Some(go_pkg) = entry_module.generator_options.get("go") {
                         if let Some(go_opts) =
                             go_pkg.downcast_ref::<generator_go::GeneratorGoOptions>()
                         {
                             go_codegen.module_identifier = go_opts.package_identifier.to_owned();
+
+                            let mut package_uris: HashMap<String, String> = HashMap::new();
+                            for o in go_opts.package_opts.clone() {
+                                package_uris.insert(o.identifier.to_owned(), o.uri.to_owned());
+                            }
+                            go_codegen.package_urls = package_uris;
+
+                            if !go_opts.azfl_package_uri.is_empty() {
+                                let azfl_uri = go_opts.azfl_package_uri.to_owned();
+
+                                go_codegen.azcore_import = azfl_uri.to_owned() + azcore_pkg_path;
+                                go_codegen.azid_import = azfl_uri.to_owned() + azid_pkg_path;
+                                go_codegen.azob_import = azfl_uri.to_owned() + azob_pkg_path;
+                                go_codegen.azerrs_import = azfl_uri.to_owned() + azerrs_pkg_path;
+                            }
                         }
                     }
                 }
