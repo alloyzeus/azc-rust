@@ -12,6 +12,9 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 {{end -}}
 type {{.type_name}} struct {
 	// TODO
+	{{range .fields -}}
+	{{.identifier}} {{.type_name}}
+	{{end -}}
 }
 
 var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}{}

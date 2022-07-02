@@ -15,22 +15,34 @@ impl GoCodeGenerator {
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = symbol.identifier.to_owned();
 
-        let mut tpl_ctx = ValueObjectContext {
-            base: self.render_base_context(),
-            pkg_name: module_name.to_lowercase(),
-            type_name: type_name.to_owned(),
-            type_doc_lines: symbol.documentation.lines().map(|x| x.to_owned()).collect(),
-            primitive_type_name: "".to_owned(),
-            primitive_zero_value: "".to_owned(),
-        };
-
         use data_type::DataType;
-        let out_tpl_bytes: &[u8];
-        if let Some(_vo_struct) = vo
+        let out_code: String;
+
+        if let Some(vo_struct) = vo
             .definition
             .downcast_ref::<value_object::ValueObjectStruct>()
         {
-            out_tpl_bytes = include_bytes!("templates/value_object_struct.gtmpl");
+            let tpl_ctx = ValueObjectStructContext {
+                base: self.render_base_context(),
+                pkg_name: module_name.to_lowercase(),
+                type_name: type_name.to_owned(),
+                type_doc_lines: symbol.documentation.lines().map(|x| x.to_owned()).collect(),
+                fields: vo_struct
+                    .fields
+                    .clone()
+                    .into_iter()
+                    .map(|x| ValueObjectStructFieldContext {
+                        identifier: x.identifier.to_owned(),
+                        type_name: x.data_type.into(),
+                    })
+                    .collect::<Vec<ValueObjectStructFieldContext>>(),
+            };
+            let out_tpl_bytes = include_bytes!("templates/value_object_struct.gtmpl");
+
+            out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
         } else if let Some(vo_alias) = vo
             .definition
             .downcast_ref::<value_object::ValueObjectAlias>()
@@ -43,17 +55,23 @@ impl GoCodeGenerator {
                 DataType::String => ("string".to_owned(), r#""""#.to_owned()),
                 DataType::Bytes => ("[]byte".to_owned(), r#""""#.to_owned()),
             };
-            tpl_ctx.primitive_type_name = prim_type;
-            tpl_ctx.primitive_zero_value = prim_zero;
-            out_tpl_bytes = include_bytes!("templates/value_object_alias.gtmpl");
-        } else {
-            out_tpl_bytes = "".as_bytes();
-        }
+            let tpl_ctx = ValueObjectAliasContext {
+                base: self.render_base_context(),
+                pkg_name: module_name.to_lowercase(),
+                type_name: type_name.to_owned(),
+                type_doc_lines: symbol.documentation.lines().map(|x| x.to_owned()).collect(),
+                primitive_type_name: prim_type,
+                primitive_zero_value: prim_zero,
+            };
+            let out_tpl_bytes = include_bytes!("templates/value_object_alias.gtmpl");
 
-        let out_code = gtmpl::template(
-            String::from_utf8_lossy(out_tpl_bytes).as_ref(),
-            tpl_ctx.to_owned(),
-        )?;
+            out_code = gtmpl::template(
+                String::from_utf8_lossy(out_tpl_bytes).as_ref(),
+                tpl_ctx.to_owned(),
+            )?;
+        } else {
+            out_code = "".to_string();
+        }
 
         fs::create_dir_all(self.package_dir_base_name.to_owned())?;
         let mut service_file = fs::OpenOptions::new()
@@ -67,11 +85,26 @@ impl GoCodeGenerator {
 }
 
 #[derive(Clone, Gtmpl)]
-struct ValueObjectContext {
+struct ValueObjectAliasContext {
     base: BaseContext,
     pkg_name: String,
     type_name: String,
     type_doc_lines: Vec<String>,
     primitive_type_name: String,
     primitive_zero_value: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct ValueObjectStructContext {
+    base: BaseContext,
+    pkg_name: String,
+    type_name: String,
+    type_doc_lines: Vec<String>,
+    fields: Vec<ValueObjectStructFieldContext>,
+}
+
+#[derive(Clone, Gtmpl)]
+struct ValueObjectStructFieldContext {
+    identifier: String,
+    type_name: String,
 }

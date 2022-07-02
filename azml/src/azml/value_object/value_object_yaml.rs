@@ -2,7 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{data_type, value_object::value_object, yaml};
+use crate::azml::{data_type, symbol, value_object::value_object, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct ValueObjectYaml {
@@ -52,12 +52,62 @@ impl convert::TryFrom<ValueObjectAliasYaml> for value_object::ValueObjectAlias {
 //----
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct ValueObjectStructYaml {}
+pub struct ValueObjectStructYaml {
+    #[serde(default)]
+    key: Option<ValueObjectStructKeyYaml>,
+
+    #[serde(default)]
+    fields: Vec<ValueObjectStructFieldYaml>,
+}
 
 impl convert::TryFrom<ValueObjectStructYaml> for value_object::ValueObjectStruct {
     type Error = yaml::Error;
 
-    fn try_from(_x: ValueObjectStructYaml) -> Result<Self, Self::Error> {
-        Ok(value_object::ValueObjectStruct {})
+    fn try_from(x: ValueObjectStructYaml) -> Result<Self, Self::Error> {
+        Ok(value_object::ValueObjectStruct {
+            key: if let Some(k) = x.key {
+                Some(value_object::ValueObjectStructKey::try_from(k)?)
+            } else {
+                None
+            },
+            fields: x
+                .fields
+                .into_iter()
+                .map(|o| value_object::ValueObjectStructField::try_from(o))
+                .collect::<Result<Vec<value_object::ValueObjectStructField>, _>>()?,
+        })
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct ValueObjectStructKeyYaml {
+    fields: Vec<String>,
+}
+
+impl convert::TryFrom<ValueObjectStructKeyYaml> for value_object::ValueObjectStructKey {
+    type Error = yaml::Error;
+
+    fn try_from(x: ValueObjectStructKeyYaml) -> Result<Self, Self::Error> {
+        Ok(value_object::ValueObjectStructKey {
+            fields: x.fields.clone(),
+        })
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct ValueObjectStructFieldYaml {
+    identifier: String,
+    data_type: String, // SymbolRef
+                       //TODO: storage directives, visibility, etc.
+}
+
+impl convert::TryFrom<ValueObjectStructFieldYaml> for value_object::ValueObjectStructField {
+    type Error = yaml::Error;
+
+    fn try_from(x: ValueObjectStructFieldYaml) -> Result<Self, Self::Error> {
+        Ok(value_object::ValueObjectStructField {
+            identifier: x.identifier,
+            data_type: symbol::SymbolRef::from(x.data_type),
+        })
     }
 }

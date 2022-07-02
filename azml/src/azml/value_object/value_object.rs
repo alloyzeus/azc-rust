@@ -51,7 +51,7 @@ mopafy!(ValueObjectDefinition);
 // or a named struct.
 #[derive(Clone, Debug)]
 pub struct ValueObjectAlias {
-    //TODO: Not limited to primitives.
+    //TODO: Not limited to primitives, i.e., use SymbolRef
     pub data_type: data_type::DataType,
 }
 
@@ -61,7 +61,19 @@ impl ValueObjectDefinition for ValueObjectAlias {}
 
 #[derive(Clone, Debug)]
 pub struct ValueObjectStruct {
-    //TODO:
+    pub key: Option<ValueObjectStructKey>,
+    pub fields: Vec<ValueObjectStructField>,
 }
 
 impl ValueObjectDefinition for ValueObjectStruct {}
+
+#[derive(Clone, Debug)]
+pub struct ValueObjectStructKey {
+    pub fields: Vec<String>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ValueObjectStructField {
+    pub identifier: String,
+    pub data_type: symbol::SymbolRef,
+}
