@@ -14,7 +14,7 @@ use crate::{
 };
 
 use azml::azml::{
-    adjunct::{adjunct, adjunct_entity, adjunct_value},
+    adjunct::{adjunct, adjunct_entity, adjunct_prime, adjunct_value},
     entity::entity,
     symbol,
 };
@@ -39,7 +39,10 @@ impl GoCodeGenerator {
         {
             self.generate_adjunct_entity_codes(module_name, adj_def, &adj, &sym)?;
             Ok(())
-        } else if let Some(adj_def) = adj.definition.downcast_ref::<adjunct_value::AdjunctPrime>() {
+        } else if let Some(adj_def) = adj.definition.downcast_ref::<adjunct_prime::AdjunctPrime>() {
+            self.generate_adjunct_prime_codes(module_name, adj_def, &adj, &sym)?;
+            Ok(())
+        } else if let Some(adj_def) = adj.definition.downcast_ref::<adjunct_value::AdjunctValue>() {
             self.generate_adjunct_value_codes(module_name, adj_def, &adj, &sym)?;
             Ok(())
         } else {
@@ -236,10 +239,10 @@ impl GoCodeGenerator {
         }
     }
 
-    pub fn generate_adjunct_value_codes(
+    pub fn generate_adjunct_prime_codes(
         &self,
         module_name: &String,
-        adj_prime: &adjunct_value::AdjunctPrime,
+        adj_prime: &adjunct_prime::AdjunctPrime,
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
@@ -363,9 +366,138 @@ impl GoCodeGenerator {
             render_file_region!(
                 out_file,
                 "ID",
-                "templates/adjunct_value/adjunct_value_ref_key.gtmpl",
+                "templates/adjunct_prime/adjunct_prime_ref_key.gtmpl",
                 tpl_ctx
             );
+        }
+
+        render_file_region!(
+            out_file,
+            "Service",
+            "templates/adjunct_prime/adjunct_prime_service.gtmpl",
+            tpl_ctx
+        );
+
+        Ok(())
+    }
+
+    pub fn generate_adjunct_value_codes(
+        &self,
+        module_name: &String,
+        adj_value: &adjunct_value::AdjunctValue,
+        adj: &adjunct::Adjunct,
+        sym: &symbol::Symbol,
+    ) -> Result<(), Box<dyn error::Error>> {
+        let type_name = sym.identifier.to_owned();
+        //TODO: collect the name with the kind as the default
+        let hosts_names = (&adj.hosts)
+            .iter()
+            .map(|x| String::from(&x.kind))
+            .collect::<Vec<String>>();
+        let hosts_ctx = (&adj.hosts)
+            .iter()
+            .map(|x| AdjunctHostContext::from(x))
+            .collect::<Vec<AdjunctHostContext>>();
+        let base_type_name = if adj.name_is_prepared {
+            "".to_owned()
+        } else {
+            (&hosts_names)
+                .iter()
+                .map(|x| {
+                    let v = x.split(".").last();
+                    if let Some(i) = v {
+                        i.to_owned()
+                    } else {
+                        x.to_owned()
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("")
+        };
+        //TODO: error when any abstract is unresolvable
+        let abstracts = adj_value
+            .implements
+            .iter()
+            .map(|x| {
+                let y = self.lookup_abstract(x.kind.clone());
+                match y {
+                    None => None,
+                    Some(a) => Some(AbstractContext {
+                        type_name: x.kind.symbol_name.to_owned(),
+                        singular: a.singular,
+                        is_system: x.kind.package_identifier == "_azsys",
+                    }),
+                }
+            })
+            .filter(|x| !x.is_none())
+            .map(|x| x.unwrap())
+            .collect::<Vec<AbstractContext>>();
+
+        let type_name = format!("{}{}", base_type_name, type_name);
+        let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
+        let service_name = format!("{}Service", type_name);
+        let imports = sym
+            .definition
+            .collect_symbol_refs()
+            .iter()
+            .filter(|x| !x.package_identifier.is_empty())
+            .map(|x| ImportContext {
+                alias: x.package_identifier.to_owned(),
+                url: self.resolve_import(&x.package_identifier),
+            })
+            .collect();
+
+        let ref_key_type_name = format!("{}ID", type_name);
+
+        let tpl_ctx = AdjunctPrimeContext {
+            base: self.render_base_context(),
+            pkg_name: module_name.to_lowercase(),
+            imports: imports,
+            type_name: type_name.to_owned(),
+            kind: adj_value.kind.to_owned(),
+            ref_key_enabled: false,
+            ref_key_type_name: ref_key_type_name.to_owned(),
+            ref_key_def: RefKeyContext {
+                azid_text: RefKeyAzidTextContext {
+                    prefix: type_name.to_owned(),
+                },
+            },
+            implements: abstracts,
+            service_name: service_name,
+            hosts: hosts_ctx,
+        };
+
+        let header_tpl_bytes =
+            include_bytes!("templates/adjunct_value/adjunct_value__header.gtmpl");
+        let header_code = render_template(
+            String::from_utf8_lossy(header_tpl_bytes).as_ref(),
+            tpl_ctx.to_owned(),
+        )?;
+
+        let mut out_file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
+        out_file.write_all(header_code.as_bytes())?;
+        out_file.write_all(
+            format!(
+                "\n// Adjunct-value {} of {}.\n",
+                type_name,
+                hosts_names.join(", ")
+            )
+            .as_bytes(),
+        )?;
+        if !type_doc_lines.is_empty() {
+            out_file.write_all("//\n".as_bytes())?;
+            for x in type_doc_lines {
+                if x.is_empty() {
+                    out_file.write_all("//\n".as_bytes())?;
+                } else {
+                    out_file.write_all("// ".as_bytes())?;
+                    out_file.write_all(x.as_bytes())?;
+                    out_file.write_all("\n".as_bytes())?;
+                }
+            }
         }
 
         render_file_region!(

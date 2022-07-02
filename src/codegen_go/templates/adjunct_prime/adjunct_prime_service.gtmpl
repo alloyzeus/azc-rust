@@ -3,8 +3,8 @@
 type {{.service_name}} interface {
 	// {{.base.azlib_prefix}}AdjuncPrimeService
 
-	List{{.type_name}}(
+	Get{{.type_name}}(
 		inputCtx CallInputContext,
 		userID UserID,
-	) ([]{{.kind}}, error)
+	) (*{{.kind}}, error)
 }

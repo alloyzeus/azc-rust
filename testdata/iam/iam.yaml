@@ -94,7 +94,7 @@ symbols:
       for logging in by the specified user.
     kind: adjunct
     parameters:
-      kind: value
+      kind: prime
       hosts:
         - kind: User
       parameters:
@@ -108,7 +108,7 @@ symbols:
       for logging in by the specified user.
     kind: adjunct
     parameters:
-      kind: value
+      kind: prime
       hosts:
         - kind: User
       parameters:
@@ -701,17 +701,17 @@ symbols:
           - identifier: Method
             data_type: string #TODO: constraints, normalizations, etc.
             storage:
-              kind: persistent
+              persistency: persistent
               security: none
           - identifier: Network
             data_type: string
             storage:
-              kind: persistent
+              persistency: persistent
           - identifier: Identifier
             data_type: string
             storage:
-              kind: persistent
+              persistency: persistent
           - identifier: RawInput
             data_type: string
             storage:
-              kind: in_memory
+              persistency: none

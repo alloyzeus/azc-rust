@@ -9,77 +9,36 @@ use crate::azml::{
 };
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct AdjunctPrimeYaml {
+pub struct AdjunctValueYaml {
     #[serde(default)]
     documentation: String,
 
     #[serde(default)]
     implements: Vec<abstract_yaml::AbstractImplementationYaml>,
 
-    #[serde(default)]
-    identity: AdjunctPrimeIdentityYaml,
-
     kind: String,
 }
 
-impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_value::AdjunctPrime {
+impl convert::TryFrom<&AdjunctValueYaml> for adjunct_value::AdjunctValue {
     type Error = yaml::Error;
 
-    fn try_from(x: &AdjunctPrimeYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_value::AdjunctPrime {
+    fn try_from(x: &AdjunctValueYaml) -> Result<Self, Self::Error> {
+        Ok(adjunct_value::AdjunctValue {
             documentation: x.documentation.to_owned(),
             implements: x
                 .implements
                 .iter()
                 .map(|x| abstract_::AbstractImplementation::try_from(x))
                 .collect::<Result<Vec<abstract_::AbstractImplementation>, _>>()?,
-            identity: (&x.identity).try_into()?,
             kind: x.kind.to_owned(),
         })
     }
 }
 
-impl convert::TryFrom<AdjunctPrimeYaml> for adjunct_value::AdjunctPrime {
+impl convert::TryFrom<AdjunctValueYaml> for adjunct_value::AdjunctValue {
     type Error = yaml::Error;
 
-    fn try_from(x: AdjunctPrimeYaml) -> Result<Self, Self::Error> {
+    fn try_from(x: AdjunctValueYaml) -> Result<Self, Self::Error> {
         (&x).try_into()
-    }
-}
-
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct AdjunctPrimeIdentityYaml {
-    #[serde(default)]
-    enabled: bool,
-
-    #[serde(default)]
-    prefix: String,
-}
-
-impl Default for AdjunctPrimeIdentityYaml {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            prefix: "".to_owned(),
-        }
-    }
-}
-
-impl convert::TryFrom<AdjunctPrimeIdentityYaml> for adjunct_value::AdjunctPrimeIdentity {
-    type Error = yaml::Error;
-
-    fn try_from(x: AdjunctPrimeIdentityYaml) -> Result<Self, Self::Error> {
-        (&x).try_into()
-    }
-}
-
-impl convert::TryFrom<&AdjunctPrimeIdentityYaml> for adjunct_value::AdjunctPrimeIdentity {
-    type Error = yaml::Error;
-
-    fn try_from(x: &AdjunctPrimeIdentityYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_value::AdjunctPrimeIdentity {
-            enabled: x.enabled,
-            prefix: x.prefix.to_owned(),
-        })
     }
 }
