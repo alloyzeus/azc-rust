@@ -24,7 +24,8 @@ const (
 type {{.service_name}}ServerBase struct {
 	db *sqlx.DB
 
-	deletionTxHook func({{.pkg_name}}.CallInputContext, *sqlx.Tx) error
+	deletionTxHook func(inputCtx {{.pkg_name}}.CallInputContext, deletionTx *sqlx.Tx, {{unexported_field .ref_key_type_name}}BeingDeleted {{.pkg_name}}.{{.ref_key_type_name}}) error
+	deletionHook func(inputCtx {{.pkg_name}}.CallInputContext, {{unexported_field .ref_key_type_name}}Deleted {{.pkg_name}}.{{.ref_key_type_name}}) error
 
 	registered{{.id_num_type_name}}Cache *lru.ARCCache
 	deleted{{.id_num_type_name}}Cache    *lru.ARCCache
@@ -241,7 +242,7 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
 
 func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 	inputCtx {{.pkg_name}}.CallInputContext,
-	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	{{unexported_field .ref_key_type_name}}ToDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	if inputCtx == nil {
@@ -251,19 +252,19 @@ func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 {{- /*TODO: only if it's trully implement User */}}
 {{- if eq .type_name "User"}}
 	ctxAuth := inputCtx.Authorization()
-	if !ctxAuth.IsUser(toDelete) {
+	if !ctxAuth.IsUser({{unexported_field .ref_key_type_name}}ToDelete) {
 		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil //TODO: should be an error
 	}
 {{- end}}
 
 	//TODO: access control
 
-	return srv.delete{{.type_name}}InstanceInsecure(inputCtx, toDelete, input)
+	return srv.delete{{.type_name}}InstanceInsecure(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete, input)
 }
 
 func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 	inputCtx {{.pkg_name}}.CallInputContext,
-	toDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	{{unexported_field .ref_key_type_name}}ToDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	ctxAuth := inputCtx.Authorization()
@@ -273,7 +274,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		sqlString, _, _ := goqu.
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
-				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(ctxAuth.UserIDNum().PrimitiveValue()),
+				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq({{unexported_field .ref_key_type_name}}ToDelete.UserIDNum().PrimitiveValue()),
 				goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
 			).
 			Update().
@@ -300,8 +301,8 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		}
 		justDeleted = n == 1
 
-		if srv.deletionTxHook != nil {
-			return srv.deletionTxHook(inputCtx, dbTx)
+		if cb := srv.deletionTxHook; cb != nil {
+			return cb(inputCtx, dbTx, {{unexported_field .ref_key_type_name}}ToDelete)
 		}
 
 		return nil
@@ -318,8 +319,11 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 			DeletionNotes_: input.DeletionNotes,
 			{{- end -}}
 		}
+		if cb := srv.deletionHook; cb != nil {
+			cb(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete)
+		}
 	} else {
-		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, toDelete)
+		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete)
 		if err != nil {
 			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
 		}
