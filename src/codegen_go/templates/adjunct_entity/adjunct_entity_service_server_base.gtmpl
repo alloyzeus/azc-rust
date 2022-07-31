@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 
 	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
+	"github.com/jmoiron/sqlx"
 
 	"{{.pkg_path}}"
 )
@@ -13,6 +14,12 @@ const (
 	{{unexported_field .type_name}}DBTableName           = "{{.type_name_snake}}_dt"
 	{{unexported_field .type_name}}DBTablePrimaryKeyName = {{unexported_field .type_name}}DBTableName + "_pkey"
 )
+
+// {{.service_name}}Serverbase is the server-side
+// base implementation of {{.service_name}}.
+type {{.service_name}}ServerBase struct {
+	db *sqlx.DB
+}
 
 const (
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
