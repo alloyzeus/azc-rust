@@ -23,7 +23,7 @@ impl convert::TryFrom<&AdjunctValueYaml> for adjunct_value::AdjunctValue {
     type Error = yaml::Error;
 
     fn try_from(x: &AdjunctValueYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_value::AdjunctValue {
+        Ok(Self {
             documentation: x.documentation.to_owned(),
             implements: x
                 .implements

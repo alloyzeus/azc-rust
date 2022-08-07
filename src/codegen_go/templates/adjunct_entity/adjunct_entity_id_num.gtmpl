@@ -36,13 +36,13 @@ func {{.id_num_type_name}}FromPrimitiveValue(v {{.id_num_def.type_name}}) {{.id_
 // {{.id_num_type_name}}FromAZIDBinField creates {{.id_num_type_name}} from
 // its azid-bin form.
 func {{.id_num_type_name}}FromAZIDBinField(
-	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+	binBytes []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (idNum {{.id_num_type_name}}, readLen int, err error) {
 	if typeHint != {{.base.azid_pkg}}.BinDataTypeUnspecified && typeHint != {{.base.azid_pkg}}.BinDataTypeInt{{.id_num_def.primitive_size}} {
 		return {{.id_num_type_name}}(0), 0,
-			{{.base.azerrs_pkg}}.ArgMsg("typeHint", "unsupported")
+			{{.base.azerrs_pkg}}.ArgValueUnsupported("typeHint")
 	}
-	i := binary.BigEndian.Uint{{.id_num_def.primitive_size}}(b)
+	i := binary.BigEndian.Uint{{.id_num_def.primitive_size}}(binBytes)
 	return {{.id_num_type_name}}(i), {{.id_num_def.primitive_size_bytes}}, nil
 }
 
@@ -128,9 +128,9 @@ func (idNum {{.id_num_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.Bi
 // UnmarshalAZIDBinField is required for conformance
 // with {{.base.azid_pkg}}.BinFieldUnmarshalable.
 func (idNum *{{.id_num_type_name}}) UnmarshalAZIDBinField(
-	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+	binFieldBytes []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (readLen int, err error) {
-	i, readLen, err := {{.id_num_type_name}}FromAZIDBinField(b, typeHint)
+	i, readLen, err := {{.id_num_type_name}}FromAZIDBinField(binFieldBytes, typeHint)
 	if err == nil {
 		*idNum = i
 	}

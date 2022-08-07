@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 
 	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/jmoiron/sqlx"
 
 	"{{.pkg_path}}"
@@ -19,13 +20,265 @@ const (
 // base implementation of {{.service_name}}.
 type {{.service_name}}ServerBase struct {
 	db *sqlx.DB
+
+	deletionTxHook func(inputCtx {{.pkg_name}}.CallInputContext, deletionTx *sqlx.Tx, {{unexported_field .ref_key_type_name}}BeingDeleted {{.pkg_name}}.{{.ref_key_type_name}}) error
+	deletionHook func(inputCtx {{.pkg_name}}.CallInputContext, {{unexported_field .ref_key_type_name}}Deleted {{.pkg_name}}.{{.ref_key_type_name}}) error
+
+	registered{{.id_num_type_name}}Cache *lru.ARCCache
+	deleted{{.id_num_type_name}}Cache    *lru.ARCCache
+}
+
+// Interface conformance assertions.
+var (
+	_ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}ServerBase{}
+	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.service_name}}ServerBase{}
+)
+
+func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
+	id {{.pkg_name}}.{{.ref_key_type_name}},
+) bool {
+	idNum := id.IDNum()
+
+	// Look up for the ID num in the cache.
+	if _, idRegistered := srv.registered{{.id_num_type_name}}Cache.Get(idNum); idRegistered {
+		return true
+	}
+
+	idRegistered, _, err := srv.
+		get{{.type_name}}InstanceStateByIDNum(idNum)
+	if err != nil {
+		panic(err)
+	}
+
+	if idRegistered {
+		srv.registered{{.id_num_type_name}}Cache.Add(idNum, nil)
+	}
+
+	return idRegistered
+}
+
+// Get{{.type_name}}InstanceInfo retrieves the state of an {{.type_name}}
+// instance. It includes the existence of the ID, and whether the instance
+// has been deleted.
+//
+// If it's required only to determine the existence of the ID,
+// Is{{.ref_key_type_name}}Registered is generally more efficient.
+func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceInfo(
+	inputCtx {{.pkg_name}}.CallInputContext,
+	id {{.pkg_name}}.{{.ref_key_type_name}},
+) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
+	//TODO: access control
+	return srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, id)
+}
+
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
+	inputCtx {{.pkg_name}}.CallInputContext,
+	id {{.pkg_name}}.{{.ref_key_type_name}},
+) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
+	idRegistered := false
+	idRegisteredCacheHit := false
+	instDeleted := false
+	instDeletionCacheHit := false
+
+	// Look up for the ID num in the cache.
+	if _, idRegistered = srv.registered{{.id_num_type_name}}Cache.Get(id); idRegistered {
+		// ID num is positively registered.
+		idRegisteredCacheHit = true
+	}
+
+	// Look up in the deletion cache
+	if _, instDeleted = srv.deleted{{.id_num_type_name}}Cache.Get(id); instDeleted {
+		// Instance is positively deleted
+		instDeletionCacheHit = true
+	}
+
+	if idRegisteredCacheHit && instDeletionCacheHit {
+		if !idRegistered {
+			return nil, nil
+		}
+		var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+		if instDeleted {
+			deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+				Deleted_: true}
+		}
+		//TODO: populate revision number
+		return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
+			Deletion_: deletion,
+		}, nil
+	}
+
+	var err error
+	idRegistered, instDeleted, err = srv.
+		get{{.type_name}}InstanceStateByIDNum(id.IDNum())
+	if err != nil {
+		return nil, err
+	}
+
+	if !idRegisteredCacheHit && idRegistered {
+		srv.registered{{.id_num_type_name}}Cache.Add(id, nil)
+	}
+	if !instDeletionCacheHit && instDeleted {
+		srv.deleted{{.id_num_type_name}}Cache.Add(id, nil)
+	}
+
+	if !idRegistered {
+		return nil, nil
+	}
+
+	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+	if instDeleted {
+		//TODO: deletion notes. store the notes as the value in the cache
+		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+			Deleted_: true}
+	}
+
+	//TODO: populate revision number
+	return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
+		RevisionNumber_: -1,
+		Deletion_:       deletion,
+	}, nil
+}
+
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
+	idNum {{.pkg_name}}.{{.id_num_type_name}},
+) (idRegistered, instanceDeleted bool, err error) {
+	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
+		Select(
+			goqu.Case().
+				When(goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(), false).
+				Else(true).
+				As("deleted"),
+		).
+		Where(
+			goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(idNum.PrimitiveValue()),
+		).
+		ToSQL()
+
+	err = srv.db.
+		QueryRow(sqlString).
+		Scan(&instanceDeleted)
+	if err == sql.ErrNoRows {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, err
+	}
+
+	return true, instanceDeleted, nil
+}
+
+func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
+	inputCtx {{.pkg_name}}.CallInputContext,
+	{{unexported_field .ref_key_type_name}}ToDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
+) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+	if inputCtx == nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil
+	}
+
+{{- /*TODO: only if it's trully implement User */}}
+{{- if eq .type_name "User"}}
+	ctxAuth := inputCtx.Authorization()
+	if !ctxAuth.IsUser({{unexported_field .ref_key_type_name}}ToDelete) {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil //TODO: should be an error
+	}
+{{- end}}
+
+	//TODO: access control
+
+	return srv.delete{{.type_name}}InstanceInsecure(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete, input)
+}
+
+func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
+	inputCtx {{.pkg_name}}.CallInputContext,
+	{{unexported_field .ref_key_type_name}}ToDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
+) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
+	ctxAuth := inputCtx.Authorization()
+	ctxTime := inputCtx.CallInputMetadata().ReceiveTime
+
+	err = doTx(srv.db, func(dbTx *sqlx.Tx) error {
+		sqlString, _, _ := goqu.
+			From({{unexported_field .type_name}}DBTableName).
+			Where(
+				{{if not .global_scope -}}{{range .hosts -}}
+				goqu.C({{unexported_field $.type_name}}DBCol{{.}}ID).Eq({{unexported_field $.ref_key_type_name}}ToDelete.{{.}}().PrimitiveValue()).
+				{{end}}{{- end -}}
+				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq({{unexported_field .ref_key_type_name}}ToDelete.IDNum().PrimitiveValue()),
+				goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
+			).
+			Update().
+			Set(
+				goqu.Record{
+					{{unexported_field .type_name}}DBColMDDeletionTimestamp: ctxTime,
+					{{unexported_field .type_name}}DBColMDDeletionTerminalID: ctxAuth.TerminalIDNum().PrimitiveValue(),
+					{{unexported_field .type_name}}DBColMDDeletionUserID: ctxAuth.UserIDNum().PrimitiveValue(),
+					{{- if .lifecycle.deletion.notes.enabled}}
+					{{unexported_field .type_name}}DBColMDDeletionNotes: input.DeletionNotes,
+					{{- end}}
+				},
+			).
+			ToSQL()
+
+		xres, txErr := dbTx.
+			Exec(sqlString)
+		if txErr != nil {
+			return txErr
+		}
+		n, txErr := xres.RowsAffected()
+		if txErr != nil {
+			return txErr
+		}
+		justDeleted = n == 1
+
+		if cb := srv.deletionTxHook; cb != nil {
+			return cb(inputCtx, dbTx, {{unexported_field .ref_key_type_name}}ToDelete)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
+	}
+
+	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+	if justDeleted {
+		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+			Deleted_: true,
+			{{- if .lifecycle.deletion.notes.enabled}}
+			DeletionNotes_: input.DeletionNotes,
+			{{- end -}}
+		}
+		if cb := srv.deletionHook; cb != nil {
+			cb(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete)
+		}
+	} else {
+		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete)
+		if err != nil {
+			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
+		}
+
+		if di != nil {
+			deletion = di.Deletion()
+		}
+	}
+
+	currentState = {{.pkg_name}}.{{.type_name}}InstanceInfo{
+		RevisionNumber_: -1, //TODO: get from the DB
+		Deletion_:       deletion}
+
+	//TODO: update caches, emit an event if there's any changes
+
+	return justDeleted, currentState, nil
 }
 
 const (
+	// Creation metadata columns
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
 	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
 	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
 	{{- if .lifecycle.deletion.enabled}}
+	// Deletion metadata columns
 	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
 	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
 	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
@@ -33,11 +286,24 @@ const (
 	{{unexported_field .type_name}}DBColMDDeletionNotes      = "md_d_notes"
 	{{- end}}
 	{{- end}}
-	{{unexported_field .type_name}}DBColIDNum                  = "id_num"
+	{{- if .lifecycle.expiration.enabled}}
+	// Expiration
+	{{unexported_field .type_name}}DBColExpiry = "expiry"
+	{{- end}}
 
-	{{if not .global_scope -}}{{range .hosts -}}
+	{{- if .attributes}}
+
+	// Inline attributes
+	{{- range .attributes}}
+	{{unexported_field $.type_name}}DBCol{{.identifier}} = "{{.db_col_identifier}}"
+	{{- end}}
+	{{- end}}
+
+	// Identity
+	{{unexported_field .type_name}}DBColIDNum = "id_num"
+	{{range .hosts -}}
 	{{unexported_field $.type_name}}DBCol{{.}}ID = "{{adjunct_host_id_db_col_name .}}"
-	{{end}}{{- end}}
+	{{- end}}
 )
 
 {{- /* TODO: generate the following generator function only when the id num is random */}}
@@ -58,7 +324,7 @@ func Generate{{.id_num_type_name}}(
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {
-		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Wrap("random number source reading", err)
+		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Op("random number source reading").Wrap(err)
 	}
 
 	idUint := (embeddedFieldBits & {{.pkg_name}}.{{.id_num_type_name}}EmbeddedFieldsMask) |

@@ -15,7 +15,7 @@ use crate::{
 use azml::azml::{
     entity::{
         id::id_num,
-        lifecycle::{creation, deletion, lifecycle},
+        lifecycle::{creation, deletion, expiration, lifecycle},
         root_entity,
     },
     symbol,
@@ -231,13 +231,15 @@ struct EntityContext {
 pub struct EntityLifecycleContext {
     creation: EntityCreationContext,
     deletion: EntityDeletionContext,
+    expiration: EntityExpirationContext,
 }
 
 impl From<&lifecycle::Lifecycle> for EntityLifecycleContext {
-    fn from(s: &lifecycle::Lifecycle) -> EntityLifecycleContext {
-        EntityLifecycleContext {
+    fn from(s: &lifecycle::Lifecycle) -> Self {
+        Self {
             creation: (&s.creation).into(),
             deletion: (&s.deletion).into(),
+            expiration: (&s.expiration).into(),
         }
     }
 }
@@ -248,9 +250,9 @@ struct EntityCreationContext {
 }
 
 impl From<&creation::Creation> for EntityCreationContext {
-    fn from(s: &creation::Creation) -> EntityCreationContext {
-        EntityCreationContext {
-            allow_cross_process_callers: s.allow_cross_process_callers,
+    fn from(s: &creation::Creation) -> Self {
+        Self {
+            allow_cross_process_callers: s.authorization.same_realm.allow.is_not_disallow(),
         }
     }
 }
@@ -262,8 +264,8 @@ struct EntityDeletionContext {
 }
 
 impl From<&deletion::Deletion> for EntityDeletionContext {
-    fn from(s: &deletion::Deletion) -> EntityDeletionContext {
-        EntityDeletionContext {
+    fn from(s: &deletion::Deletion) -> Self {
+        Self {
             enabled: s.enabled,
             notes: (&s.notes).into(),
         }
@@ -277,10 +279,21 @@ struct EntityDeletionNotesContext {
 }
 
 impl From<&deletion::DeletionNotes> for EntityDeletionNotesContext {
-    fn from(s: &deletion::DeletionNotes) -> EntityDeletionNotesContext {
-        EntityDeletionNotesContext {
+    fn from(s: &deletion::DeletionNotes) -> Self {
+        Self {
             enabled: s.enabled,
             required: s.required,
         }
+    }
+}
+
+#[derive(Clone, Gtmpl)]
+struct EntityExpirationContext {
+    enabled: bool,
+}
+
+impl From<&expiration::Expiration> for EntityExpirationContext {
+    fn from(s: &expiration::Expiration) -> Self {
+        Self { enabled: s.enabled }
     }
 }

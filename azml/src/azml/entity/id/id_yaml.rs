@@ -18,7 +18,7 @@ impl convert::TryFrom<&IdYaml> for id::Id {
     type Error = yaml::Error;
 
     fn try_from(x: &IdYaml) -> Result<Self, Self::Error> {
-        Ok(id::Id {
+        Ok(Self {
             num: (&x.num).try_into()?,
             ref_key: (&x.ref_key).try_into()?,
         })

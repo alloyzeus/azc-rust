@@ -2,7 +2,7 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{BaseContext, GoCodeGenerator};
+use crate::codegen_go::{template::render_template, BaseContext, GoCodeGenerator};
 
 use azml::azml::{data_type, symbol, value_object::value_object};
 
@@ -39,7 +39,7 @@ impl GoCodeGenerator {
             };
             let out_tpl_bytes = include_bytes!("templates/value_object_struct.gtmpl");
 
-            out_code = gtmpl::template(
+            out_code = render_template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
             )?;
@@ -65,7 +65,7 @@ impl GoCodeGenerator {
             };
             let out_tpl_bytes = include_bytes!("templates/value_object_alias.gtmpl");
 
-            out_code = gtmpl::template(
+            out_code = render_template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
                 tpl_ctx.to_owned(),
             )?;

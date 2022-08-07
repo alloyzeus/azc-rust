@@ -2,7 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::yaml;
+use crate::azml::{authorization_yaml, yaml};
 
 use super::creation;
 
@@ -12,14 +12,14 @@ pub struct CreationYaml {
     documentation: String,
 
     #[serde(default)]
-    allow_cross_process_callers: bool,
+    authorization: authorization_yaml::AuthorizationYaml,
 }
 
 impl Default for CreationYaml {
     fn default() -> Self {
         Self {
             documentation: "".to_owned(),
-            allow_cross_process_callers: false,
+            authorization: authorization_yaml::AuthorizationYaml::default(),
         }
     }
 }
@@ -28,9 +28,9 @@ impl convert::TryFrom<&CreationYaml> for creation::Creation {
     type Error = yaml::Error;
 
     fn try_from(x: &CreationYaml) -> Result<Self, Self::Error> {
-        Ok(creation::Creation {
+        Ok(Self {
             documentation: x.documentation.to_owned(),
-            allow_cross_process_callers: x.allow_cross_process_callers,
+            authorization: (&x.authorization).try_into()?,
         })
     }
 }

@@ -35,7 +35,7 @@ impl convert::TryFrom<RootEntityYaml> for root_entity::RootEntity {
     type Error = yaml::Error;
 
     fn try_from(x: RootEntityYaml) -> Result<Self, Self::Error> {
-        Ok(root_entity::RootEntity {
+        Ok(Self {
             id: x.id.try_into()?,
             implements: x
                 .implements

@@ -2,7 +2,7 @@
 // an instance of adjunct entity {{.type_name}}.
 type {{.ref_key_type_name}} struct {
 	{{- range .hosts}}
-	{{unexported_field .identifier_name}} {{.full_type_name}}ID
+	{{unexported_field .identifier_name}} {{.type_name_with_pkg}}ID
 	{{- end}}
 }
 
@@ -13,7 +13,7 @@ const {{unexported_global .ref_key_type_name}}FieldCount = {{len .hosts}}
 // of {{.ref_key_type_name}} with the provided attribute values.
 func New{{.ref_key_type_name}}(
 	{{- range .hosts}}
-	{{arg_name .identifier_name}} {{.full_type_name}}ID,
+	{{arg_name .identifier_name}} {{.type_name_with_pkg}}ID,
 	{{- end}}
 ) {{.ref_key_type_name}} {
 	return {{.ref_key_type_name}}{
@@ -35,7 +35,7 @@ var _ {{$.base.azcore_pkg}}.{{.type_name}}ID = {{unexported_global $.ref_key_typ
 
 var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
 	{{- range .hosts}}
-	{{unexported_field .identifier_name}}: {{.full_type_name}}IDZero(),
+	{{unexported_field .identifier_name}}: {{.type_name_with_pkg}}IDZero(),
 	{{- end}}
 }
 
@@ -182,7 +182,7 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 			{{$.base.azerrs_pkg}}.ArgWrap("", "{{unexported_field .identifier_name}} ref-key type parsing", err)
 	}
 	typeCursor++
-	{{unexported_field .identifier_name}}ID, readLen, err := {{.full_type_name}}IDFromAZIDBinField(
+	{{unexported_field .identifier_name}}ID, readLen, err := {{.type_name_with_pkg}}IDFromAZIDBinField(
 		b[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
@@ -295,13 +295,13 @@ func (id *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 {{- range .hosts}}
 
 // {{.identifier_name}} returns instance's {{.identifier_name}} value.
-func (id {{$.ref_key_type_name}}) {{.identifier_name}}() {{.full_type_name}}ID {
+func (id {{$.ref_key_type_name}}) {{.identifier_name}}() {{.type_name_with_pkg}}ID {
 	return id.{{unexported_field .identifier_name}}
 }
 
 // {{.identifier_name}}Ptr returns a pointer to a copy of
 // {{.identifier_name}}ID if it's considered valid.
-func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.full_type_name}}ID {
+func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.type_name_with_pkg}}ID {
 	if id.{{unexported_field .identifier_name}}.IsStaticallyValid() {
 		rk := id.{{unexported_field .identifier_name}}
 		return &rk
@@ -313,7 +313,7 @@ func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.full_type_name}}
 // of {{$.ref_key_type_name}}
 // with its {{unexported_field .identifier_name}} attribute set to the provided value.
 func (id {{$.ref_key_type_name}}) With{{.identifier_name}}(
-	{{arg_name .identifier_name}} {{.full_type_name}}ID,
+	{{arg_name .identifier_name}} {{.type_name_with_pkg}}ID,
 ) {{$.ref_key_type_name}} {
 	{{- $p := .identifier_name}}
 	return {{$.ref_key_type_name}}{

@@ -3,6 +3,8 @@
 pub mod adjunct;
 pub mod attribute;
 pub mod attribute_yaml;
+pub mod authorization;
+pub mod authorization_yaml;
 pub mod cardinality;
 pub mod cardinality_yaml;
 pub mod compiler;

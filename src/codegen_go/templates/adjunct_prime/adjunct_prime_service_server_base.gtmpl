@@ -1,0 +1,76 @@
+package {{.pkg_name}}server
+
+import (
+	"crypto/rand"
+	"encoding/binary"
+
+	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
+	"github.com/jmoiron/sqlx"
+
+	"{{.pkg_path}}"
+)
+
+const (
+	{{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
+)
+
+// {{.service_name}}Serverbase is the server-side
+// base implementation of {{.service_name}}.
+type {{.service_name}}ServerBase struct {
+	db *sqlx.DB
+}
+
+// delete{{.type_name}}Insecure deassociate any prime adjunct
+// {{.type_name}} from its host(s).
+//
+// Note that this method, which suffixed with 'Insecure', doesn't check
+// permissions and rules.
+func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
+	inputCtx {{.pkg_name}}.CallInputContext,
+	{{- range .hosts}}
+	{{arg_name .identifier_name}}ID {{.type_name_with_pkg}}ID,
+	{{- end}}
+) (justDeleted bool, err error) {
+	ctxAuth := inputCtx.Authorization()
+	sqlString, _, _ := goqu.
+		Update({{unexported_field .type_name}}DBTableName).
+		Where(
+	        {{- range .hosts}}
+			goqu.C({{unexported_field $.type_name}}DBCol{{.identifier_name}}ID).Eq({{arg_name .identifier_name}}ID.IDNum().PrimitiveValue()),
+            {{- end}}
+			goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
+		).
+		Set(
+			goqu.Record{
+				{{unexported_field .type_name}}DBColMDDeletionTimestamp:  inputCtx.CallInputMetadata().ReceiveTime,
+				{{unexported_field .type_name}}DBColMDDeletionUserID: ctxAuth.UserIDNumPtr(),
+				{{unexported_field .type_name}}DBColMDDeletionTerminalID: ctxAuth.TerminalIDNumPtr(),
+			},
+		).
+		ToSQL()
+
+	xres, err := srv.db.Exec(sqlString)
+	if err != nil {
+		return false, errors.Op("Exec", err)
+	}
+
+	var n int64
+	n, err = xres.RowsAffected()
+	if err != nil {
+		return false, errors.Op("RowsAffected", err)
+	}
+	return n == 1, nil
+}
+
+const (
+	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
+	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
+	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
+	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
+	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
+	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
+
+	{{range .hosts -}}
+	{{unexported_field $.type_name}}DBCol{{.identifier_name}}ID = "{{adjunct_host_id_db_col_name .identifier_name}}"
+	{{- end}}
+)

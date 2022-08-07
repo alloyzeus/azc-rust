@@ -13,9 +13,17 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 type {{.type_name}} struct {
 	// TODO
 	{{range .fields -}}
-	{{.identifier}} {{.type_name}}
+	{{unexported_field .identifier}} {{.type_name}}
 	{{end -}}
 }
 
 var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}] = {{.type_name}}{}
+
+{{range .fields -}}
+func ({{unexported_field $.type_name}} {{$.type_name}}) {{.identifier}}() {{.type_name}} {
+	return {{unexported_field $.type_name}}.{{unexported_field .identifier}}
+}
+
+{{end -}}
 					

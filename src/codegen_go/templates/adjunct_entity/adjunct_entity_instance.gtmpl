@@ -1,0 +1,141 @@
+// {{.type_name}}InstanceService is a service which
+// provides methods to manipulate an instance of {{.type_name}}.
+type {{.type_name}}InstanceService interface {
+	{{.type_name}}InstanceInfoService
+}
+
+// {{.type_name}}InstanceInfoService is a service which
+// provides access to instances metadata.
+type {{.type_name}}InstanceInfoService interface {
+	// Get{{.type_name}}InstanceInfo checks if the provided
+    // ref-key is valid and whether the instance is deleted.
+	//
+	// This method returns nil if the id is not referencing to any valid
+	// instance.
+	Get{{.type_name}}InstanceInfo(
+		inputCtx CallInputContext,
+		id {{.ref_key_type_name}},
+	) (*{{.type_name}}InstanceInfo, error)
+}
+
+// {{.type_name}}InstanceInfo holds information about
+// an instance of {{.type_name}}.
+type {{.type_name}}InstanceInfo struct {
+    RevisionNumber_ int32
+
+{{- if .lifecycle.deletion.enabled}}
+
+    // Deletion_ holds information about the deletion of the instance. If
+    // the instance has not been deleted, this field value will be nil.
+	Deletion_ *{{.type_name}}InstanceDeletionInfo
+
+{{- end}}
+}
+
+var _ {{.base.azcore_pkg}}.EntityInstanceInfo[
+	int32, {{.type_name}}InstanceDeletionInfo,
+] = {{.type_name}}InstanceInfo{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[
+	{{.type_name}}InstanceDeletionInfo,
+] = {{.type_name}}InstanceDeletionInfo{}
+
+// {{.type_name}}InstanceInfoZero returns an instance of
+// {{.type_name}}InstanceInfo with attributes set their respective zero
+// value.
+func {{.type_name}}InstanceInfoZero() {{.type_name}}InstanceInfo {
+	return {{.type_name}}InstanceInfo{}
+}
+
+func (instInfo {{.type_name}}InstanceInfo) Clone() {{.type_name}}InstanceInfo {
+{{- if .lifecycle.deletion.enabled}}
+	if instInfo.Deletion_ != nil {
+		cp := instInfo
+		delInfo := cp.Deletion_.Clone()
+		cp.Deletion_ = &delInfo
+		return cp
+	}
+{{- end}}
+	// Already a copy and there's no shared underlying data instance
+	return instInfo
+}
+
+func (instInfo {{.type_name}}InstanceInfo) RevisionNumber() int32 { return instInfo.RevisionNumber_ }
+func (instInfo {{.type_name}}InstanceInfo) Deletion() *{{.type_name}}InstanceDeletionInfo {
+	return instInfo.Deletion_
+}
+
+// IsActive returns true if the instance is considered as active.
+func (instInfo {{.type_name}}InstanceInfo) IsActive() bool {
+    // Note: we will check other flags in the future, but that's said,
+    // deleted instance is considered inactive.
+    return !instInfo.IsDeleted()
+}
+
+// IsDeleted returns true if the instance was deleted.
+func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
+{{- if .lifecycle.deletion.enabled}}
+	if delInfo := instInfo.Deletion(); delInfo != nil {
+		return delInfo.Deleted()
+	}
+{{- end}}
+	return false
+}
+
+{{- if .lifecycle.deletion.enabled}}
+
+//----
+
+// {{.type_name}}InstanceDeletionInfo holds information about
+// the deletion of an instance if the instance has been deleted.
+type {{.type_name}}InstanceDeletionInfo struct {
+	Deleted_       bool
+{{- if .lifecycle.deletion.notes.enabled}}
+	DeletionNotes_ string
+{{- end}}
+}
+
+var _ {{.base.azcore_pkg}}.EntityDeletionInfo = {{.type_name}}InstanceDeletionInfo{}
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[
+	{{.type_name}}InstanceDeletionInfo,
+] = {{.type_name}}InstanceDeletionInfo{}
+
+func (instDelInfo {{.type_name}}InstanceDeletionInfo) Clone() {{.type_name}}InstanceDeletionInfo {
+	// Already a copy and there's no shared underlying data instance
+	return instDelInfo
+}
+
+func (instDelInfo {{.type_name}}InstanceDeletionInfo) Deleted() bool { return instDelInfo.Deleted_ }
+{{- if .lifecycle.deletion.notes.enabled}}
+func (instDelInfo {{.type_name}}InstanceDeletionInfo) DeletionNotes() string { return instDelInfo.DeletionNotes_ }
+{{- end}}
+
+{{- end}}
+
+//----
+
+// {{.type_name}}InstanceServiceInternal is a service which provides
+// methods for manipulating instances of {{.type_name}}. Declared for
+// internal use within a process, this interface contains methods that
+// available to be called from another part of a process.
+type {{.type_name}}InstanceServiceInternal interface {
+}
+
+// {{.type_name}}InstanceCreationInput contains data to be passed
+// as an argument when invoking the method Create{{.type_name}}InstanceInternal
+// of {{.type_name}}InstanceServiceInternal.
+type {{.type_name}}InstanceCreationInput struct {
+	{{- /* TODO: generate embedded fields or use {{.type_name}}Attributes */}}
+}
+
+{{- if .lifecycle.deletion.enabled}}
+
+// {{.type_name}}InstanceDeletionInput contains data to be passed
+// as an argument when invoking the method Delete{{.type_name}}InstanceInternal
+// of {{.type_name}}InstanceServiceInternal.
+type {{.type_name}}InstanceDeletionInput struct {
+{{- if .lifecycle.deletion.notes.enabled}}
+	DeletionNotes string
+{{- end}}
+}
+
+{{- end}}

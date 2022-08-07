@@ -29,7 +29,7 @@ impl convert::TryFrom<&ExpirationYaml> for expiration::Expiration {
     type Error = yaml::Error;
 
     fn try_from(x: &ExpirationYaml) -> Result<Self, Self::Error> {
-        Ok(expiration::Expiration {
+        Ok(Self {
             enabled: x.enabled,
             runtime_overrideable: x.runtime_overrideable,
         })

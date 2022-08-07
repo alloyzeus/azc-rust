@@ -26,7 +26,7 @@ impl convert::TryFrom<&AdjunctPrimeYaml> for adjunct_prime::AdjunctPrime {
     type Error = yaml::Error;
 
     fn try_from(x: &AdjunctPrimeYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_prime::AdjunctPrime {
+        Ok(Self {
             documentation: x.documentation.to_owned(),
             implements: x
                 .implements
@@ -77,7 +77,7 @@ impl convert::TryFrom<&AdjunctPrimeIdentityYaml> for adjunct_prime::AdjunctPrime
     type Error = yaml::Error;
 
     fn try_from(x: &AdjunctPrimeIdentityYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_prime::AdjunctPrimeIdentity {
+        Ok(Self {
             enabled: x.enabled,
             prefix: x.prefix.to_owned(),
         })

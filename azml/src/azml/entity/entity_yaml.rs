@@ -14,8 +14,8 @@ pub struct EntityServiceYaml {
 }
 
 impl From<&EntityServiceYaml> for entity::EntityService {
-    fn from(x: &EntityServiceYaml) -> entity::EntityService {
-        entity::EntityService {
+    fn from(x: &EntityServiceYaml) -> Self {
+        Self {
             documentation: x.documentation.to_owned(),
             enabled: x.enabled,
         }
@@ -23,7 +23,7 @@ impl From<&EntityServiceYaml> for entity::EntityService {
 }
 
 impl From<EntityServiceYaml> for entity::EntityService {
-    fn from(x: EntityServiceYaml) -> entity::EntityService {
+    fn from(x: EntityServiceYaml) -> Self {
         (&x).into()
     }
 }

@@ -17,6 +17,7 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 type {{.type_name}} {{.primitive_type_name}}
 
 var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}({{.primitive_zero_value}})
+var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}] = {{.type_name}}({{.primitive_zero_value}})
 
 // Equals is required by {{.base.azcore_pkg}}.ValueObject.
 func (vo {{.type_name}}) Equals(other interface{}) bool {

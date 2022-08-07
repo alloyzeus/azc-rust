@@ -21,7 +21,7 @@ impl convert::TryFrom<GeneratorGoOptionsYaml> for generator_go::GeneratorGoOptio
     type Error = yaml::Error;
 
     fn try_from(x: GeneratorGoOptionsYaml) -> Result<Self, Self::Error> {
-        Ok(generator_go::GeneratorGoOptions {
+        Ok(Self {
             package_identifier: x.package_identifier.to_owned(),
             azfl_package_uri: x.azfl_package_uri.to_owned(),
             package_opts: x
@@ -42,8 +42,8 @@ pub struct GeneratorGoPackageOptionsYaml {
 }
 
 impl convert::From<&GeneratorGoPackageOptionsYaml> for generator_go::GeneratorGoPackageOptions {
-    fn from(x: &GeneratorGoPackageOptionsYaml) -> generator_go::GeneratorGoPackageOptions {
-        generator_go::GeneratorGoPackageOptions {
+    fn from(x: &GeneratorGoPackageOptionsYaml) -> Self {
+        Self {
             identifier: x.identifier.to_owned(),
             uri: x.uri.to_owned(),
         }

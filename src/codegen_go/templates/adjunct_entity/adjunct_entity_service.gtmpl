@@ -1,7 +1,15 @@
 // {{.service_name}} provides a contract
-// for methods related to adjunct {{.type_name}}.
+// for methods related to entity {{.type_name}}.
 type {{.service_name}} interface {
-	{{.base.azlib_prefix}}AdjunctEntityService
+	// {{.base.azlib_prefix}}EntityService
 
-	//TODO: implement this.
+	{{.type_name}}InstanceService
+
+	{{- /* TODO: this interface should be dynamically filled by mixins */}}
+}
+
+// {{.service_name}}Client is the interface for
+// clients of {{.service_name}}.
+type {{.service_name}}Client interface {
+	{{.service_name}}
 }

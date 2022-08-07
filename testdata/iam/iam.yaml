@@ -1,5 +1,11 @@
 module: iam
 
+#NOTES:
+# -> For adjuncts, lifecycle is defined by cardinality and whether it could
+# be added or deleted.
+# -> Concept of extern., e.g., BlockchainAddress would be implemented externally
+# but we want to know its attributes to build, e.g., DB model.
+
 generator_options:
   - generator: "go"
     options:
@@ -67,7 +73,9 @@ symbols:
         # Declares the creation rules. This defines how and who can create
         # an instance.
         creation:
-          allow_cross_process_callers: false
+          authorization:
+            cross_process:
+              allow: always_disallow
           allow_cross_process_event_observers: false
         deletion:
           enabled: true
@@ -272,26 +280,30 @@ symbols:
             prefix: KAp0
       lifecycle:
         creation:
-          allow_cross_process_callers: true
+          authorization:
+            cross_process:
+              allow: on_condition
         deletion:
           enabled: true
       attributes:
         - name: DisplayName
           kind: string #TODO: define constraints
-          final: true
+          finality: on_creation
         - name: Secret
           kind: string #TODO: define constraints
-          final: false
+          finality: on_creation #TODO: actually could be one-to-many
         - name: PlatformType
           kind: string #TODO: enum
-          final: true
+          finality: on_creation
           documentation: only for user-agent types
         - name: RequiredScopes
           kind: list of string
-          final: false
+          finality: on_creation #TODO: dynamic
         - name: OAuth2RedirectURI
           kind: list of string
-          final: false
+          finality: on_creation #TODO: dynamic
+          name_options:
+            snake_case: oauth2_redirect_uri
       mixins:
         - kind: Ownership
           parameters:
@@ -344,13 +356,16 @@ symbols:
 
         lifecycle:
           creation:
-            allow_cross_process_callers: false
+            authorization:
+              cross_process:
+                allow: always_disallow
           deletion:
             enabled: true
 
         attributes:
           - name: Secret
             kind: ApplicationAccessKeySecret
+            finality: on_creation
             # TODO: describe: can it be changed? by who? other requirements?
 
   - identifier: Terminal
@@ -415,18 +430,35 @@ symbols:
                 name: RandomLocal
         lifecycle:
           creation:
-            allow_cross_process_callers: false
+            authorization:
+              cross_process:
+                allow: always_disallow
+            metadata:
+              - identifier: Origin.Address
+                store_enabled: true
+              - identifier: Origin.EnvironmentString
+                store_enabled: true
           deletion:
             enabled: true
         attributes:
-          # Here, we store data provided by context. These data become metadata.
-          - name: OriginEnvString
+          - name: Secret
+            kind: string
+            finality: set_once
+          - name: DisplayName
+            kind: string
             finality: on_creation
-            kind: '#infered'
-            value:
-              kind: ref
-              parameters:
-                source: $context.OriginEnvString
+          - name: AcceptLanguage
+            kind: string #TODO: list of string
+            finality: on_creation
+            source: $context.Origin.AcceptLanguage
+          # # Here, we store data provided by context. These data become metadata.
+          # - name: OriginEnvString
+          #   finality: on_creation
+          #   kind: '#infered'
+          #   value:
+          #     kind: ref
+          #     parameters:
+          #       source: $context.OriginEnvString
         #   - name:
         #     kind: copy
         #     source: $context.OriginAddress
@@ -439,24 +471,8 @@ symbols:
         #     # other methods of authentication.
         #     kind: "@TerminalRegistrationIdentifierVerification"
         #     final: true
-        #   - name: DisplayName
-        #     kind: string
-        #     final: true
-        #   - name: Secret
-        #     kind: string
-        #     finality: set-once
-        #     events:
-        #     final: true
-        #   - name: Verified
-        #     kind: bool with metadata
-        lifecycle:
-          creation:
-            allow_cross_process_callers: false
-            authorization:
-              - kind: intraprocess
-                allow: always
-          deletion:
-            enabled: true
+        #   - name: Verification
+        #     kind: vo
         service:
           # TODO: this is runtime/deployment configs. there should be 
           # various ways for defining configurations.
@@ -482,6 +498,7 @@ symbols:
       attributes:
         - name: Status
           kind: TerminalRegistrationIdentifierVerificationStatus
+          finality: set_once
 
   - identifier: Session
     documentation: |
@@ -533,10 +550,13 @@ symbols:
             Hello.
         lifecycle:
           creation:
-            allow_cross_process_callers: false
+            authorization:
+              cross_process:
+                allow: always_disallow
           deletion:
             enabled: true
           expiration:
+            enabled: true
             duration:
               overridable: true
               value:
@@ -607,21 +627,16 @@ symbols:
           #
           # If the value is true, we want to allow the creation to be initiated
           # directly by other applications.
-          allow_cross_process_callers: true
-          # A flag to determine if applications from other realms is allowed
-          # to make call to this method.
-          #
-          # An application from other realms is an application which received
-          # authorization to integrate with this realm. In contrast to
-          # own-realm applications.
-          allow_cross_realm_callers: false
           authorization:
-            - kind: Application
-              allow: on-condition
-              condition:
-                eq:
-                  a: $.id_num.UserAgent
-                  b: true
+            cross_process:
+              allow: on_condition
+          # authorization:
+          #   - kind: Application
+          #     allow: on-condition
+          #     condition:
+          #       eq:
+          #         a: $.id_num.UserAgent
+          #         b: true
           allowed_isolations:
             - all
           methods:
@@ -629,13 +644,20 @@ symbols:
               allow_cross_process_callers: true
               input_parameters:
                 Self.phone_number:
+          # A flag to determine if applications from other realms is allowed
+          # to make call to this method.
+          #
+          # An application from other realms is an application which received
+          # authorization to integrate with this realm. In contrast to
+          # own-realm applications.
+          allow_cross_realm_callers: false
       attributes:
         - name: PhoneNumber
           kind: telephony.PhoneNumber
-          final: true
+          finality: on_creation
         - name: VerificationCode
           kind: PhoneNumberVerificationCode
-          final: true
+          finality: on_creation
       service:
         # Instance methods
         methods:
@@ -715,3 +737,4 @@ symbols:
             data_type: string
             storage:
               persistency: none
+        holds_string_raw_input: true #TODO

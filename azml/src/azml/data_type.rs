@@ -15,12 +15,12 @@ impl std::str::FromStr for DataType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "int8" => Ok(DataType::Int8),
-            "int16" => Ok(DataType::Int16),
-            "int32" => Ok(DataType::Int32),
-            "int64" => Ok(DataType::Int64),
-            "string" => Ok(DataType::String),
-            "bytes" => Ok(DataType::Bytes),
+            "int8" => Ok(Self::Int8),
+            "int16" => Ok(Self::Int16),
+            "int32" => Ok(Self::Int32),
+            "int64" => Ok(Self::Int64),
+            "string" => Ok(Self::String),
+            "bytes" => Ok(Self::Bytes),
             _ => Err(format!("Unrecognized data type {}", s)),
         }
     }

@@ -32,7 +32,7 @@ impl convert::TryFrom<&MixinYaml> for mixin::Mixin {
         match x.kind.as_str() {
             "Deletion" => {
                 let params: Option<deletion_yaml::DeletionYaml> = yaml::from_value(x.parameters.clone())?;
-                Ok(mixin::Mixin {
+                Ok(Self {
                     definition: if let Some(p) = params {
                         Some(Box::new(deletion::Deletion::try_from(p)?))
                     } else {
@@ -42,7 +42,7 @@ impl convert::TryFrom<&MixinYaml> for mixin::Mixin {
             }
             "Ownership" => {
                 let params: Option<ownership_yaml::OwnershipYaml> = yaml::from_value(x.parameters.clone())?;
-                Ok(mixin::Mixin {
+                Ok(Self {
                     definition: if let Some(p) = params {
                         Some(Box::new(ownership::Ownership::try_from(p)?))
                     } else {
@@ -50,7 +50,7 @@ impl convert::TryFrom<&MixinYaml> for mixin::Mixin {
                     },
                 })
             }
-            _ => Ok(mixin::Mixin{definition: None})
+            _ => Ok(Self{definition: None})
             // _ => Err(yaml::Error::Msg(format!(
             //     r#"Unrecognized mixin `{}`"#,
             //     x.kind
@@ -76,7 +76,7 @@ where
     type Error = yaml::Error;
 
     fn try_from(x: MixinFieldYaml<T>) -> Result<Self, Self::Error> {
-        Ok(mixin::MixinField {
+        Ok(Self {
             overridable: x.overridable,
             value: x.value.try_into().unwrap(), // U::try_from(x.value)?,
         })

@@ -1,0 +1,34 @@
+package {{.pkg_name}}server
+
+import (
+	"crypto/rand"
+	"encoding/binary"
+
+	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
+	"github.com/jmoiron/sqlx"
+
+	"{{.pkg_path}}"
+)
+
+const (
+	{{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
+)
+
+// {{.service_name}}Serverbase is the server-side
+// base implementation of {{.service_name}}.
+type {{.service_name}}ServerBase struct {
+	db *sqlx.DB
+}
+
+const (
+	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
+	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
+	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
+	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
+	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
+	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
+
+	{{range .hosts -}}
+	{{unexported_field $.type_name}}DBCol{{.identifier_name}}ID = "{{adjunct_host_id_db_col_name .identifier_name}}"
+	{{- end}}
+)

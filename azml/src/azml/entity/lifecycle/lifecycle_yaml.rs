@@ -23,7 +23,7 @@ impl convert::TryFrom<&LifecycleYaml> for lifecycle::Lifecycle {
     type Error = yaml::Error;
 
     fn try_from(x: &LifecycleYaml) -> Result<Self, Self::Error> {
-        Ok(lifecycle::Lifecycle {
+        Ok(Self {
             creation: (&x.creation).try_into()?,
             deletion: (&x.deletion).try_into()?,
             expiration: (&x.expiration).try_into()?,

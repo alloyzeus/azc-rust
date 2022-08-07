@@ -15,8 +15,8 @@ impl Default for CardinalityConstraintYaml {
 }
 
 impl From<&CardinalityConstraintYaml> for cardinality::CardinalityConstraint {
-    fn from(x: &CardinalityConstraintYaml) -> cardinality::CardinalityConstraint {
-        cardinality::CardinalityConstraint {
+    fn from(x: &CardinalityConstraintYaml) -> Self {
+        Self {
             min: x.min,
             max: x.max,
         }
@@ -24,7 +24,7 @@ impl From<&CardinalityConstraintYaml> for cardinality::CardinalityConstraint {
 }
 
 impl From<CardinalityConstraintYaml> for cardinality::CardinalityConstraint {
-    fn from(x: CardinalityConstraintYaml) -> cardinality::CardinalityConstraint {
+    fn from(x: CardinalityConstraintYaml) -> Self {
         (&x).into()
     }
 }

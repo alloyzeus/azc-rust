@@ -227,12 +227,12 @@ func (srv *{{.service_name}}ServerBase) create{{.type_name}}InstanceInsecure(
 			pqErr.Code == "23505" &&
 			pqErr.Constraint == {{unexported_field .type_name}}DBTablePrimaryKeyName {
 			if attemptNum >= attemptNumMax {
-				return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), {{.base.azerrs_pkg}}.Wrap("insert max attempts", err)
+				return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), {{.base.azerrs_pkg}}.Op("insert max attempts").Wrap(err)
 			}
 			continue
 		}
 
-		return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), {{.base.azerrs_pkg}}.Wrap("insert", err)
+		return {{.pkg_name}}.{{.ref_key_type_name}}Zero(), {{.base.azerrs_pkg}}.Op("insert").Wrap(err)
 	}
 
 	//TODO: update caches, emit an event
@@ -274,7 +274,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		sqlString, _, _ := goqu.
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
-				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq({{unexported_field .ref_key_type_name}}ToDelete.UserIDNum().PrimitiveValue()),
+				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq({{unexported_field .ref_key_type_name}}ToDelete.IDNum().PrimitiveValue()),
 				goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
 			).
 			Update().
@@ -370,10 +370,12 @@ func (srv *{{.service_name}}ServerBase) initDataStoreInTx(dbTx *sqlx.Tx) error {
 }
 
 const (
+	// Creation metadata columns
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
 	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
 	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
 	{{- if .lifecycle.deletion.enabled}}
+	// Deletion metadata columns
 	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
 	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
 	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
@@ -381,6 +383,20 @@ const (
 	{{unexported_field .type_name}}DBColMDDeletionNotes      = "md_d_notes"
 	{{- end}}
 	{{- end}}
+	{{- if .lifecycle.expiration.enabled}}
+	// Expiration
+	{{unexported_field .type_name}}DBColExpiry = "expiry"
+	{{- end}}
+
+	{{- if .attributes}}
+
+	// Inline attributes
+	{{- range .attributes}}
+	{{unexported_field $.type_name}}DBCol{{.identifier}} = "{{.db_col_identifier}}"
+	{{- end}}
+	{{- end}}
+
+	// Identity
 	{{unexported_field .type_name}}DBColIDNum                  = "id_num"
 )
 
@@ -400,7 +416,7 @@ func Generate{{.id_num_type_name}}(
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {
-		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Wrap("random number source reading", err)
+		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Op("random number source reading").Wrap(err)
 	}
 
 	idUint := (embeddedFieldBits & {{.pkg_name}}.{{.id_num_type_name}}EmbeddedFieldsMask) |

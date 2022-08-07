@@ -1,6 +1,6 @@
 //
 
-use crate::azml::mixin;
+use crate::azml::{authorization, mixin};
 
 // Special mixin.
 //
@@ -9,7 +9,7 @@ use crate::azml::mixin;
 #[derive(Clone, Debug)]
 pub struct Creation {
     pub documentation: String,
-    pub allow_cross_process_callers: bool,
+    pub authorization: authorization::Authorization,
 }
 
 impl mixin::MixinDefinition for Creation {}

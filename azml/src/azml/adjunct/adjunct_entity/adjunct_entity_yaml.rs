@@ -38,7 +38,7 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
     type Error = yaml::Error;
 
     fn try_from(x: AdjunctEntityYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_entity::AdjunctEntity {
+        Ok(Self {
             id: x.id.try_into()?,
             ordering: x.ordering.try_into()?,
             implements: x
@@ -71,7 +71,7 @@ impl convert::TryFrom<&AdjunctEntityIdYaml> for adjunct_entity::AdjunctEntityId 
     type Error = yaml::Error;
 
     fn try_from(x: &AdjunctEntityIdYaml) -> Result<Self, Self::Error> {
-        Ok(adjunct_entity::AdjunctEntityId {
+        Ok(Self {
             num: (&x.num).try_into()?,
             ref_key: (&x.ref_key).try_into()?,
         })
@@ -105,7 +105,7 @@ impl convert::TryFrom<&AdjunctEntityIdNumYaml> for adjunct_entity::AdjunctEntity
                 "integer" => {
                     let def: AdjunctEntityIdNumIntegerYaml =
                         yaml::from_value(x.parameters.clone())?;
-                    Ok(adjunct_entity::AdjunctEntityIdNum {
+                    Ok(Self {
                         definition: Box::new(adjunct_entity::AdjunctEntityIdNumInteger::try_from(
                             def,
                         )?),

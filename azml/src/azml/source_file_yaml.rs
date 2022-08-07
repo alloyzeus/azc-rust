@@ -40,7 +40,7 @@ impl convert::TryFrom<SourceFileYaml> for source_file::SourceFile {
                 _ => (), //TODO: error
             }
         }
-        Ok(source_file::SourceFile {
+        Ok(Self {
             module: x.module,
             symbols: symbols,
             generator_options: options,

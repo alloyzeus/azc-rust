@@ -17,14 +17,14 @@ impl convert::TryFrom<ValueObjectYaml> for value_object::ValueObject {
         match x.kind.as_ref() {
             "struct" => {
                 let def: ValueObjectStructYaml = yaml::from_value(x.parameters)?;
-                Ok(value_object::ValueObject {
+                Ok(Self {
                     definition: Box::new(value_object::ValueObjectStruct::from(def.try_into()?)),
                 })
             }
             "alias" => {
                 let def: ValueObjectAliasYaml = yaml::from_value(x.parameters)?;
                 let dtype = def.data_type.parse::<data_type::DataType>()?;
-                Ok(value_object::ValueObject {
+                Ok(Self {
                     definition: Box::new(value_object::ValueObjectAlias { data_type: dtype }),
                 })
             }
@@ -45,7 +45,7 @@ impl convert::TryFrom<ValueObjectAliasYaml> for value_object::ValueObjectAlias {
 
     fn try_from(x: ValueObjectAliasYaml) -> Result<Self, Self::Error> {
         let dtype = x.data_type.parse::<data_type::DataType>()?;
-        Ok(value_object::ValueObjectAlias { data_type: dtype })
+        Ok(Self { data_type: dtype })
     }
 }
 
@@ -64,7 +64,7 @@ impl convert::TryFrom<ValueObjectStructYaml> for value_object::ValueObjectStruct
     type Error = yaml::Error;
 
     fn try_from(x: ValueObjectStructYaml) -> Result<Self, Self::Error> {
-        Ok(value_object::ValueObjectStruct {
+        Ok(Self {
             key: if let Some(k) = x.key {
                 Some(value_object::ValueObjectStructKey::try_from(k)?)
             } else {
@@ -88,7 +88,7 @@ impl convert::TryFrom<ValueObjectStructKeyYaml> for value_object::ValueObjectStr
     type Error = yaml::Error;
 
     fn try_from(x: ValueObjectStructKeyYaml) -> Result<Self, Self::Error> {
-        Ok(value_object::ValueObjectStructKey {
+        Ok(Self {
             fields: x.fields.clone(),
         })
     }
@@ -105,7 +105,7 @@ impl convert::TryFrom<ValueObjectStructFieldYaml> for value_object::ValueObjectS
     type Error = yaml::Error;
 
     fn try_from(x: ValueObjectStructFieldYaml) -> Result<Self, Self::Error> {
-        Ok(value_object::ValueObjectStructField {
+        Ok(Self {
             identifier: x.identifier,
             data_type: symbol::SymbolRef::from(x.data_type),
         })

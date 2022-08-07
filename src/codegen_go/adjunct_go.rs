@@ -57,6 +57,7 @@ impl GoCodeGenerator {
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
+        let pkg_name = module_name.to_lowercase();
         let type_name = sym.identifier.to_owned();
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
@@ -138,7 +139,7 @@ impl GoCodeGenerator {
 
             let tpl_ctx = AdjunctEntityContext {
                 base: self.render_base_context(),
-                pkg_name: module_name.to_lowercase(),
+                pkg_name: pkg_name.to_owned(),
                 pkg_path: self.package_identifier.to_owned(),
                 type_name: type_name.to_owned(),
                 type_name_snake: type_name.to_case(Case::Snake),
@@ -215,12 +216,18 @@ impl GoCodeGenerator {
             //     tpl_ctx
             // );
             // render_file_region!(out_file, "Events", "templates/adjunct_entity/adjunct_entity_event.gtmpl", tpl_ctx);
-            // render_file_region!(
-            //     out_file,
-            //     "Service",
-            //     "templates/adjunct_entity/adjunct_entity_service.gtmpl",
-            //     tpl_ctx
-            // );
+            render_file_region!(
+                out_file,
+                "Instance",
+                "templates/adjunct_entity/adjunct_entity_instance.gtmpl",
+                tpl_ctx
+            );
+            render_file_region!(
+                out_file,
+                "Service",
+                "templates/adjunct_entity/adjunct_entity_service.gtmpl",
+                tpl_ctx
+            );
 
             // ServiceServerBase
             render_file!(
@@ -246,6 +253,7 @@ impl GoCodeGenerator {
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
+        let pkg_name = module_name.to_lowercase();
         let type_name = sym.identifier.to_owned();
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
@@ -254,7 +262,14 @@ impl GoCodeGenerator {
             .collect::<Vec<String>>();
         let hosts_ctx = (&adj.hosts)
             .iter()
-            .map(|x| AdjunctHostContext::from(x))
+            .map(|x| {
+                if x.kind.package_identifier.is_empty() {
+                    let mut y = x.to_owned();
+                    y.kind.package_identifier = pkg_name.to_owned();
+                    return AdjunctHostContext::from(&y);
+                }
+                AdjunctHostContext::from(x)
+            })
             .collect::<Vec<AdjunctHostContext>>();
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()
@@ -309,9 +324,11 @@ impl GoCodeGenerator {
 
         let tpl_ctx = AdjunctPrimeContext {
             base: self.render_base_context(),
-            pkg_name: module_name.to_lowercase(),
+            pkg_name: pkg_name.to_owned(),
+            pkg_path: self.package_identifier.to_owned(),
             imports: imports,
             type_name: type_name.to_owned(),
+            type_name_snake: type_name.to_case(Case::Snake),
             kind: adj_prime.kind.to_owned(),
             ref_key_enabled: adj_prime.identity.enabled,
             ref_key_type_name: ref_key_type_name.to_owned(),
@@ -325,7 +342,7 @@ impl GoCodeGenerator {
                 },
             },
             implements: abstracts,
-            service_name: service_name,
+            service_name: service_name.to_owned(),
             hosts: hosts_ctx,
         };
 
@@ -378,6 +395,15 @@ impl GoCodeGenerator {
             tpl_ctx
         );
 
+        // ServiceServerBase
+        render_file!(
+            format!("{}server", self.package_dir_base_name),
+            format!("{}ServerBase", service_name),
+            "templates/adjunct_prime/adjunct_prime_service_server_base.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
         Ok(())
     }
 
@@ -388,6 +414,7 @@ impl GoCodeGenerator {
         adj: &adjunct::Adjunct,
         sym: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
+        let pkg_name = module_name.to_lowercase();
         let type_name = sym.identifier.to_owned();
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
@@ -396,7 +423,14 @@ impl GoCodeGenerator {
             .collect::<Vec<String>>();
         let hosts_ctx = (&adj.hosts)
             .iter()
-            .map(|x| AdjunctHostContext::from(x))
+            .map(|x| {
+                if x.kind.package_identifier.is_empty() {
+                    let mut y = x.to_owned();
+                    y.kind.package_identifier = pkg_name.to_owned();
+                    return AdjunctHostContext::from(&y);
+                }
+                AdjunctHostContext::from(x)
+            })
             .collect::<Vec<AdjunctHostContext>>();
         let base_type_name = if adj.name_is_prepared {
             "".to_owned()
@@ -451,9 +485,11 @@ impl GoCodeGenerator {
 
         let tpl_ctx = AdjunctPrimeContext {
             base: self.render_base_context(),
-            pkg_name: module_name.to_lowercase(),
+            pkg_name: pkg_name.to_owned(),
+            pkg_path: self.package_identifier.to_owned(),
             imports: imports,
             type_name: type_name.to_owned(),
+            type_name_snake: type_name.to_case(Case::Snake),
             kind: adj_value.kind.to_owned(),
             ref_key_enabled: false,
             ref_key_type_name: ref_key_type_name.to_owned(),
@@ -463,7 +499,7 @@ impl GoCodeGenerator {
                 },
             },
             implements: abstracts,
-            service_name: service_name,
+            service_name: service_name.to_owned(),
             hosts: hosts_ctx,
         };
 
@@ -507,6 +543,15 @@ impl GoCodeGenerator {
             tpl_ctx
         );
 
+        // ServiceServerBase
+        render_file!(
+            format!("{}server", self.package_dir_base_name),
+            format!("{}ServerBase", service_name),
+            "templates/adjunct_value/adjunct_value_service_server_base.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
         Ok(())
     }
 }
@@ -546,8 +591,10 @@ struct AdjunctValueObjectContext {
 struct AdjunctPrimeContext {
     base: BaseContext,
     pkg_name: String,
+    pkg_path: String,
     imports: Vec<ImportContext>,
     type_name: String,
+    type_name_snake: String,
     kind: String,
     ref_key_enabled: bool,
     ref_key_type_name: String,
@@ -559,7 +606,7 @@ struct AdjunctPrimeContext {
 
 #[derive(Clone, Gtmpl)]
 struct AdjunctHostContext {
-    full_type_name: String,
+    type_name_with_pkg: String,
     bare_type_name: String,
     identifier_name: String,
 }
@@ -567,7 +614,7 @@ struct AdjunctHostContext {
 impl From<&adjunct::AdjunctHost> for AdjunctHostContext {
     fn from(x: &adjunct::AdjunctHost) -> Self {
         Self {
-            full_type_name: if x.kind.package_identifier.is_empty() {
+            type_name_with_pkg: if x.kind.package_identifier.is_empty() {
                 x.kind.symbol_name.to_owned()
             } else {
                 format!("{}.{}", x.kind.package_identifier, x.kind.symbol_name)

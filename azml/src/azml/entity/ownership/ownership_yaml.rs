@@ -20,7 +20,7 @@ impl convert::TryFrom<OwnershipYaml> for ownership::Ownership {
             overridable: x.owner_cardinality.overridable,
             value: x.owner_cardinality.value.try_into()?,
         };
-        Ok(ownership::Ownership {
+        Ok(Self {
             owner_cardinality: owner_cardinality,
         })
     }

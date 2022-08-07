@@ -16,8 +16,8 @@ pub struct IntegerIdNumContext {
 }
 
 impl From<&id_num::IntegerIdNum> for IntegerIdNumContext {
-    fn from(x: &id_num::IntegerIdNum) -> IntegerIdNumContext {
-        IntegerIdNumContext {
+    fn from(x: &id_num::IntegerIdNum) -> Self {
+        Self {
             primitive_size: x.primitive_size(),
             primitive_size_bytes: x.primitive_size() / 8,
             type_name: format!("int{}", x.primitive_size()),

@@ -60,6 +60,29 @@ impl symbol::SymbolDefinition for AdjunctEntity {
 
 //endregion
 
+#[derive(Clone, Debug)]
+pub enum AdjunctEntityIdentity {
+    // Adjunct entity is using ref-key as its identity, i.e., it requires
+    // complete hosts' identifiers to uniquely identify an instance.
+    RefKey,
+    // Adjunct entity  is using id-num as its identity, i.e., id-num is
+    // unique across instances. An instance could be identified with only
+    // an id-num.
+    //
+    // An example of adjuncts with id-num identity are shop items
+    // in a marketplace. Some marketplace systems provide URLs which refer
+    // to the items directly without giving any information about the store
+    // these items belong to. It shows, e.g., https://example.com/items/12345678
+    // instead of https://example.com/stores/345/items/12345678
+    IDNum,
+}
+
+impl Default for AdjunctEntityIdentity {
+    fn default() -> Self {
+        Self::RefKey
+    }
+}
+
 //region AdjunctEntiyScope
 
 // This is used to determine whether an instance can be addressed directly
@@ -106,8 +129,8 @@ impl convert::TryFrom<&str> for AdjunctEntityScope {
 
     fn try_from(s: &str) -> result::Result<Self, Self::Error> {
         match s {
-            "local" | "" => Ok(AdjunctEntityScope::Local),
-            "global" => Ok(AdjunctEntityScope::Global),
+            "local" | "" => Ok(Self::Local),
+            "global" => Ok(Self::Global),
             _ => Err(format!("Unrecognized AdjunctEntityScope value {}", s).to_owned()),
         }
     }
@@ -190,8 +213,8 @@ impl convert::TryFrom<String> for AdjunctEntityOrdering {
 
     fn try_from(s: String) -> result::Result<Self, Self::Error> {
         match s.as_ref() {
-            "unordered" | "" => Ok(AdjunctEntityOrdering::Unordered),
-            "ordered" => Ok(AdjunctEntityOrdering::Ordered),
+            "unordered" | "" => Ok(Self::Unordered),
+            "ordered" => Ok(Self::Ordered),
             _ => Err(format!("Unrecognized AdjunctEntityOrdering value {}", s).to_owned()),
         }
     }

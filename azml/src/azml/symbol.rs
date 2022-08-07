@@ -80,13 +80,13 @@ pub struct SymbolRef {
 }
 
 impl From<String> for SymbolRef {
-    fn from(s: String) -> SymbolRef {
+    fn from(s: String) -> Self {
         (&s).into()
     }
 }
 
 impl From<&String> for SymbolRef {
-    fn from(s: &String) -> SymbolRef {
+    fn from(s: &String) -> Self {
         // might not need to explicitly declare the reference.
         let is_reference: bool = s.starts_with("@");
         let s = if let Some(x) = s.strip_prefix("@") {
@@ -96,13 +96,13 @@ impl From<&String> for SymbolRef {
         };
         let parts: Vec<&str> = s.rsplitn(2, ".").collect();
         if parts.len() == 2 {
-            SymbolRef {
+            Self {
                 package_identifier: parts[1].to_owned(),
                 symbol_name: parts[0].to_owned(),
                 is_reference: is_reference,
             }
         } else {
-            SymbolRef {
+            Self {
                 package_identifier: "".to_owned(),
                 symbol_name: s.to_owned(),
                 is_reference: is_reference,
@@ -112,13 +112,13 @@ impl From<&String> for SymbolRef {
 }
 
 impl From<SymbolRef> for String {
-    fn from(s: SymbolRef) -> String {
+    fn from(s: SymbolRef) -> Self {
         (&s).into()
     }
 }
 
 impl From<&SymbolRef> for String {
-    fn from(s: &SymbolRef) -> String {
+    fn from(s: &SymbolRef) -> Self {
         if s.package_identifier.is_empty() {
             s.symbol_name.to_owned()
         } else {

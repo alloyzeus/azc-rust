@@ -29,7 +29,7 @@ impl convert::TryFrom<&DeletionYaml> for deletion::Deletion {
     type Error = yaml::Error;
 
     fn try_from(x: &DeletionYaml) -> Result<Self, Self::Error> {
-        Ok(deletion::Deletion {
+        Ok(Self {
             enabled: x.enabled,
             notes: (&x.notes).try_into()?,
         })
@@ -67,7 +67,7 @@ impl convert::TryFrom<&DeletionNotesYaml> for deletion::DeletionNotes {
     type Error = yaml::Error;
 
     fn try_from(x: &DeletionNotesYaml) -> Result<Self, Self::Error> {
-        Ok(deletion::DeletionNotes {
+        Ok(Self {
             enabled: x.enabled,
             required: x.required,
         })

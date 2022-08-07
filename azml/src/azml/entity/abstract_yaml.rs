@@ -30,7 +30,7 @@ impl convert::TryFrom<&AbstractYaml> for abstract_::Abstract {
     type Error = yaml::Error;
 
     fn try_from(x: &AbstractYaml) -> Result<Self, Self::Error> {
-        Ok(abstract_::Abstract {
+        Ok(Self {
             documentation: x.documentation.to_owned(),
             singular: x.singular,
             attributes: (&x.attributes)
@@ -60,7 +60,7 @@ impl convert::TryFrom<&AbstractAttributeYaml> for abstract_::AbstractAttribute {
     type Error = yaml::Error;
 
     fn try_from(x: &AbstractAttributeYaml) -> Result<Self, Self::Error> {
-        Ok(abstract_::AbstractAttribute {
+        Ok(Self {
             name: x.name.to_owned(),
         })
     }
@@ -97,7 +97,7 @@ impl convert::TryFrom<&AbstractImplementationYaml> for abstract_::AbstractImplem
     type Error = yaml::Error;
 
     fn try_from(x: &AbstractImplementationYaml) -> Result<Self, Self::Error> {
-        Ok(abstract_::AbstractImplementation {
+        Ok(Self {
             kind: (&x.kind).into(),
             attributes: x
                 .attributes
@@ -133,7 +133,7 @@ impl convert::TryFrom<&AbstractImplementationAttributeYaml>
     type Error = yaml::Error;
 
     fn try_from(x: &AbstractImplementationAttributeYaml) -> Result<Self, Self::Error> {
-        Ok(abstract_::AbstractImplementationAttribute {
+        Ok(Self {
             identifier: x.identifier.to_owned(),
             kind: (&x.kind).into(),
         })

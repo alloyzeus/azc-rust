@@ -17,7 +17,7 @@ pub struct RefKeyYaml {
 impl convert::TryFrom<&RefKeyYaml> for ref_key::RefKey {
     type Error = yaml::Error;
     fn try_from(x: &RefKeyYaml) -> Result<Self, Self::Error> {
-        Ok(ref_key::RefKey {
+        Ok(Self {
             azid_text: (&x.azid_text).try_into()?,
         })
     }
@@ -43,7 +43,7 @@ pub struct RefKeyAzidTextYaml {
 impl convert::TryFrom<&RefKeyAzidTextYaml> for ref_key::RefKeyAzidText {
     type Error = yaml::Error;
     fn try_from(x: &RefKeyAzidTextYaml) -> Result<Self, Self::Error> {
-        Ok(ref_key::RefKeyAzidText {
+        Ok(Self {
             prefix: x.prefix.to_owned(),
         })
     }

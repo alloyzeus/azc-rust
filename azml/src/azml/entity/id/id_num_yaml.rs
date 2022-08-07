@@ -24,7 +24,7 @@ impl convert::TryFrom<&IdNumYaml> for id_num::IdNum {
             match x.kind.as_str() {
                 "integer" => {
                     let def: IntegerIdNumYaml = yaml::from_value(x.parameters.clone())?;
-                    Ok(id_num::IdNum {
+                    Ok(Self {
                         definition: Box::new(id_num::IntegerIdNum::try_from(def)?),
                     })
                 }
@@ -64,7 +64,7 @@ impl convert::TryFrom<IntegerIdNumYaml> for id_num::IntegerIdNum {
     type Error = yaml::Error;
 
     fn try_from(x: IntegerIdNumYaml) -> Result<Self, Self::Error> {
-        Ok(id_num::IntegerIdNum {
+        Ok(Self {
             total_bits: x.total_bits,
             identifier_bits: x.identifier_bits,
             bitfield: if let Some(y) = x.bitfield {
@@ -96,7 +96,7 @@ impl convert::TryFrom<&IntegerIdNumBitfieldYaml> for id_num::IntegerIdNumBitfiel
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdNumBitfieldYaml) -> Result<Self, Self::Error> {
-        Ok(id_num::IntegerIdNumBitfield {
+        Ok(Self {
             size: x.size,
             sub_fields: x
                 .sub_fields
@@ -138,7 +138,7 @@ impl convert::TryFrom<&IntegerIdNumBitfieldSubFieldYaml> for id_num::IntegerIdNu
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdNumBitfieldSubFieldYaml) -> Result<Self, Self::Error> {
-        Ok(id_num::IntegerIdNumBitfieldSubField {
+        Ok(Self {
             identifier: x.identifier.to_owned(),
             documentation: x.documentation.to_owned(),
             size: x.size,
@@ -180,7 +180,7 @@ impl convert::TryFrom<&IntegerIdNumBitfieldSubFieldValueYaml>
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdNumBitfieldSubFieldValueYaml) -> Result<Self, Self::Error> {
-        Ok(id_num::IntegerIdNumBitfieldSubFieldValue {
+        Ok(Self {
             identifier: x.identifier.to_owned(),
             documentation: x.documentation.to_owned(),
             sub_fields: x
@@ -218,7 +218,7 @@ impl convert::TryFrom<&IntegerIdNumBitfieldSubFieldBitYaml>
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdNumBitfieldSubFieldBitYaml) -> Result<Self, Self::Error> {
-        Ok(id_num::IntegerIdNumBitfieldSubFieldBit {
+        Ok(Self {
             index: x.index,
             set: x.set,
         })
@@ -249,7 +249,7 @@ impl convert::TryFrom<&IntegerIdNumBitfieldInheritYaml> for id_num::IntegerIdNum
     type Error = yaml::Error;
 
     fn try_from(x: &IntegerIdNumBitfieldInheritYaml) -> Result<Self, Self::Error> {
-        Ok(id_num::IntegerIdNumBitfieldInherit {
+        Ok(Self {
             host: x.host,
             size: x.size,
         })

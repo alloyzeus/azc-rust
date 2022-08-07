@@ -11,8 +11,8 @@ pub struct SymbolRefContext {
 }
 
 impl From<&symbol::SymbolRef> for SymbolRefContext {
-    fn from(r: &symbol::SymbolRef) -> SymbolRefContext {
-        SymbolRefContext {
+    fn from(r: &symbol::SymbolRef) -> Self {
+        Self {
             package_identifier: r.package_identifier.to_owned(),
             //TODO: should be RefObject instead of RefKey.
             symbol_name: if r.is_reference {
@@ -25,13 +25,13 @@ impl From<&symbol::SymbolRef> for SymbolRefContext {
 }
 
 impl From<SymbolRefContext> for String {
-    fn from(s: SymbolRefContext) -> String {
+    fn from(s: SymbolRefContext) -> Self {
         (&s).into()
     }
 }
 
 impl From<&SymbolRefContext> for String {
-    fn from(s: &SymbolRefContext) -> String {
+    fn from(s: &SymbolRefContext) -> Self {
         if s.package_identifier.is_empty() {
             s.symbol_name.to_owned()
         } else {
@@ -41,14 +41,14 @@ impl From<&SymbolRefContext> for String {
 }
 
 impl From<SymbolRefContext> for gtmpl_value::Value {
-    fn from(s: SymbolRefContext) -> gtmpl_value::Value {
+    fn from(s: SymbolRefContext) -> Self {
         (&s).into()
     }
 }
 
 impl From<&SymbolRefContext> for gtmpl_value::Value {
-    fn from(s: &SymbolRefContext) -> gtmpl_value::Value {
-        gtmpl_value::Value::String(s.into())
+    fn from(s: &SymbolRefContext) -> Self {
+        Self::String(s.into())
     }
 }
 
