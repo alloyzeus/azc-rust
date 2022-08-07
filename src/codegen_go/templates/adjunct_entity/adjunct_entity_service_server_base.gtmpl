@@ -21,11 +21,11 @@ const (
 type {{.service_name}}ServerBase struct {
 	db *sqlx.DB
 
-	deletionTxHook func(inputCtx {{.pkg_name}}.CallInputContext, deletionTx *sqlx.Tx, {{unexported_field .ref_key_type_name}}BeingDeleted {{.pkg_name}}.{{.ref_key_type_name}}) error
-	deletionHook func(inputCtx {{.pkg_name}}.CallInputContext, {{unexported_field .ref_key_type_name}}Deleted {{.pkg_name}}.{{.ref_key_type_name}}) error
+	deletionTxHook func(inputCtx {{.pkg_name}}.CallInputContext, deletionTx *sqlx.Tx, instanceIDBeingDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
+	deletionHook func(inputCtx {{.pkg_name}}.CallInputContext, instanceIDDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
 
-	registered{{.id_num_type_name}}Cache *lru.ARCCache
-	deleted{{.id_num_type_name}}Cache    *lru.ARCCache
+	registered{{.ref_key_type_name}}Cache *lru.ARCCache
+	deleted{{.ref_key_type_name}}Cache    *lru.ARCCache
 }
 
 // Interface conformance assertions.
@@ -37,21 +37,21 @@ var (
 func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) bool {
-	idNum := id.IDNum()
+	idStr := id.AZIDText()
 
 	// Look up for the ID num in the cache.
-	if _, idRegistered := srv.registered{{.id_num_type_name}}Cache.Get(idNum); idRegistered {
+	if _, idRegistered := srv.registered{{.ref_key_type_name}}Cache.Get(idStr); idRegistered {
 		return true
 	}
 
 	idRegistered, _, err := srv.
-		get{{.type_name}}InstanceStateByIDNum(idNum)
+		get{{.type_name}}InstanceStateByID(id)
 	if err != nil {
 		panic(err)
 	}
 
 	if idRegistered {
-		srv.registered{{.id_num_type_name}}Cache.Add(idNum, nil)
+		srv.registered{{.ref_key_type_name}}Cache.Add(idStr, nil)
 	}
 
 	return idRegistered
@@ -79,15 +79,16 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 	idRegisteredCacheHit := false
 	instDeleted := false
 	instDeletionCacheHit := false
+	idStr := id.AZIDText()
 
 	// Look up for the ID num in the cache.
-	if _, idRegistered = srv.registered{{.id_num_type_name}}Cache.Get(id); idRegistered {
+	if _, idRegistered = srv.registered{{.ref_key_type_name}}Cache.Get(idStr); idRegistered {
 		// ID num is positively registered.
 		idRegisteredCacheHit = true
 	}
 
 	// Look up in the deletion cache
-	if _, instDeleted = srv.deleted{{.id_num_type_name}}Cache.Get(id); instDeleted {
+	if _, instDeleted = srv.deleted{{.ref_key_type_name}}Cache.Get(idStr); instDeleted {
 		// Instance is positively deleted
 		instDeletionCacheHit = true
 	}
@@ -109,16 +110,16 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 
 	var err error
 	idRegistered, instDeleted, err = srv.
-		get{{.type_name}}InstanceStateByIDNum(id.IDNum())
+		get{{.type_name}}InstanceStateByID(id)
 	if err != nil {
 		return nil, err
 	}
 
 	if !idRegisteredCacheHit && idRegistered {
-		srv.registered{{.id_num_type_name}}Cache.Add(id, nil)
+		srv.registered{{.ref_key_type_name}}Cache.Add(idStr, nil)
 	}
 	if !instDeletionCacheHit && instDeleted {
-		srv.deleted{{.id_num_type_name}}Cache.Add(id, nil)
+		srv.deleted{{.ref_key_type_name}}Cache.Add(idStr, nil)
 	}
 
 	if !idRegistered {
@@ -139,8 +140,8 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 	}, nil
 }
 
-func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
-	idNum {{.pkg_name}}.{{.id_num_type_name}},
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByID(
+	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (idRegistered, instanceDeleted bool, err error) {
 	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
 		Select(
@@ -150,7 +151,10 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 				As("deleted"),
 		).
 		Where(
-			goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(idNum.PrimitiveValue()),
+			{{if not .id_is_id_num -}}{{range .hosts -}}
+			goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq(id.{{.identifier_name}}().IDNum().PrimitiveValue()),
+			{{end}}{{- end -}}
+			goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(id.IDNum().PrimitiveValue()),
 		).
 		ToSQL()
 
@@ -169,7 +173,7 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByIDNum(
 
 func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 	inputCtx {{.pkg_name}}.CallInputContext,
-	{{unexported_field .ref_key_type_name}}ToDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	if inputCtx == nil {
@@ -179,19 +183,19 @@ func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
 {{- /*TODO: only if it's trully implement User */}}
 {{- if eq .type_name "User"}}
 	ctxAuth := inputCtx.Authorization()
-	if !ctxAuth.IsUser({{unexported_field .ref_key_type_name}}ToDelete) {
+	if !ctxAuth.IsUser(instanceIDToDelete) {
 		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil //TODO: should be an error
 	}
 {{- end}}
 
 	//TODO: access control
 
-	return srv.delete{{.type_name}}InstanceInsecure(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete, input)
+	return srv.delete{{.type_name}}InstanceInsecure(inputCtx, instanceIDToDelete, input)
 }
 
 func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 	inputCtx {{.pkg_name}}.CallInputContext,
-	{{unexported_field .ref_key_type_name}}ToDelete {{.pkg_name}}.{{.ref_key_type_name}},
+	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
 ) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
 	ctxAuth := inputCtx.Authorization()
@@ -202,9 +206,9 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
 				{{if not .id_is_id_num -}}{{range .hosts -}}
-				goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq({{unexported_field $.ref_key_type_name}}ToDelete.{{.identifier_name}}().IDNum().PrimitiveValue()),
+				goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq(instanceIDToDelete.{{.identifier_name}}().IDNum().PrimitiveValue()),
 				{{end}}{{- end -}}
-				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq({{unexported_field .ref_key_type_name}}ToDelete.IDNum().PrimitiveValue()),
+				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(instanceIDToDelete.IDNum().PrimitiveValue()),
 				goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
 			).
 			Update().
@@ -232,7 +236,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		justDeleted = n == 1
 
 		if cb := srv.deletionTxHook; cb != nil {
-			return cb(inputCtx, dbTx, {{unexported_field .ref_key_type_name}}ToDelete)
+			return cb(inputCtx, dbTx, instanceIDToDelete)
 		}
 
 		return nil
@@ -250,10 +254,10 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 			{{- end -}}
 		}
 		if cb := srv.deletionHook; cb != nil {
-			cb(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete)
+			cb(inputCtx, instanceIDToDelete)
 		}
 	} else {
-		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, {{unexported_field .ref_key_type_name}}ToDelete)
+		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, instanceIDToDelete)
 		if err != nil {
 			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
 		}
