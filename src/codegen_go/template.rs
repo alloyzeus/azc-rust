@@ -17,17 +17,22 @@ pub fn render_template<T: Into<gtmpl_value::Value>>(
     tmpl.render(&gtmpl::Context::from(context)?)
 }
 
+pub fn go_unexport(o: &String) -> String {
+    let s = o.split(".").last();
+    let mut r = if let Some(c) = s {
+        c.to_owned()
+    } else {
+        o.to_owned()
+    };
+    if let Some(r) = r.get_mut(0..1) {
+        r.make_ascii_lowercase();
+    }
+    r
+}
+
 fn unexported_field(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
-        let s = o.split(".").last();
-        let mut r = if let Some(c) = s {
-            c.to_owned()
-        } else {
-            o.to_owned()
-        };
-        if let Some(r) = r.get_mut(0..1) {
-            r.make_ascii_lowercase();
-        }
+        let r = go_unexport(o);
         Ok(gtmpl_value::Value::String(r))
     } else {
         Err(format!("String required, got: {:?}", args))

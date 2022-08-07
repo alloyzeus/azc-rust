@@ -2,7 +2,7 @@
 // an instance of adjunct entity {{.type_name}}.
 type {{.ref_key_type_name}} struct {
 	{{- range .hosts}}
-	{{unexported_field .identifier_name}} {{.type_name_with_pkg}}ID
+	{{.name_unexported}} {{.id_name}}
 	{{- end}}
 }
 
@@ -13,12 +13,12 @@ const {{unexported_global .ref_key_type_name}}FieldCount = {{len .hosts}}
 // of {{.ref_key_type_name}} with the provided attribute values.
 func New{{.ref_key_type_name}}(
 	{{- range .hosts}}
-	{{arg_name .identifier_name}} {{.type_name_with_pkg}}ID,
+	{{arg_name .identifier_name}} {{.id_name}},
 	{{- end}}
 ) {{.ref_key_type_name}} {
 	return {{.ref_key_type_name}}{
 		{{- range .hosts}}
-		{{unexported_field .identifier_name}}: {{arg_name .identifier_name}},
+		{{.name_unexported}}: {{arg_name .identifier_name}},
 		{{- end}}
 	}
 }
@@ -35,7 +35,7 @@ var _ {{$.base.azcore_pkg}}.{{.type_name}}ID = {{unexported_global $.ref_key_typ
 
 var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
 	{{- range .hosts}}
-	{{unexported_field .identifier_name}}: {{.type_name_with_pkg}}IDZero(),
+	{{.name_unexported}}: {{.id_name}}Zero(),
 	{{- end}}
 }
 
@@ -58,7 +58,7 @@ func ({{.ref_key_type_name}}) AZAdjunctEntityID() {}
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (id {{.ref_key_type_name}}) IsZero() bool {
-	return {{range .hosts -}}id.{{unexported_field .identifier_name}}.IsZero() &&
+	return {{range .hosts -}}id.{{.name_unexported}}.IsZero() &&
 		{{end -}} true
 }
 
@@ -66,7 +66,7 @@ func (id {{.ref_key_type_name}}) IsZero() bool {
 // of {{.ref_key_type_name}}.
 // It doesn't tell whether it refers to a valid instance of {{.type_name}}.
 func (id {{.ref_key_type_name}}) IsStaticallyValid() bool {
-	return {{range .hosts -}}id.{{unexported_field .identifier_name}}.IsStaticallyValid() &&
+	return {{range .hosts -}}id.{{.name_unexported}}.IsStaticallyValid() &&
 		{{end -}} true
 }
 
@@ -78,11 +78,11 @@ func (id {{.ref_key_type_name}}) IsNotStaticallyValid() bool {
 // Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityID.
 func (id {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
-		return {{range .hosts -}}id.{{unexported_field .identifier_name}}.Equals{{.bare_type_name}}ID(x.{{unexported_field .identifier_name}}) &&
+		return {{range .hosts -}}id.{{.name_unexported}}.Equals{{.bare_type_name}}ID(x.{{.name_unexported}}) &&
 			{{end -}} true
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
-		return {{range .hosts -}}id.{{unexported_field .identifier_name}}.Equals{{.bare_type_name}}ID(x.{{unexported_field .identifier_name}}) &&
+		return {{range .hosts -}}id.{{.name_unexported}}.Equals{{.bare_type_name}}ID(x.{{.name_unexported}}) &&
 			{{end -}} true
 	}
 	return false
@@ -98,7 +98,7 @@ func (id {{.ref_key_type_name}}) Equal(other interface{}) bool {
 func (id {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {
-	return {{range .hosts -}}id.{{unexported_field .identifier_name}}.Equals{{.bare_type_name}}ID(other.{{unexported_field .identifier_name}}) &&
+	return {{range .hosts -}}id.{{.name_unexported}}.Equals{{.bare_type_name}}ID(other.{{.name_unexported}}) &&
 		{{end -}} true
 }
 
@@ -113,19 +113,21 @@ func (id {{.ref_key_type_name}}) AZIDBin() []byte {
 // {{.ref_key_type_name}}FromAZIDBin creates a new instance of
 // {{.ref_key_type_name}} from its azid-bin form.
 func {{.ref_key_type_name}}FromAZIDBin(
-	b []byte,
+	binBytes []byte,
 ) (id {{.ref_key_type_name}}, readLen int, err error) {
-	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(b[0])
+	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(binBytes[0])
 	if err != nil {
-		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.ArgWrap("", "type parsing", err)
+		return {{unexported_global .ref_key_type_name}}Zero, 0,
+			{{.base.azerrs_pkg}}.Arg("binBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
+				Fieldset({{.base.azerrs_pkg}}.N("type").Wrap(err))
 	}
 	if typ != {{.base.azid_pkg}}.BinDataTypeArray {
-		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("type", "unsupported"))
+		return {{unexported_global .ref_key_type_name}}Zero, 0,
+			{{.base.azerrs_pkg}}.Arg("binBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
+				Fieldset({{.base.azerrs_pkg}}.N("type").Desc({{.base.azerrs_pkg}}.ErrValueUnsupported))
 	}
 
-	id, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(b[1:], typ)
+	id, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(binBytes[1:], typ)
 	return id, readLen + 1, err
 }
 
@@ -140,7 +142,7 @@ func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinD
 
 	{{- range $i, $h := .hosts}}
 
-	fieldBytes, fieldType = id.{{unexported_field $h.identifier_name}}.AZIDBinField()
+	fieldBytes, fieldType = id.{{$h.name_unexported}}.AZIDBinField()
 	typesBytes = append(typesBytes, fieldType.Byte())
 	dataBytes = append(dataBytes, fieldBytes...)
 
@@ -156,14 +158,14 @@ func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinD
 // {{.ref_key_type_name}}FromAZIDBinField creates {{.ref_key_type_name}} from
 // its azid-bin field form.
 func {{.ref_key_type_name}}FromAZIDBinField(
-	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+	binFieldBytes []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (id {{.ref_key_type_name}}, readLen int, err error) {
 	if typeHint != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
 			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("type", "unsupported"))
 	}
 
-	arrayLen := int(b[0])
+	arrayLen := int(binFieldBytes[0])
 	if arrayLen != {{unexported_global .ref_key_type_name}}FieldCount {
 		return {{.ref_key_type_name}}Zero(), 0,
 			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("field count", "mismatch"))
@@ -176,17 +178,19 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 
 	{{- range .hosts}}
 
-	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(b[typeCursor])
+	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(binFieldBytes[typeCursor])
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			{{$.base.azerrs_pkg}}.ArgWrap("", "{{unexported_field .identifier_name}} ref-key type parsing", err)
+			{{$.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).
+				Fieldset({{$.base.azerrs_pkg}}.N("{{.name_unexported}} ref-key type").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
 	}
 	typeCursor++
-	{{unexported_field .identifier_name}}ID, readLen, err := {{.type_name_with_pkg}}IDFromAZIDBinField(
-		b[dataCursor:], fieldType)
+	{{unexported_field .id_name}}, readLen, err := {{.id_name}}FromAZIDBinField(
+		binFieldBytes[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			{{$.base.azerrs_pkg}}.ArgWrap("", "{{unexported_field .identifier_name}} ref-key data parsing", err)
+			{{$.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).
+				Fieldset({{$.base.azerrs_pkg}}.N("{{.name_unexported}} ref-key data").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
 	}
 	dataCursor += readLen
 
@@ -194,7 +198,7 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 
 	return {{.ref_key_type_name}}{
 		{{- range .hosts}}
-		{{unexported_field .identifier_name}}: {{arg_name .identifier_name}}ID,
+		{{.name_unexported}}: {{arg_name .id_name}},
 		{{- end}}
 	}, dataCursor, nil
 }
@@ -202,9 +206,9 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 // UnmarshalAZIDBinField is required for conformance
 // with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
 func (id *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
-	b []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+	binFieldBytes []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (readLen int, err error) {
-	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(b, typeHint)
+	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(binFieldBytes, typeHint)
 	if err == nil {
 		*id = i
 	}
@@ -226,24 +230,27 @@ func (id {{.ref_key_type_name}}) AZIDText() string {
 
 // {{.ref_key_type_name}}FromAZIDText creates a new instance of
 // {{.ref_key_type_name}} from its azid-text form.
-func {{.ref_key_type_name}}FromAZIDText(s string) ({{.ref_key_type_name}}, error) {
-	if s == "" {
+func {{.ref_key_type_name}}FromAZIDText(idText string) ({{.ref_key_type_name}}, error) {
+	if idText == "" {
 		return {{.ref_key_type_name}}Zero(), nil
 	}
-	if !strings.HasPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
+	if !strings.HasPrefix(idText, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("prefix", "mismatch"))
+			{{.base.azerrs_pkg}}.Arg("idText").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
+				Fieldset({{.base.azerrs_pkg}}.N("prefix").Desc({{.base.azerrs_pkg}}.ErrValueMismatch))
 	}
-	s = strings.TrimPrefix(s, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
-	b, err := {{.base.azid_pkg}}.TextDecode(s)
+	idText = strings.TrimPrefix(idText, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
+	b, err := {{.base.azid_pkg}}.TextDecode(idText)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.ArgWrap("", "data parsing", err)
+			{{.base.azerrs_pkg}}.Arg("idText").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
+				Fieldset({{.base.azerrs_pkg}}.N("data").Wrap(err))
 	}
 	id, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.ArgWrap("", "data decoding", err)
+			{{.base.azerrs_pkg}}.Arg("idText").Desc({{.base.azerrs_pkg}}.ErrValueMalformed). 
+				Fieldset({{.base.azerrs_pkg}}.N("data").Wrap(err))
 	}
 	return id, nil
 }
@@ -295,15 +302,15 @@ func (id *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 {{- range .hosts}}
 
 // {{.identifier_name}} returns instance's {{.identifier_name}} value.
-func (id {{$.ref_key_type_name}}) {{.identifier_name}}() {{.type_name_with_pkg}}ID {
-	return id.{{unexported_field .identifier_name}}
+func (id {{$.ref_key_type_name}}) {{.identifier_name}}() {{.id_name}} {
+	return id.{{.name_unexported}}
 }
 
 // {{.identifier_name}}Ptr returns a pointer to a copy of
-// {{.identifier_name}}ID if it's considered valid.
-func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.type_name_with_pkg}}ID {
-	if id.{{unexported_field .identifier_name}}.IsStaticallyValid() {
-		rk := id.{{unexported_field .identifier_name}}
+// {{.id_name}} if it's considered valid.
+func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.id_name}} {
+	if id.{{.name_unexported}}.IsStaticallyValid() {
+		rk := id.{{.name_unexported}}
 		return &rk
 	}
 	return nil
@@ -311,15 +318,15 @@ func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.type_name_with_p
 
 // With{{.identifier_name}} returns a copy
 // of {{$.ref_key_type_name}}
-// with its {{unexported_field .identifier_name}} attribute set to the provided value.
+// with its {{.name_unexported}} attribute set to the provided value.
 func (id {{$.ref_key_type_name}}) With{{.identifier_name}}(
-	{{arg_name .identifier_name}} {{.type_name_with_pkg}}ID,
+	{{arg_name .identifier_name}} {{.id_name}},
 ) {{$.ref_key_type_name}} {
 	{{- $p := .identifier_name}}
 	return {{$.ref_key_type_name}}{
 		{{- range $.hosts}}{{if eq .identifier_name $p}}
-		{{unexported_field .identifier_name}}: {{arg_name .identifier_name}},{{else}}
-		{{unexported_field .identifier_name}}: id.{{unexported_field .identifier_name}},{{end}}{{- end}}
+		{{.name_unexported}}: {{arg_name .identifier_name}},{{else}}
+		{{.name_unexported}}: id.{{.name_unexported}},{{end}}{{- end}}
 	}
 }
 

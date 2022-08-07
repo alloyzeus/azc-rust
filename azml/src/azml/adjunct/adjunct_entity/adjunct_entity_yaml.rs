@@ -20,15 +20,15 @@ pub struct AdjunctEntityYaml {
     id: AdjunctEntityIdYaml,
 
     #[serde(default)]
+    identity: String,
+
+    #[serde(default)]
     ordering: String,
 
     #[serde(default)]
     implements: Vec<abstract_yaml::AbstractImplementationYaml>,
 
     lifecycle: lifecycle_yaml::LifecycleYaml,
-
-    #[serde(default)]
-    scope: String,
 
     #[serde(default)]
     attributes: Vec<attribute_yaml::AttributeYaml>,
@@ -40,6 +40,7 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
     fn try_from(x: AdjunctEntityYaml) -> Result<Self, Self::Error> {
         Ok(Self {
             id: x.id.try_into()?,
+            identity: (&x.identity).try_into()?,
             ordering: x.ordering.try_into()?,
             implements: x
                 .implements
@@ -47,7 +48,6 @@ impl convert::TryFrom<AdjunctEntityYaml> for adjunct_entity::AdjunctEntity {
                 .map(|x| abstract_::AbstractImplementation::try_from(x))
                 .collect::<Result<Vec<abstract_::AbstractImplementation>, _>>()?,
             lifecycle: x.lifecycle.try_into()?,
-            scope: x.scope.try_into()?,
             attributes: x
                 .attributes
                 .iter()

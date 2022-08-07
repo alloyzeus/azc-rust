@@ -28,7 +28,7 @@ type {{.service_name}}ServerBase struct {
 func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
 	inputCtx {{.pkg_name}}.CallInputContext,
 	{{- range .hosts}}
-	{{arg_name .identifier_name}}ID {{.type_name_with_pkg}}ID,
+	{{arg_name .id_name}} {{.type_name_with_pkg}}ID,
 	{{- end}}
 ) (justDeleted bool, err error) {
 	ctxAuth := inputCtx.Authorization()
@@ -36,7 +36,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
 		Update({{unexported_field .type_name}}DBTableName).
 		Where(
 	        {{- range .hosts}}
-			goqu.C({{unexported_field $.type_name}}DBCol{{.identifier_name}}ID).Eq({{arg_name .identifier_name}}ID.IDNum().PrimitiveValue()),
+			goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq({{arg_name .id_name}}.IDNum().PrimitiveValue()),
             {{- end}}
 			goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
 		).
@@ -71,6 +71,6 @@ const (
 	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
 
 	{{range .hosts -}}
-	{{unexported_field $.type_name}}DBCol{{.identifier_name}}ID = "{{adjunct_host_id_db_col_name .identifier_name}}"
+	{{unexported_field $.type_name}}DBCol{{.id_name}} = "{{.db_col_name}}"
 	{{- end}}
 )

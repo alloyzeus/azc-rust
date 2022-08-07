@@ -392,12 +392,12 @@ const (
 
 	// Inline attributes
 	{{- range .attributes}}
-	{{unexported_field $.type_name}}DBCol{{.identifier}} = "{{.db_col_identifier}}"
+	{{unexported_field $.type_name}}DBCol{{.identifier}} = "{{.db_col_name}}"
 	{{- end}}
 	{{- end}}
 
 	// Identity
-	{{unexported_field .type_name}}DBColIDNum                  = "id_num"
+	{{unexported_field .type_name}}DBColIDNum = "id_num"
 )
 
 // Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.

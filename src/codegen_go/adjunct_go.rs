@@ -19,7 +19,7 @@ use azml::azml::{
     symbol,
 };
 
-use crate::codegen_go::template::render_template;
+use crate::codegen_go::template::{go_unexport, render_template};
 
 //TODO:
 // - if there are more than one hosts with the same type ensure that
@@ -64,6 +64,17 @@ impl GoCodeGenerator {
             .iter()
             .map(|x| String::from(&x.kind))
             .collect::<Vec<String>>();
+        let hosts_ctx = (&adj.hosts)
+            .iter()
+            .map(|x| {
+                if x.kind.package_identifier.is_empty() {
+                    let mut y = x.to_owned();
+                    y.kind.package_identifier = pkg_name.to_owned();
+                    return AdjunctHostContext::from(&y);
+                }
+                AdjunctHostContext::from(x)
+            })
+            .collect::<Vec<AdjunctHostContext>>();
         //TODO: generate code for each abstract host implementation
         let hosts = (&adj.hosts)
             .iter()
@@ -100,11 +111,22 @@ impl GoCodeGenerator {
         // id-num is unique system-wide, it must not derive its hosts' name
         // by default.
         // And also, the RefKey is just a typedef of id-num.
-        let global_scope = adjunct_entity::AdjunctEntityScope::Global == adj_ent.scope;
-        let base_type_name = if adj.name_is_prepared || global_scope {
+        let id_is_id_num = adjunct_entity::AdjunctEntityIdentity::IdNum == adj_ent.identity;
+        let base_type_name = if adj.name_is_prepared || id_is_id_num {
             "".to_owned()
         } else {
-            hosts_names.join("")
+            (&hosts_names)
+                .iter()
+                .map(|x| {
+                    let v = x.split(".").last();
+                    if let Some(i) = v {
+                        i.to_owned()
+                    } else {
+                        x.to_owned()
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("")
         };
 
         let type_name = format!("{}{}", base_type_name, type_name);
@@ -161,8 +183,8 @@ impl GoCodeGenerator {
                 attributes: attributes,
                 service_name: service_name.to_owned(),
                 lifecycle: (&adj_ent.lifecycle).into(),
-                hosts: hosts_names.clone(),
-                global_scope: global_scope,
+                hosts: hosts_ctx,
+                id_is_id_num: id_is_id_num,
             };
 
             let header_tpl_bytes =
@@ -344,6 +366,7 @@ impl GoCodeGenerator {
             implements: abstracts,
             service_name: service_name.to_owned(),
             hosts: hosts_ctx,
+            one_to_one: adj.cardinality.at_max_one(),
         };
 
         let header_tpl_bytes =
@@ -501,6 +524,7 @@ impl GoCodeGenerator {
             implements: abstracts,
             service_name: service_name.to_owned(),
             hosts: hosts_ctx,
+            one_to_one: adj.cardinality.at_max_one(),
         };
 
         let header_tpl_bytes =
@@ -573,8 +597,8 @@ struct AdjunctEntityContext {
     attributes: Vec<AttributeContext>,
     service_name: String,
     lifecycle: EntityLifecycleContext,
-    hosts: Vec<String>,
-    global_scope: bool,
+    hosts: Vec<AdjunctHostContext>,
+    id_is_id_num: bool,
 }
 
 #[derive(Clone, Gtmpl)]
@@ -602,6 +626,7 @@ struct AdjunctPrimeContext {
     implements: Vec<AbstractContext>,
     service_name: String,
     hosts: Vec<AdjunctHostContext>,
+    one_to_one: bool,
 }
 
 #[derive(Clone, Gtmpl)]
@@ -609,10 +634,18 @@ struct AdjunctHostContext {
     type_name_with_pkg: String,
     bare_type_name: String,
     identifier_name: String,
+    name_unexported: String,
+    id_name: String,
+    db_col_name: String,
 }
 
 impl From<&adjunct::AdjunctHost> for AdjunctHostContext {
     fn from(x: &adjunct::AdjunctHost) -> Self {
+        let identifier_name = if x.name.is_empty() {
+            x.kind.symbol_name.to_owned()
+        } else {
+            x.name.to_owned()
+        };
         Self {
             type_name_with_pkg: if x.kind.package_identifier.is_empty() {
                 x.kind.symbol_name.to_owned()
@@ -620,11 +653,10 @@ impl From<&adjunct::AdjunctHost> for AdjunctHostContext {
                 format!("{}.{}", x.kind.package_identifier, x.kind.symbol_name)
             },
             bare_type_name: x.kind.symbol_name.to_owned(),
-            identifier_name: if x.name.is_empty() {
-                x.kind.symbol_name.to_owned()
-            } else {
-                x.name.to_owned()
-            },
+            identifier_name: identifier_name.to_owned(),
+            name_unexported: go_unexport(&identifier_name),
+            id_name: format!("{}ID", identifier_name),
+            db_col_name: format!("{}_id", identifier_name.to_case(Case::Snake)),
         }
     }
 }

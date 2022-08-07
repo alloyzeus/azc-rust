@@ -1,10 +1,10 @@
 // {{.ref_key_type_name}} is used to identify
 // an instance of adjunct entity {{.type_name}} system-wide.
 type {{.ref_key_type_name}} struct {
-	{{if not .global_scope -}}{{range .hosts -}}
-	{{unexported_field .}} {{.}}ID
-	{{end}}{{- end -}}
-	idNum {{.id_num_type_name}}
+	{{- range .hosts}}
+	{{.name_unexported}} {{.id_name}}
+	{{- end}}
+	idNum {{.id_num_type_name}} {{if .id_is_id_num}}// Key{{end}}
 }
 
 // The total number of fields in the struct.
@@ -13,15 +13,15 @@ const {{unexported_global .ref_key_type_name}}FieldCount = {{len .hosts}} + 1
 // New{{.ref_key_type_name}} returns a new instance
 // of {{.ref_key_type_name}} with the provided attribute values.
 func New{{.ref_key_type_name}}(
-	{{if not .global_scope -}}{{range .hosts -}}
-	{{arg_name .}} {{.}}ID,
-	{{end}}{{- end -}}
-	idNum {{.id_num_type_name}},
+	{{- range .hosts}}
+	{{arg_name .identifier_name}} {{.id_name}},
+	{{- end}}
+	idNum {{.id_num_type_name}}, {{if .id_is_id_num}}// Key{{end}}
 ) {{.ref_key_type_name}} {
 	return {{.ref_key_type_name}}{
-		{{if not .global_scope -}}{{- range .hosts -}}
-		{{unexported_field .}}: {{arg_name .}},
-		{{end}}{{end -}}
+		{{- range .hosts}}
+		{{.name_unexported}}: {{arg_name .identifier_name}},
+		{{- end}}
 		idNum: idNum,
 	}
 }
@@ -38,9 +38,9 @@ var _ {{$.base.azcore_pkg}}.{{.type_name}}ID[{{.type_name}}IDNum] = {{unexported
 {{- end}}{{- end}}
 
 var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
-	{{if not .global_scope -}}{{range .hosts -}}
-	{{unexported_field .}}: {{.}}IDZero(),
-	{{end}}{{- end -}}
+	{{- range .hosts}}
+	{{.name_unexported}}: {{.id_name}}Zero(),
+	{{- end}}
 	idNum: {{.id_num_type_name}}Zero,
 }
 
@@ -98,16 +98,16 @@ func (id {{$.ref_key_type_name}}) {{.type_name}}IDNum() {{$.id_num_type_name}} {
 
 // IsZero is required as {{.ref_key_type_name}} is a value-object.
 func (id {{.ref_key_type_name}}) IsZero() bool {
-	return {{if not .global_scope -}}{{range .hosts}}id.{{unexported_field .}}.IsZero() &&
-		{{end}}{{- end -}} id.idNum == {{.id_num_type_name}}Zero
+	return {{if not .id_is_id_num -}}{{range .hosts -}}id.{{.name_unexported}}.IsZero() &&
+		{{end -}}{{- end -}} id.idNum == {{.id_num_type_name}}Zero
 }
 
 // IsStaticallyValid returns true if this instance is valid as an isolated value
 // of {{.ref_key_type_name}}.
 // It doesn't tell whether it refers to a valid instance of {{.type_name}}.
 func (id {{.ref_key_type_name}}) IsStaticallyValid() bool {
-	return {{if not .global_scope -}}{{range .hosts}}id.{{unexported_field .}}.IsStaticallyValid() &&
-		{{end}}{{- end -}} id.idNum.IsStaticallyValid()
+	return {{if not .id_is_id_num -}}{{range .hosts -}}id.{{.name_unexported}}.IsStaticallyValid() &&
+		{{end -}}{{- end -}} id.idNum.IsStaticallyValid()
 }
 
 // IsNotStaticallyValid returns the negation of value returned by IsStaticallyValid.
@@ -118,12 +118,12 @@ func (id {{.ref_key_type_name}}) IsNotStaticallyValid() bool {
 // Equals is required for conformance with {{.base.azcore_pkg}}.AdjunctEntityID.
 func (id {{.ref_key_type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.ref_key_type_name}}); ok {
-		return {{if not .global_scope -}}{{range .hosts}}id.{{unexported_field .}}.Equals{{.}}ID(x.{{unexported_field .}}) &&
-			{{end}}{{- end -}} id.idNum == x.idNum
+		return {{range .hosts -}}id.{{.name_unexported}}.Equals{{.bare_type_name}}ID(x.{{.name_unexported}}) &&
+			{{end -}} id.idNum == x.idNum
 	}
 	if x, _ := other.(*{{.ref_key_type_name}}); x != nil {
-		return {{if not .global_scope -}}{{range .hosts}}id.{{unexported_field .}}.Equals{{.}}ID(x.{{unexported_field .}}) &&
-			{{end}}{{- end -}} id.idNum == x.idNum
+		return {{range .hosts -}}id.{{.name_unexported}}.Equals{{.bare_type_name}}ID(x.{{.name_unexported}}) &&
+			{{end -}} id.idNum == x.idNum
 	}
 	return false
 }
@@ -138,8 +138,8 @@ func (id {{.ref_key_type_name}}) Equal(other interface{}) bool {
 func (id {{.ref_key_type_name}}) Equals{{.ref_key_type_name}}(
 	other {{.ref_key_type_name}},
 ) bool {
-	return {{if not .global_scope -}}{{range .hosts}}id.{{unexported_field .}}.Equals{{.}}ID(other.{{unexported_field .}}) &&
-		{{end}}{{- end -}} id.idNum == other.idNum
+	return {{range .hosts -}}id.{{.name_unexported}}.Equals{{.bare_type_name}}ID(other.{{.name_unexported}}) &&
+		{{end -}} id.idNum == other.idNum
 }
 
 // AZIDBin is required for conformance
@@ -174,7 +174,7 @@ func {{.ref_key_type_name}}FromAZIDBin(
 // AZIDBinField is required for conformance
 // with {{.base.azid_pkg}}.ID.
 func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinDataType) {
-	{{if not .global_scope -}}{{if .hosts -}}
+	{{if .hosts -}}
 	var typesBytes []byte
 	var dataBytes []byte
 	var fieldBytes []byte
@@ -182,7 +182,7 @@ func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinD
 
 	{{- range $i, $h := .hosts}}
 
-	fieldBytes, fieldType = id.{{unexported_field $h}}.AZIDBinField()
+	fieldBytes, fieldType = id.{{$h.name_unexported}}.AZIDBinField()
 	typesBytes = append(typesBytes, fieldType.Byte())
 	dataBytes = append(dataBytes, fieldBytes...)
 
@@ -196,8 +196,6 @@ func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinD
 	out = append(out, typesBytes...)
 	out = append(out, dataBytes...)
 	return out, {{.base.azid_pkg}}.BinDataTypeArray
-	{{- end}}{{- else -}}
-	return id.idNum.AZIDBinField()
 	{{- end}}
 }
 
@@ -224,25 +222,25 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 
 	var fieldType {{.base.azid_pkg}}.BinDataType
 
-	{{- if not .global_scope}}{{- range .hosts}}
+	{{- range .hosts}}
 
 	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(binFieldBytes[typeCursor])
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
 			{{$.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{$.base.azerrs_pkg}}.N("{{unexported_field .}} ref-key type").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
+				Fieldset({{$.base.azerrs_pkg}}.N("{{.name_unexported}} ref-key type").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
 	}
 	typeCursor++
-	{{unexported_field .}}ID, readLen, err := {{.}}IDFromAZIDBinField(
+	{{unexported_field .id_name}}, readLen, err := {{.id_name}}FromAZIDBinField(
 		binFieldBytes[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
 			{{$.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{$.base.azerrs_pkg}}.N("{{unexported_field .}} ref-key data").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
+				Fieldset({{$.base.azerrs_pkg}}.N("{{.name_unexported}} ref-key data").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
 	}
 	dataCursor += readLen
 
-	{{- end}}{{- end}}
+	{{- end}}
 
 	fieldType, err = {{.base.azid_pkg}}.BinDataTypeFromByte(binFieldBytes[typeCursor])
 	if err != nil {
@@ -261,9 +259,9 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 	dataCursor += readLen
 
 	return {{.ref_key_type_name}}{
-		{{if not .global_scope -}}{{- range .hosts -}}
-		{{unexported_field .}}: {{arg_name .}}ID,
-		{{end}}{{end -}}
+		{{range .hosts -}}
+		{{.name_unexported}}: {{arg_name .id_name}},
+		{{end -}}
 		idNum: idNum,
 	}, dataCursor, nil
 }
@@ -364,39 +362,39 @@ func (id *{{.ref_key_type_name}}) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-{{- if not .global_scope}}{{range .hosts}}
+{{- range .hosts}}
 
-// {{.}} returns instance's {{.}} value.
-func (id {{$.ref_key_type_name}}) {{.}}() {{.}}ID {
-	return id.{{unexported_field .}}
+// {{.identifier_name}} returns instance's {{.identifier_name}} value.
+func (id {{$.ref_key_type_name}}) {{.identifier_name}}() {{.id_name}} {
+	return id.{{.name_unexported}}
 }
 
-// {{.}}Ptr returns a pointer to a copy of
-// {{.}}ID if it's considered valid.
-func (id {{$.ref_key_type_name}}) {{.}}Ptr() *{{.}}ID {
-	if id.{{unexported_field .}}.IsStaticallyValid() {
-		rk := id.{{unexported_field .}}
+// {{.identifier_name}}Ptr returns a pointer to a copy of
+// {{.id_name}} if it's considered valid.
+func (id {{$.ref_key_type_name}}) {{.identifier_name}}Ptr() *{{.id_name}} {
+	if id.{{.name_unexported}}.IsStaticallyValid() {
+		rk := id.{{.name_unexported}}
 		return &rk
 	}
 	return nil
 }
 
-// With{{.}} returns a copy
+// With{{.identifier_name}} returns a copy
 // of {{$.ref_key_type_name}}
-// with its {{unexported_field .}} attribute set to the provided value.
-func (id {{$.ref_key_type_name}}) With{{.}}(
-	{{arg_name .}} {{.}}ID,
+// with its {{.name_unexported}} attribute set to the provided value.
+func (id {{$.ref_key_type_name}}) With{{.identifier_name}}(
+	{{arg_name .identifier_name}} {{.id_name}},
 ) {{$.ref_key_type_name}} {
-	{{- $p := .}}
+	{{- $p := .identifier_name}}
 	return {{$.ref_key_type_name}}{
-		{{- range $.hosts}}{{if eq . $p}}
-		{{unexported_field .}}: {{arg_name .}},{{else}}
-		{{unexported_field .}}: id.{{unexported_field .}},{{end}}{{- end}}
+		{{- range $.hosts}}{{if eq .identifier_name $p}}
+		{{.name_unexported}}: {{arg_name .identifier_name}},{{else}}
+		{{.name_unexported}}: id.{{.name_unexported}},{{end}}{{- end}}
 		idNum: id.idNum,
 	}
 }
 
-{{- end}}{{end}}
+{{- end}}
 
 // {{.ref_key_type_name}}Error defines an interface for all
 // {{.ref_key_type_name}}-related errors.

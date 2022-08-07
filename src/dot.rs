@@ -14,6 +14,10 @@ pub fn write_dot(
     module_def: &module::ModuleDefinition,
 ) -> Result<(), error::Error> {
     w.write(format!("digraph {} {{\n", module_name).as_bytes())?;
+    w.write("  graph [fontname=\"sans-serif\"]\n".as_bytes())?;
+    w.write("  node [fontname=\"sans-serif\"]\n".as_bytes())?;
+    w.write("  edge [fontname=\"sans-serif\"]\n".as_bytes())?;
+    w.write("\n".as_bytes())?;
     for symbol in &module_def.symbols {
         let params = &symbol.definition;
         if let Some(ent) = params.downcast_ref::<root_entity::RootEntity>() {
@@ -65,7 +69,7 @@ impl DotNode for adjunct::Adjunct {
         {
             w.write(
                 format!(
-                    "  {} [shape=ellipse style=filled color=lightskyblue1]\n",
+                    "  {} [shape=rect style=filled color=lightskyblue1]\n",
                     identifier
                 )
                 .as_bytes(),
@@ -73,7 +77,7 @@ impl DotNode for adjunct::Adjunct {
         } else {
             w.write(
                 format!(
-                    "  {} [shape=ellipse style=filled color=darkolivegreen1]\n",
+                    "  {} [shape=ellipse style=filled color=darkolivegreen2]\n",
                     identifier
                 )
                 .as_bytes(),
@@ -86,17 +90,23 @@ impl DotNode for adjunct::Adjunct {
         w: &mut impl io::Write,
         identifier: String,
     ) -> Result<(), io::Error> {
+        let sfx = if self.cardinality.at_max_one() {
+            "[arrowhead=none]".to_owned()
+        } else {
+            "[dir=both arrowtail=crow arrowhead=none]".to_owned()
+        };
         for ent in &self.hosts {
             let kind_str = String::from(&ent.kind);
             w.write(
                 format!(
-                    "  {} -> {}\n",
+                    "  {} -> {} {}\n",
                     identifier,
                     if kind_str.contains(".") {
                         format!("\"{}\"", kind_str)
                     } else {
                         kind_str.to_owned()
-                    }
+                    },
+                    sfx,
                 )
                 .as_bytes(),
             )?;
@@ -113,7 +123,7 @@ impl DotNode for root_entity::RootEntity {
     ) -> Result<(), io::Error> {
         w.write(
             format!(
-                "  {} [shape=rect color=lightskyblue1 style=filled]\n",
+                "  {} [shape=rect color=royalblue3 fontcolor=white style=filled]\n",
                 identifier
             )
             .as_bytes(),

@@ -24,14 +24,11 @@ use super::super::adjunct;
 #[derive(Clone, Debug)]
 pub struct AdjunctEntity {
     pub id: AdjunctEntityId,
+    pub identity: AdjunctEntityIdentity,
     //TODO: put into AdjunctEntityId?
     pub ordering: AdjunctEntityOrdering,
     pub implements: Vec<abstract_::AbstractImplementation>,
     pub lifecycle: lifecycle::Lifecycle,
-    // This affects RefKey structure.
-    //NOTE: don't use this for now as we've lost our reason to use this
-    // attribute. We'll implement the 'identity' attribute instead.
-    pub scope: AdjunctEntityScope,
     pub attributes: Vec<attribute::Attribute>,
 }
 
@@ -60,7 +57,7 @@ impl symbol::SymbolDefinition for AdjunctEntity {
 
 //endregion
 
-#[derive(Clone, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum AdjunctEntityIdentity {
     // Adjunct entity is using ref-key as its identity, i.e., it requires
     // complete hosts' identifiers to uniquely identify an instance.
@@ -74,7 +71,7 @@ pub enum AdjunctEntityIdentity {
     // to the items directly without giving any information about the store
     // these items belong to. It shows, e.g., https://example.com/items/12345678
     // instead of https://example.com/stores/345/items/12345678
-    IDNum,
+    IdNum,
 }
 
 impl Default for AdjunctEntityIdentity {
@@ -83,39 +80,7 @@ impl Default for AdjunctEntityIdentity {
     }
 }
 
-//region AdjunctEntiyScope
-
-// This is used to determine whether an instance can be addressed directly
-// or that it requires going through its hosts.
-//
-// Some example of adjuncts with global scope are shop items
-// in a marketplace. Some marketplace systems provide URLs which refer
-// to the items directly without giving information which store these
-// items belong to. It shows, e.g., https://example.com/items/12345678
-// instead of https://example.com/stores/345/items/12345678
-//
-// The Global scope requires the ordering to be Unordered.
-//
-//TODO: find a better terms as what we have here now will create confusions for federated system.
-#[derive(Clone, PartialEq, Debug)]
-pub enum AdjunctEntityScope {
-    Local,
-
-    // An adjunct entity with global scope will make it more similar to
-    // Entity. It's still an adjunct of other entity but an instance
-    // is directly addressable instead of through its entities.
-    // A global adjunct entity can only have unordered ordering. Its
-    // instances' IDs are random and globally unique.
-    Global,
-}
-
-impl Default for AdjunctEntityScope {
-    fn default() -> Self {
-        Self::Local
-    }
-}
-
-impl convert::TryFrom<String> for AdjunctEntityScope {
+impl convert::TryFrom<String> for AdjunctEntityIdentity {
     type Error = String;
 
     fn try_from(s: String) -> result::Result<Self, Self::Error> {
@@ -124,19 +89,26 @@ impl convert::TryFrom<String> for AdjunctEntityScope {
     }
 }
 
-impl convert::TryFrom<&str> for AdjunctEntityScope {
+impl convert::TryFrom<&String> for AdjunctEntityIdentity {
+    type Error = String;
+
+    fn try_from(s: &String) -> result::Result<Self, Self::Error> {
+        let sr: &str = s.as_ref();
+        sr.try_into()
+    }
+}
+
+impl convert::TryFrom<&str> for AdjunctEntityIdentity {
     type Error = String;
 
     fn try_from(s: &str) -> result::Result<Self, Self::Error> {
         match s {
-            "local" | "" => Ok(Self::Local),
-            "global" => Ok(Self::Global),
-            _ => Err(format!("Unrecognized AdjunctEntityScope value {}", s).to_owned()),
+            "" | "ref_key" => Ok(Self::RefKey),
+            "id_num" => Ok(Self::IdNum),
+            _ => Err(format!("Unrecognized AdjunctEntityIdentity value {}", s).to_owned()),
         }
     }
 }
-
-//endregion
 
 #[derive(Clone, Debug)]
 pub struct AdjunctEntityId {

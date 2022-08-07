@@ -11,12 +11,12 @@ pub struct AttributeContext {
     pub identifier: String,
     pub kind: symbol_go::SymbolRefContext,
     pub finality: String,
-    pub db_col_identifier: String,
+    pub db_col_name: String,
 }
 
 impl From<&attribute::Attribute> for AttributeContext {
     fn from(x: &attribute::Attribute) -> Self {
-        let db_col_identifier = if let true = x.name_options.snake_case.is_empty() {
+        let db_col_name = if x.name_options.snake_case.is_empty() {
             x.name.to_case(Case::Snake)
         } else {
             x.name_options.snake_case.to_owned()
@@ -25,7 +25,7 @@ impl From<&attribute::Attribute> for AttributeContext {
             identifier: x.name.to_owned(),
             kind: (&x.kind).into(),
             finality: (&x.finality).into(),
-            db_col_identifier: db_col_identifier,
+            db_col_name: db_col_name,
         }
     }
 }

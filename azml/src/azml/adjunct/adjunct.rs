@@ -4,6 +4,9 @@ use crate::azml::{cardinality, symbol};
 
 // Adjunct can only be hosted by one or more entity-ish objects.
 // Adjunct is different from ownership.
+//
+// Depending on the number of the hosts, the concept of adjunct is analogous
+// to weak entity and associative entity in ERD.
 
 //region Adjunct
 
@@ -72,7 +75,7 @@ pub struct AdjunctHost {
     // The identifier to use. If empty, the compiler
     // will derive from kind field.
     pub name: String,
-    //TODO: kind, cardinality, uniqueness
+    //TODO: uniqueness, cardinality (?)
 }
 
 //endregion

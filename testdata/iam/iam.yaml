@@ -1,4 +1,4 @@
-module: iam
+module: iwm
 
 #NOTES:
 # -> For adjuncts, lifecycle is defined by cardinality and whether it could
@@ -9,7 +9,7 @@ module: iam
 generator_options:
   - generator: "go"
     options:
-      package_identifier: "github.com/kadisoka/kadisoka-framework/pkg/iam"
+      package_identifier: "github.com/kadisoka/kadisoka-framework/pkg/iwm"
       package_opts:
         - identifier: telephony
           uri: "github.com/kadisoka/kadisoka-framework/volib/pkg/telephony"
@@ -102,9 +102,12 @@ symbols:
       for logging in by the specified user.
     kind: adjunct
     parameters:
-      kind: prime
+      kind: value
       hosts:
         - kind: User
+      cardinality:
+        min: 0
+        max: 1
       parameters:
         kind: telephony.PhoneNumber
         unique: true
@@ -116,9 +119,12 @@ symbols:
       for logging in by the specified user.
     kind: adjunct
     parameters:
-      kind: prime
+      kind: value
       hosts:
         - kind: User
+      cardinality:
+        min: 0
+        max: 1
       parameters:
         kind: email.Address
         unique: true
@@ -398,17 +404,17 @@ symbols:
         - kind: User
           #TODO: express this: requirement is based on the application's agency type
           required: false
-      # Options are 'id_num' and 'ref_key'. If it's set to 'id_num',
-      # an id_num could be used to uniquely identify an instance. If it's
-      # set to 'ref_key', which is the default, it requires hosts' ref-keys
-      # (composite) to uniquely identify an instance.
-      #
-      # Note that this does not affect how the ref-keys of the instances are
-      # constructed.
-      identity: id_num
       parameters:
         implements:
           - kind: "_azsys.Terminal"
+        # Options are 'id_num' and 'ref_key'. If it's set to 'id_num',
+        # an id_num could be used to uniquely identify an instance. If it's
+        # set to 'ref_key', which is the default, it requires hosts' ref-keys
+        # (composite) to uniquely identify an instance.
+        #
+        # Note that this does not affect how the ref-keys of the instances are
+        # constructed.
+        identity: id_num
         id:
           #TODO: rules for ref-key validity.
           # if the application has the type of user-agent, the user field
@@ -518,7 +524,7 @@ symbols:
       kind: entity
       hosts:
         - kind: Terminal
-          # only one instance of Session for a Terminal active at a time
+      # only one instance of Session for a Terminal active at a time
       cardinality:
         min: 0
         max: 1

@@ -5,6 +5,8 @@ type {{.service_name}} interface {
 
 	Get{{.type_name}}(
 		inputCtx CallInputContext,
-		userID UserID,
+		{{- range .hosts}}
+		{{arg_name .id_name}} {{.id_name}},
+		{{- end}}
 	) (*{{.kind}}, error)
 }
