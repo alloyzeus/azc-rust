@@ -32,6 +32,10 @@ fn main() {
                 "telephony".to_owned(),
                 "github.com/alloyzeus/go-modules/telephony".to_owned(),
             );
+            package_urls.insert(
+                "ethereum".to_owned(),
+                "github.com/alloyzeus/go-modules/ethereum".to_owned(),
+            );
 
             let module_identifier = "".to_owned();
 

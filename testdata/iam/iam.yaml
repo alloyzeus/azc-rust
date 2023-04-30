@@ -81,7 +81,7 @@ symbols:
             grpc:
               enabled: true
 
-  - identifier: KeyPhoneNumber
+  - identifier: LoginPhoneNumber
     kind: adjunct
     parameters:
       kind: value
@@ -579,7 +579,7 @@ symbols:
             process: |
               self.confirm_verification(code):{
                 error(err) -> return err
-                ok(phone_number) -> KeyPhoneNumber.service.get_user_or_create(phone_number):{
+                ok(phone_number) -> LoginPhoneNumber.service.get_user_or_create(phone_number):{
                   error(err) -> return err
                   ok(uid) -> Terminal.create(self.application, uid):{
                     error(err) -> return err
@@ -607,3 +607,14 @@ symbols:
       kind: alias
       parameters:
         data_type: int16
+
+  - identifier: LoginWalletAddress
+    kind: adjunct
+    parameters:
+      kind: value
+      hosts:
+        - kind: User
+      parameters:
+        documentation: Nice
+        kind: ethereum.WalletAddress
+        unique: true
