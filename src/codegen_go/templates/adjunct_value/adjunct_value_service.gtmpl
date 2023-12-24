@@ -6,7 +6,7 @@ type {{.service_name}} interface {
 	{{- if .one_to_one}}
 
 	Get{{.type_name}}(
-		inputCtx CallInputContext,
+		ctx {{.base.service_op_call_context_type_name}},
 		{{- range .hosts}}
 		{{arg_name .id_name}} {{.id_name}},
 		{{- end}}
@@ -14,7 +14,7 @@ type {{.service_name}} interface {
 	{{- else}}
 
 	List{{.type_name}}(
-		inputCtx CallInputContext,
+		ctx {{.base.service_op_call_context_type_name}},
 		{{- range .hosts}}
 		{{arg_name .id_name}} {{.id_name}},
 		{{- end}}

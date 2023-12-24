@@ -2,11 +2,11 @@ package {{.pkg_name}}server
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/binary"
 
 	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/jmoiron/sqlx"
 
 	"{{.pkg_path}}"
 )
@@ -19,10 +19,14 @@ const (
 // {{.service_name}}Serverbase is the server-side
 // base implementation of {{.service_name}}.
 type {{.service_name}}ServerBase struct {
-	db *sqlx.DB
+	db *sql.DB
 
-	deletionTxHook func(inputCtx {{.pkg_name}}.CallInputContext, deletionTx *sqlx.Tx, instanceIDBeingDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
-	deletionHook func(inputCtx {{.pkg_name}}.CallInputContext, instanceIDDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
+	deletionTxHook func(
+		ctx {{.base.service_op_call_context_type_name}},
+		deletionTx *sql.Tx, instanceIDBeingDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
+	deletionHook func(
+		ctx {{.base.service_op_call_context_type_name}},
+		instanceIDDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
 
 	registered{{.ref_key_type_name}}Cache *lru.ARCCache
 	deleted{{.ref_key_type_name}}Cache    *lru.ARCCache
@@ -57,24 +61,24 @@ func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
 	return idRegistered
 }
 
-// Get{{.type_name}}InstanceInfo retrieves the state of an {{.type_name}}
+// Get{{.type_name}}InstanceState retrieves the state of an {{.type_name}}
 // instance. It includes the existence of the ID, and whether the instance
 // has been deleted.
 //
 // If it's required only to determine the existence of the ID,
 // Is{{.ref_key_type_name}}Registered is generally more efficient.
-func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceInfo(
-	inputCtx {{.pkg_name}}.CallInputContext,
+func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceState(
+	ctx {{.base.service_op_call_context_type_name}},
 	id {{.pkg_name}}.{{.ref_key_type_name}},
-) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
+) (*{{.pkg_name}}.{{.type_name}}InstanceState, error) {
 	//TODO: access control
-	return srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, id)
+	return srv.get{{.type_name}}InstanceStateInsecure(ctx, id)
 }
 
-func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
-	inputCtx {{.pkg_name}}.CallInputContext,
+func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateInsecure(
+	ctx {{.base.service_op_call_context_type_name}},
 	id {{.pkg_name}}.{{.ref_key_type_name}},
-) (*{{.pkg_name}}.{{.type_name}}InstanceInfo, error) {
+) (*{{.pkg_name}}.{{.type_name}}InstanceState, error) {
 	idRegistered := false
 	idRegisteredCacheHit := false
 	instDeleted := false
@@ -97,13 +101,13 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 		if !idRegistered {
 			return nil, nil
 		}
-		var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+		var deletion *{{.pkg_name}}.{{.type_name}}DeletionState
 		if instDeleted {
-			deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+			deletion = &{{.pkg_name}}.{{.type_name}}DeletionState{
 				Deleted_: true}
 		}
 		//TODO: populate revision number
-		return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
+		return &{{.pkg_name}}.{{.type_name}}InstanceState{
 			Deletion_: deletion,
 		}, nil
 	}
@@ -126,15 +130,15 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceInfoInsecure(
 		return nil, nil
 	}
 
-	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+	var deletion *{{.pkg_name}}.{{.type_name}}DeletionState
 	if instDeleted {
 		//TODO: deletion notes. store the notes as the value in the cache
-		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+		deletion = &{{.pkg_name}}.{{.type_name}}DeletionState{
 			Deleted_: true}
 	}
 
 	//TODO: populate revision number
-	return &{{.pkg_name}}.{{.type_name}}InstanceInfo{
+	return &{{.pkg_name}}.{{.type_name}}InstanceState{
 		RevisionNumber_: -1,
 		Deletion_:       deletion,
 	}, nil
@@ -171,37 +175,37 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByID(
 	return true, instanceDeleted, nil
 }
 
-func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}InstanceInternal(
-	inputCtx {{.pkg_name}}.CallInputContext,
+func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}Internal(
+	ctx {{.base.service_op_call_context_type_name}},
 	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
-	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
-) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
-	if inputCtx == nil {
-		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil
+	input {{.pkg_name}}.{{.type_name}}DeletionInput,
+) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceState, err error) {
+	if ctx == nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), nil
 	}
 
 {{- /*TODO: only if it's trully implement User */}}
 {{- if eq .type_name "User"}}
-	ctxAuth := inputCtx.Authorization()
+	ctxAuth := ctx.Authorization()
 	if !ctxAuth.IsUser(instanceIDToDelete) {
-		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), nil //TODO: should be an error
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), nil //TODO: should be an error
 	}
 {{- end}}
 
 	//TODO: access control
 
-	return srv.delete{{.type_name}}InstanceInsecure(inputCtx, instanceIDToDelete, input)
+	return srv.delete{{.type_name}}Insecure(ctx, instanceIDToDelete, input)
 }
 
-func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
-	inputCtx {{.pkg_name}}.CallInputContext,
+func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
+	ctx {{.base.service_op_call_context_type_name}},
 	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
-	input {{.pkg_name}}.{{.type_name}}InstanceDeletionInput,
-) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceInfo, err error) {
-	ctxAuth := inputCtx.Authorization()
-	ctxTime := inputCtx.CallInputMetadata().ReceiveTime
+	input {{.pkg_name}}.{{.type_name}}DeletionInput,
+) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceState, err error) {
+	ctxAuth := ctx.Authorization()
+	ctxTime := ctx.CallInputMetadata().ReceiveTime
 
-	err = doTx(srv.db, func(dbTx *sqlx.Tx) error {
+	err = doTx(srv.db, func(dbTx *sql.Tx) error {
 		sqlString, _, _ := goqu.
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
@@ -236,30 +240,30 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		justDeleted = n == 1
 
 		if cb := srv.deletionTxHook; cb != nil {
-			return cb(inputCtx, dbTx, instanceIDToDelete)
+			return cb(ctx, dbTx, instanceIDToDelete)
 		}
 
 		return nil
 	})
 	if err != nil {
-		return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), err
 	}
 
-	var deletion *{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo
+	var deletion *{{.pkg_name}}.{{.type_name}}DeletionState
 	if justDeleted {
-		deletion = &{{.pkg_name}}.{{.type_name}}InstanceDeletionInfo{
+		deletion = &{{.pkg_name}}.{{.type_name}}DeletionState{
 			Deleted_: true,
 			{{- if .lifecycle.deletion.notes.enabled}}
 			DeletionNotes_: input.DeletionNotes,
 			{{- end -}}
 		}
 		if cb := srv.deletionHook; cb != nil {
-			cb(inputCtx, instanceIDToDelete)
+			cb(ctx, instanceIDToDelete)
 		}
 	} else {
-		di, err := srv.get{{.type_name}}InstanceInfoInsecure(inputCtx, instanceIDToDelete)
+		di, err := srv.get{{.type_name}}InstanceStateInsecure(ctx, instanceIDToDelete)
 		if err != nil {
-			return false, {{.pkg_name}}.{{.type_name}}InstanceInfoZero(), err
+			return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), err
 		}
 
 		if di != nil {
@@ -267,7 +271,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 		}
 	}
 
-	currentState = {{.pkg_name}}.{{.type_name}}InstanceInfo{
+	currentState = {{.pkg_name}}.{{.type_name}}InstanceState{
 		RevisionNumber_: -1, //TODO: get from the DB
 		Deletion_:       deletion}
 
@@ -278,16 +282,16 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}InstanceInsecure(
 
 const (
 	// Creation metadata columns
-	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
-	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
-	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
+	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_cr_ts"
+	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_cr_tid"
+	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_cr_uid"
 	{{- if .lifecycle.deletion.enabled}}
 	// Deletion metadata columns
-	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
-	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
-	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
+	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_del_ts"
+	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_del_tid"
+	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_del_uid"
 	{{- if .lifecycle.deletion.notes.enabled}}
-	{{unexported_field .type_name}}DBColMDDeletionNotes      = "md_d_notes"
+	{{unexported_field .type_name}}DBColMDDeletionNotes      = "md_del_notes"
 	{{- end}}
 	{{- end}}
 	{{- if .lifecycle.expiration.enabled}}

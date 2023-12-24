@@ -13,8 +13,8 @@ pub fn render_template<T: Into<gtmpl_value::Value>>(
     tmpl.add_func("sym_name", sym_name);
     tmpl.add_func("adjunct_host_id_db_col_name", adjunct_host_id_db_col_name);
     tmpl.add_func("attribute_db_col_name", attribute_db_col_name);
-    tmpl.parse(template_str)?;
-    tmpl.render(&gtmpl::Context::from(context)?)
+    tmpl.parse(template_str).map_err(|e| e.to_string())?;
+    tmpl.render(&gtmpl::Context::from(context)).map_err(|e| e.to_string())
 }
 
 pub fn go_unexport(o: &String) -> String {
@@ -30,25 +30,25 @@ pub fn go_unexport(o: &String) -> String {
     r
 }
 
-fn unexported_field(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+fn unexported_field(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl::FuncError> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
         let r = go_unexport(o);
         Ok(gtmpl_value::Value::String(r))
     } else {
-        Err(format!("String required, got: {:?}", args))
+        Err(gtmpl::FuncError::UnableToConvertFromValue)
     }
 }
 
-fn unexported_global(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+fn unexported_global(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl::FuncError> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
         let r: String = o.to_owned();
         Ok(gtmpl_value::Value::String(format!("_{}", r)))
     } else {
-        Err(format!("String required, got: {:?}", args))
+        Err(gtmpl::FuncError::UnableToConvertFromValue)
     }
 }
 
-fn arg_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+fn arg_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl::FuncError> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
         let mut r: String = o.to_owned();
         if let Some(r) = r.get_mut(0..1) {
@@ -56,36 +56,36 @@ fn arg_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
         }
         Ok(gtmpl_value::Value::String(r))
     } else {
-        Err(format!("String required, got: {:?}", args))
+        Err(gtmpl::FuncError::UnableToConvertFromValue)
     }
 }
 
-fn sym_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+fn sym_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl::FuncError> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
         let r: String = o.to_owned();
         let s = r.split(".").last();
         if let Some(x) = s {
             Ok(gtmpl_value::Value::String(x.to_owned()))
         } else {
-            Err(format!("String required, got: {:?}", args))
+            Err(gtmpl::FuncError::UnableToConvertFromValue)
         }
     } else {
-        Err(format!("String required, got: {:?}", args))
+        Err(gtmpl::FuncError::UnableToConvertFromValue)
     }
 }
 
-fn adjunct_host_id_db_col_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+fn adjunct_host_id_db_col_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl::FuncError> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
         Ok(gtmpl_value::Value::String(o.to_case(Case::Snake) + "_id"))
     } else {
-        Err(format!("String required, got: {:?}", args))
+        Err(gtmpl::FuncError::UnableToConvertFromValue)
     }
 }
 
-fn attribute_db_col_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, String> {
+fn attribute_db_col_name(args: &[gtmpl_value::Value]) -> Result<gtmpl_value::Value, gtmpl::FuncError> {
     if let gtmpl_value::Value::String(ref o) = &args[0] {
         Ok(gtmpl_value::Value::String(o.to_case(Case::Snake)))
     } else {
-        Err(format!("String required, got: {:?}", args))
+        Err(gtmpl::FuncError::UnableToConvertFromValue)
     }
 }

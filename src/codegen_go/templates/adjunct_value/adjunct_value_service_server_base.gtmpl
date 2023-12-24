@@ -2,10 +2,10 @@ package {{.pkg_name}}server
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/binary"
 
 	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
-	"github.com/jmoiron/sqlx"
 
 	"{{.pkg_path}}"
 )
@@ -17,16 +17,16 @@ const (
 // {{.service_name}}Serverbase is the server-side
 // base implementation of {{.service_name}}.
 type {{.service_name}}ServerBase struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
 const (
-	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_c_ts"
-	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_c_tid"
-	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_c_uid"
-	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_d_ts"
-	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_d_tid"
-	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_d_uid"
+	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_cr_ts"
+	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_cr_tid"
+	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_cr_uid"
+	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_del_ts"
+	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_del_tid"
+	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_del_uid"
 
 	{{range .hosts -}}
 	{{unexported_field $.type_name}}DBCol{{.id_name}} = "{{.db_col_name}}"

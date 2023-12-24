@@ -10,6 +10,7 @@ use azml::azml::{
     adjunct::adjunct,
     compiler,
     entity::{abstract_, entity, root_entity},
+    generator_go::GeneratorGoPackagesOptions,
     module, symbol,
     value_object::value_object,
 };
@@ -32,7 +33,7 @@ pub struct GoCodeGenerator {
     pub base_pkg: String,
 
     // Go module identifier. This is the one defined in the go.mod file.
-    pub module_identifier: String,
+    pub module_identifier: GeneratorGoPackagesOptions,
 
     // A flag to make the generator generates server package(s) and application(s).
     // Curently unused.
@@ -58,14 +59,24 @@ pub struct GoCodeGenerator {
     // or they are in an experimental stage.
     pub compilation_state: Option<compiler::CompilationState>,
     // Full package identifier including module and entry package name
-    pub package_identifier: String,
-    pub package_dir_base_name: String,
+    pub contract_package_identifier: String,
+    pub contract_package_dir_base_name: String,
+    pub server_package_identifier: String,
+    pub server_package_dir_base_name: String,
+    pub client_package_identifier: String,
+    pub client_package_dir_base_name: String,
+
+    pub service_op_call_context_type_name: String,
 }
 
 impl GoCodeGenerator {
     fn render_base_context(&self) -> BaseContext {
         BaseContext {
-            mod_name: self.module_identifier.to_owned(),
+            mod_name: PackagesContext{
+                contract: self.module_identifier.contract.to_owned(),
+                server: self.module_identifier.server.to_owned(),
+                client: self.module_identifier.client.to_owned(),
+            },
             azlib_prefix: self.azlib_prefix.to_owned(),
             azcore_import: self.azcore_import.to_owned(),
             azcore_pkg: self.azcore_pkg.to_owned(),
@@ -83,6 +94,7 @@ impl GoCodeGenerator {
             user: UserContext {
                 pg_type: "bigint".to_owned(),
             },
+            service_op_call_context_type_name: self.service_op_call_context_type_name.to_owned(),
         }
     }
 
@@ -120,13 +132,19 @@ impl GoCodeGenerator {
         //     pkg_name: module_name.to_owned(),
         // };
 
-        let target_dir = &self.package_dir_base_name;
-        fs::create_dir_all(target_dir)?;
+        let contract_target_dir = &self.contract_package_dir_base_name;
+        fs::create_dir_all(contract_target_dir)?;
+
+        let server_target_dir = &self.server_package_dir_base_name;
+        fs::create_dir_all(server_target_dir)?;
+
+        let client_target_dir = &self.client_package_dir_base_name;
+        fs::create_dir_all(client_target_dir)?;
 
         // let filename_prefix = self.azlib_prefix.to_lowercase();
 
         // render_file!(
-        //     target_dir,
+        //     contract_target_dir,
         //     format!("{}_service", filename_prefix),
         //     "templates/azlib_service.gtmpl",
         //     tpl_ctx,
@@ -134,7 +152,7 @@ impl GoCodeGenerator {
         // );
 
         // render_file!(
-        //     target_dir,
+        //     contract_target_dir,
         //     format!("{}_entity", filename_prefix),
         //     "templates/azlib_entity.gtmpl",
         //     tpl_ctx,
@@ -142,7 +160,7 @@ impl GoCodeGenerator {
         // );
 
         // render_file!(
-        //     target_dir,
+        //     client_target_dir,
         //     format!("{}_entity_service_client", filename_prefix),
         //     "templates/azlib_entity_service_client.gtmpl",
         //     tpl_ctx,
@@ -150,7 +168,7 @@ impl GoCodeGenerator {
         // );
 
         // render_file!(
-        //     target_dir,
+        //     server_target_dir,
         //     format!("{}_entity_service_server", filename_prefix),
         //     "templates/azlib_entity_service_server.gtmpl",
         //     tpl_ctx,
@@ -158,7 +176,7 @@ impl GoCodeGenerator {
         // );
 
         // render_file!(
-        //     target_dir,
+        //     contract_target_dir,
         //     format!("{}_adjunct", filename_prefix),
         //     "templates/azlib_adjunct.gtmpl",
         //     tpl_ctx,
@@ -190,18 +208,42 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         compilation_state: &compiler::CompilationState,
     ) -> Result<(), Box<dyn error::Error>> {
         self.compilation_state = Some(compilation_state.clone());
-        self.package_identifier = if self.base_pkg.is_empty() {
+        self.contract_package_identifier = if self.base_pkg.is_empty() {
             format!(
                 "{}/{}",
-                self.module_identifier, compilation_state.entry_module
+                self.module_identifier.contract, compilation_state.entry_module
             )
         } else {
             format!(
                 "{}/{}/{}",
-                self.module_identifier, self.base_pkg, compilation_state.entry_module
+                self.module_identifier.contract, self.base_pkg, compilation_state.entry_module
             )
         };
-        self.package_dir_base_name = format!("{}/{}", self.base_dir, self.package_identifier);
+        self.contract_package_dir_base_name = format!("{}/{}", self.base_dir, self.contract_package_identifier);
+        self.server_package_identifier = if self.base_pkg.is_empty() {
+            format!(
+                "{}/{}",
+                self.module_identifier.server, compilation_state.entry_module
+            )
+        } else {
+            format!(
+                "{}/{}/{}",
+                self.module_identifier.server, self.base_pkg, compilation_state.entry_module
+            )
+        };
+        self.server_package_dir_base_name = format!("{}/{}", self.base_dir, self.server_package_identifier);
+        self.client_package_identifier = if self.base_pkg.is_empty() {
+            format!(
+                "{}/{}",
+                self.module_identifier.client, compilation_state.entry_module
+            )
+        } else {
+            format!(
+                "{}/{}/{}",
+                self.module_identifier.client, self.base_pkg, compilation_state.entry_module
+            )
+        };
+        self.client_package_dir_base_name = format!("{}/{}", self.base_dir, self.client_package_identifier);
         let entry_module = compilation_state
             .modules
             .get(&compilation_state.entry_module);
@@ -222,7 +264,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
 
 #[derive(Clone, Gtmpl)]
 struct BaseContext {
-    mod_name: String,
+    mod_name: PackagesContext,
     azlib_prefix: String,
     azcore_import: String,
     azcore_pkg: String,
@@ -235,6 +277,14 @@ struct BaseContext {
     azerrs_pkg: String,
     terminal: TerminalContext,
     user: UserContext,
+    service_op_call_context_type_name: String,
+}
+
+#[derive(Clone, Gtmpl)]
+struct PackagesContext {
+    contract: String,
+    server: String,
+    client: String,
 }
 
 #[derive(Clone, Gtmpl)]

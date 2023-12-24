@@ -31,6 +31,7 @@ impl GoCodeGenerator {
         symbol: &symbol::Symbol,
     ) -> Result<(), Box<dyn error::Error>> {
         let type_name = symbol.identifier.to_owned();
+        let type_name_snake = type_name.to_case(Case::Snake);
         let id_num_def = &ent.id.num.definition;
 
         if let Some(id_int) = id_num_def.downcast_ref::<id_num::IntegerIdNum>() {
@@ -75,10 +76,10 @@ impl GoCodeGenerator {
             let tpl_ctx = EntityContext {
                 base: self.render_base_context(),
                 pkg_name: module_name.to_lowercase(),
-                pkg_path: self.package_identifier.to_owned(),
-                imports: imports,
+                pkg_path: self.contract_package_identifier.to_owned(),
+                imports,
                 type_name: type_name.to_owned(),
-                type_name_snake: type_name.to_case(Case::Snake),
+                type_name_snake: type_name_snake.to_owned(),
                 type_doc_lines: type_doc_lines.clone(),
                 id_num_type_name: id_num_type_name.to_owned(),
                 id_num_def: id_int.into(),
@@ -94,7 +95,7 @@ impl GoCodeGenerator {
                 },
                 implements: abstracts,
                 attributes_type_name: attrs_type_name.to_owned(),
-                attributes: attributes,
+                attributes,
                 event_interface_name: event_interface_name.to_owned(),
                 service_name: service_name.to_owned(),
                 lifecycle: (&ent.lifecycle).into(),
@@ -108,8 +109,9 @@ impl GoCodeGenerator {
 
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
-                .create_new(true)
-                .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
+                .create(true)
+                .truncate(true)
+                .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
             out_file.write_all(header_code.as_bytes())?;
             out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
             if !type_doc_lines.is_empty() {
@@ -173,7 +175,7 @@ impl GoCodeGenerator {
 
             // ServiceServerBase
             render_file!(
-                format!("{}server", self.package_dir_base_name),
+                format!("{}", self.server_package_dir_base_name),
                 format!("{}ServerBase", service_name),
                 "templates/entity/entity_service_server_base.gtmpl",
                 tpl_ctx,
@@ -182,7 +184,7 @@ impl GoCodeGenerator {
 
             // // ServiceServer
             // render_file!(
-            //     format!("{}server", self.package_dir_base_name),
+            //     format!("{}", self.server_package_dir_base_name),
             //     format!("{}Server", service_name),
             //     "templates/entity/entity_service_server.gtmpl",
             //     tpl_ctx,

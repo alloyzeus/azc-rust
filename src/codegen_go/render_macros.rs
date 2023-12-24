@@ -11,7 +11,8 @@ macro_rules! render_file {
         )?;
         let mut out_file = fs::OpenOptions::new()
             .write(true)
-            .create_new(true)
+            .create(true)
+            .truncate(true)
             .open(format!("{}/{}.go", $target_dir, $file_name_name))?;
         out_file.write_all($rendered_header.as_bytes())?;
         out_file.write_all(out_code.as_bytes())?;

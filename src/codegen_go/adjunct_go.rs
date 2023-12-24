@@ -59,6 +59,7 @@ impl GoCodeGenerator {
     ) -> Result<(), Box<dyn error::Error>> {
         let pkg_name = module_name.to_lowercase();
         let type_name = sym.identifier.to_owned();
+        let type_name_snake = type_name.to_case(Case::Snake);
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
             .iter()
@@ -162,10 +163,10 @@ impl GoCodeGenerator {
             let tpl_ctx = AdjunctEntityContext {
                 base: self.render_base_context(),
                 pkg_name: pkg_name.to_owned(),
-                pkg_path: self.package_identifier.to_owned(),
+                pkg_path: self.contract_package_identifier.to_owned(),
                 type_name: type_name.to_owned(),
-                type_name_snake: type_name.to_case(Case::Snake),
-                imports: imports,
+                type_name_snake: type_name_snake.to_owned(),
+                imports,
                 id_num_type_name: id_num_type_name.to_owned(),
                 id_num_def: id_int.into(),
                 ref_key_type_name: ref_key_type_name.to_owned(),
@@ -180,7 +181,7 @@ impl GoCodeGenerator {
                 },
                 implements: abstracts,
                 attributes_type_name: attrs_type_name.to_owned(),
-                attributes: attributes,
+                attributes,
                 service_name: service_name.to_owned(),
                 lifecycle: (&adj_ent.lifecycle).into(),
                 hosts: hosts_ctx,
@@ -196,8 +197,9 @@ impl GoCodeGenerator {
 
             let mut out_file = fs::OpenOptions::new()
                 .write(true)
-                .create_new(true)
-                .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
+                .create(true)
+                .truncate(true)
+                .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
             out_file.write_all(header_code.as_bytes())?;
             out_file.write_all(
                 format!(
@@ -253,7 +255,7 @@ impl GoCodeGenerator {
 
             // ServiceServerBase
             render_file!(
-                format!("{}server", self.package_dir_base_name),
+                format!("{}", self.server_package_dir_base_name),
                 format!("{}ServerBase", service_name),
                 "templates/adjunct_entity/adjunct_entity_service_server_base.gtmpl",
                 tpl_ctx,
@@ -277,6 +279,7 @@ impl GoCodeGenerator {
     ) -> Result<(), Box<dyn error::Error>> {
         let pkg_name = module_name.to_lowercase();
         let type_name = sym.identifier.to_owned();
+        let type_name_snake = type_name.to_case(Case::Snake);
         //TODO: collect the name with the kind as the default
         let hosts_names = (&adj.hosts)
             .iter()
@@ -347,10 +350,10 @@ impl GoCodeGenerator {
         let tpl_ctx = AdjunctPrimeContext {
             base: self.render_base_context(),
             pkg_name: pkg_name.to_owned(),
-            pkg_path: self.package_identifier.to_owned(),
-            imports: imports,
+            pkg_path: self.contract_package_identifier.to_owned(),
+            imports,
             type_name: type_name.to_owned(),
-            type_name_snake: type_name.to_case(Case::Snake),
+            type_name_snake: type_name_snake.to_owned(),
             kind: adj_prime.kind.to_owned(),
             ref_key_enabled: adj_prime.identity.enabled,
             ref_key_type_name: ref_key_type_name.to_owned(),
@@ -378,8 +381,9 @@ impl GoCodeGenerator {
 
         let mut out_file = fs::OpenOptions::new()
             .write(true)
-            .create_new(true)
-            .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
+            .create(true)
+            .truncate(true)
+            .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
         out_file.write_all(header_code.as_bytes())?;
         out_file.write_all(
             format!(
@@ -420,7 +424,7 @@ impl GoCodeGenerator {
 
         // ServiceServerBase
         render_file!(
-            format!("{}server", self.package_dir_base_name),
+            format!("{}", self.server_package_dir_base_name),
             format!("{}ServerBase", service_name),
             "templates/adjunct_prime/adjunct_prime_service_server_base.gtmpl",
             tpl_ctx,
@@ -491,6 +495,7 @@ impl GoCodeGenerator {
             .collect::<Vec<AbstractContext>>();
 
         let type_name = format!("{}{}", base_type_name, type_name);
+        let type_name_snake = type_name.to_case(Case::Snake);
         let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
         let service_name = format!("{}Service", type_name);
         let imports = sym
@@ -509,10 +514,10 @@ impl GoCodeGenerator {
         let tpl_ctx = AdjunctPrimeContext {
             base: self.render_base_context(),
             pkg_name: pkg_name.to_owned(),
-            pkg_path: self.package_identifier.to_owned(),
-            imports: imports,
+            pkg_path: self.contract_package_identifier.to_owned(),
+            imports,
             type_name: type_name.to_owned(),
-            type_name_snake: type_name.to_case(Case::Snake),
+            type_name_snake: type_name_snake.to_owned(),
             kind: adj_value.kind.to_owned(),
             ref_key_enabled: false,
             ref_key_type_name: ref_key_type_name.to_owned(),
@@ -536,8 +541,9 @@ impl GoCodeGenerator {
 
         let mut out_file = fs::OpenOptions::new()
             .write(true)
-            .create_new(true)
-            .open(format!("{}/{}.go", self.package_dir_base_name, type_name))?;
+            .create(true)
+            .truncate(true)
+            .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
         out_file.write_all(header_code.as_bytes())?;
         out_file.write_all(
             format!(
@@ -569,7 +575,7 @@ impl GoCodeGenerator {
 
         // ServiceServerBase
         render_file!(
-            format!("{}server", self.package_dir_base_name),
+            format!("{}", self.server_package_dir_base_name),
             format!("{}ServerBase", service_name),
             "templates/adjunct_value/adjunct_value_service_server_base.gtmpl",
             tpl_ctx,

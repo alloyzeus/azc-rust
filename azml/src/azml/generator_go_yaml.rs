@@ -8,13 +8,14 @@ use super::{generator_go, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct GeneratorGoOptionsYaml {
-    package_identifier: String,
+    #[serde(default)]
+    packages: GeneratorGoPackagesOptionsYaml,
 
     #[serde(default)]
     azfl_package_uri: String,
 
     #[serde(default)]
-    package_opts: Vec<GeneratorGoPackageOptionsYaml>,
+    imports: Vec<GeneratorGoImportPackageOptionsYaml>,
 }
 
 impl convert::TryFrom<GeneratorGoOptionsYaml> for generator_go::GeneratorGoOptions {
@@ -22,13 +23,13 @@ impl convert::TryFrom<GeneratorGoOptionsYaml> for generator_go::GeneratorGoOptio
 
     fn try_from(x: GeneratorGoOptionsYaml) -> Result<Self, Self::Error> {
         Ok(Self {
-            package_identifier: x.package_identifier.to_owned(),
+            packages: (&x.packages).into(),
             azfl_package_uri: x.azfl_package_uri.to_owned(),
-            package_opts: x
-                .package_opts
+            imports: x
+                .imports
                 .into_iter()
-                .map(|o| generator_go::GeneratorGoPackageOptions::from(&o))
-                .collect::<Vec<generator_go::GeneratorGoPackageOptions>>(),
+                .map(|o| generator_go::GeneratorGoImportPackageOptions::from(&o))
+                .collect::<Vec<generator_go::GeneratorGoImportPackageOptions>>(),
         })
     }
 }
@@ -36,16 +37,38 @@ impl convert::TryFrom<GeneratorGoOptionsYaml> for generator_go::GeneratorGoOptio
 //endregion
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct GeneratorGoPackageOptionsYaml {
+pub struct GeneratorGoImportPackageOptionsYaml {
     identifier: String,
     uri: String,
 }
 
-impl convert::From<&GeneratorGoPackageOptionsYaml> for generator_go::GeneratorGoPackageOptions {
-    fn from(x: &GeneratorGoPackageOptionsYaml) -> Self {
+impl convert::From<&GeneratorGoImportPackageOptionsYaml> for generator_go::GeneratorGoImportPackageOptions {
+    fn from(x: &GeneratorGoImportPackageOptionsYaml) -> Self {
         Self {
             identifier: x.identifier.to_owned(),
             uri: x.uri.to_owned(),
+        }
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default)]
+pub struct GeneratorGoPackagesOptionsYaml {
+    #[serde(default)]
+    contract: String,
+
+    #[serde(default)]
+    server: String,
+
+    #[serde(default)]
+    client: String,
+}
+
+impl convert::From<&GeneratorGoPackagesOptionsYaml> for generator_go::GeneratorGoPackagesOptions {
+    fn from(x: &GeneratorGoPackagesOptionsYaml) -> Self {
+        Self {
+            contract: x.contract.to_owned(),
+            server: x.server.to_owned(),
+            client: x.client.to_owned(),
         }
     }
 }

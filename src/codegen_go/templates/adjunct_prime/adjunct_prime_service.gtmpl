@@ -4,7 +4,7 @@ type {{.service_name}} interface {
 	// {{.base.azlib_prefix}}AdjuncPrimeService
 
 	Get{{.type_name}}(
-		inputCtx CallInputContext,
+		ctx {{.base.service_op_call_context_type_name}},
 		{{- range .hosts}}
 		{{arg_name .id_name}} {{.id_name}},
 		{{- end}}

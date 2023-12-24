@@ -4,7 +4,7 @@ type {{.ref_key_type_name}} struct {
 	{{- range .hosts}}
 	{{.name_unexported}} {{.id_name}}
 	{{- end}}
-	idNum {{.id_num_type_name}} {{if .id_is_id_num}}// Key{{end}}
+	idNum {{.id_num_type_name}} {{if .id_is_id_num}}// Differentiator{{end}}
 }
 
 // The total number of fields in the struct.
@@ -16,7 +16,7 @@ func New{{.ref_key_type_name}}(
 	{{- range .hosts}}
 	{{arg_name .identifier_name}} {{.id_name}},
 	{{- end}}
-	idNum {{.id_num_type_name}}, {{if .id_is_id_num}}// Key{{end}}
+	idNum {{.id_num_type_name}}, {{if .id_is_id_num}}// Differentiator{{end}}
 ) {{.ref_key_type_name}} {
 	return {{.ref_key_type_name}}{
 		{{- range .hosts}}
@@ -151,23 +151,21 @@ func (id {{.ref_key_type_name}}) AZIDBin() []byte {
 }
 
 // {{.ref_key_type_name}}FromAZIDBin creates a new instance of
-// {{.ref_key_type_name}} from its azid-bin form.
+// {{.ref_key_type_name}} from its azid-bin-encoded form.
 func {{.ref_key_type_name}}FromAZIDBin(
-	binBytes []byte,
+	input []byte,
 ) (id {{.ref_key_type_name}}, readLen int, err error) {
-	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(binBytes[0])
+	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(input[0])
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			{{.base.azerrs_pkg}}.Arg("binBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("type").Wrap(err))
+			{{.base.azerrs_pkg}}.ArgWrap("input", "type parsing", err)
 	}
 	if typ != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			{{.base.azerrs_pkg}}.Arg("binBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("type").Desc({{.base.azerrs_pkg}}.ErrValueUnsupported))
+			{{.base.azerrs_pkg}}.ArgMsg("input", "type unsupported")
 	}
 
-	id, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(binBytes[1:], typ)
+	id, readLen, err = {{.ref_key_type_name}}FromAZIDBinField(input[1:], typ)
 	return id, readLen + 1, err
 }
 
@@ -200,21 +198,19 @@ func (id {{.ref_key_type_name}}) AZIDBinField() ([]byte, {{.base.azid_pkg}}.BinD
 }
 
 // {{.ref_key_type_name}}FromAZIDBinField creates {{.ref_key_type_name}} from
-// its azid-bin field form.
+// its azid-bin-encoded field form.
 func {{.ref_key_type_name}}FromAZIDBinField(
-	binFieldBytes []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+	input []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (id {{.ref_key_type_name}}, readLen int, err error) {
 	if typeHint != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("type").Desc({{.base.azerrs_pkg}}.ErrValueUnsupported))
+			{{.base.azerrs_pkg}}.ArgMsg("typeHint", "value unsupported")
 	}
 
-	arrayLen := int(binFieldBytes[0])
+	arrayLen := int(input[0])
 	if arrayLen != {{unexported_global .ref_key_type_name}}FieldCount {
 		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("field count").Desc({{.base.azerrs_pkg}}.ErrValueMismatch))
+			{{.base.azerrs_pkg}}.ArgMsg("input", "field count mismatch")
 	}
 
 	typeCursor := 1
@@ -224,37 +220,33 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 
 	{{- range .hosts}}
 
-	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(binFieldBytes[typeCursor])
+	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(input[typeCursor])
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			{{$.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{$.base.azerrs_pkg}}.N("{{.name_unexported}} ref-key type").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
+			{{$.base.azerrs_pkg}}.ArgWrap("input", "host {{.name_unexported}} ref-key type parsing", err)
 	}
 	typeCursor++
 	{{unexported_field .id_name}}, readLen, err := {{.id_name}}FromAZIDBinField(
-		binFieldBytes[dataCursor:], fieldType)
+		input[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			{{$.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{$.base.azerrs_pkg}}.N("{{.name_unexported}} ref-key data").Desc({{$.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
+			{{$.base.azerrs_pkg}}.ArgWrap("input", "host {{.name_unexported}} ref-key data parsing", err)
 	}
 	dataCursor += readLen
 
 	{{- end}}
 
-	fieldType, err = {{.base.azid_pkg}}.BinDataTypeFromByte(binFieldBytes[typeCursor])
+	fieldType, err = {{.base.azid_pkg}}.BinDataTypeFromByte(input[typeCursor])
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("id-num type").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
+			{{.base.azerrs_pkg}}.ArgWrap("input", "id-num type parsing", err)
 	}
 	typeCursor++
 	idNum, readLen, err := {{.id_num_type_name}}FromAZIDBinField(
-		binFieldBytes[dataCursor:], fieldType)
+		input[dataCursor:], fieldType)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("binFieldBytes").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("id-num data").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).Wrap(err))
+			{{.base.azerrs_pkg}}.ArgWrap("input", "id-num data parsing", err)
 	}
 	dataCursor += readLen
 
@@ -269,9 +261,9 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 // UnmarshalAZIDBinField is required for conformance
 // with {{.base.azcore_pkg}}.BinFieldUnmarshalable.
 func (id *{{.ref_key_type_name}}) UnmarshalAZIDBinField(
-	binFieldBytes []byte, typeHint {{.base.azid_pkg}}.BinDataType,
+	input []byte, typeHint {{.base.azid_pkg}}.BinDataType,
 ) (readLen int, err error) {
-	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(binFieldBytes, typeHint)
+	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(input, typeHint)
 	if err == nil {
 		*id = i
 	}
@@ -293,35 +285,32 @@ func (id {{.ref_key_type_name}}) AZIDText() string {
 
 // {{.ref_key_type_name}}FromAZIDText creates a new instance of
 // {{.ref_key_type_name}} from its azid-text form.
-func {{.ref_key_type_name}}FromAZIDText(idText string) ({{.ref_key_type_name}}, error) {
-	if idText == "" {
+func {{.ref_key_type_name}}FromAZIDText(input string) ({{.ref_key_type_name}}, error) {
+	if input == "" {
 		return {{.ref_key_type_name}}Zero(), nil
 	}
-	if !strings.HasPrefix(idText, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
+	if !strings.HasPrefix(input, {{unexported_global .ref_key_type_name}}AZIDTextPrefix) {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.Arg("idText").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("prefix").Desc({{.base.azerrs_pkg}}.ErrValueMismatch))
+			{{.base.azerrs_pkg}}.ArgMsg("input", "prefix mismatch")
 	}
-	idText = strings.TrimPrefix(idText, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
-	b, err := {{.base.azid_pkg}}.TextDecode(idText)
+	input = strings.TrimPrefix(input, {{unexported_global .ref_key_type_name}}AZIDTextPrefix)
+	b, err := {{.base.azid_pkg}}.TextDecode(input)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.Arg("idText").Desc({{.base.azerrs_pkg}}.ErrValueMalformed).
-				Fieldset({{.base.azerrs_pkg}}.N("data").Wrap(err))
+			{{.base.azerrs_pkg}}.ArgWrap("input", "decoding", err)
 	}
 	id, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.Arg("idText").Desc({{.base.azerrs_pkg}}.ErrValueMalformed). 
-				Fieldset({{.base.azerrs_pkg}}.N("data").Wrap(err))
+			{{.base.azerrs_pkg}}.ArgWrap("input", "parsing", err)
 	}
 	return id, nil
 }
 
 // UnmarshalAZIDText is required for conformance
 // with {{.base.azid_pkg}}.TextUnmarshalable.
-func (id *{{.ref_key_type_name}}) UnmarshalAZIDText(idText string) error {
-	r, err := {{.ref_key_type_name}}FromAZIDText(idText)
+func (id *{{.ref_key_type_name}}) UnmarshalAZIDText(input string) error {
+	r, err := {{.ref_key_type_name}}FromAZIDText(input)
 	if err == nil {
 		*id = r
 	}

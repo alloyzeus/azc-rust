@@ -1,52 +1,52 @@
 // {{.type_name}}InstanceService is a service which
 // provides methods to manipulate an instance of {{.type_name}}.
 type {{.type_name}}InstanceService interface {
-	{{.type_name}}InstanceInfoService
+	{{.type_name}}InstanceStateService
 }
 
-// {{.type_name}}InstanceInfoService is a service which
+// {{.type_name}}InstanceStateService is a service which
 // provides access to instances metadata.
-type {{.type_name}}InstanceInfoService interface {
-	// Get{{.type_name}}InstanceInfo checks if the provided
+type {{.type_name}}InstanceStateService interface {
+	// Get{{.type_name}}InstanceState checks if the provided
     // ref-key is valid and whether the instance is deleted.
 	//
 	// This method returns nil if the id is not referencing to any valid
 	// instance.
-	Get{{.type_name}}InstanceInfo(
-		inputCtx CallInputContext,
+	Get{{.type_name}}InstanceState(
+		ctx {{.base.service_op_call_context_type_name}},
 		id {{.ref_key_type_name}},
-	) (*{{.type_name}}InstanceInfo, error)
+	) (*{{.type_name}}InstanceState, error)
 }
 
-// {{.type_name}}InstanceInfo holds information about
+// {{.type_name}}InstanceState holds information about
 // an instance of {{.type_name}}.
-type {{.type_name}}InstanceInfo struct {
+type {{.type_name}}InstanceState struct {
     RevisionNumber_ int32
 
 {{- if .lifecycle.deletion.enabled}}
 
     // Deletion_ holds information about the deletion of the instance. If
     // the instance has not been deleted, this field value will be nil.
-	Deletion_ *{{.type_name}}InstanceDeletionInfo
+	Deletion_ *{{.type_name}}DeletionState
 
 {{- end}}
 }
 
 var _ {{.base.azcore_pkg}}.EntityInstanceInfo[
-	int32, {{.type_name}}InstanceDeletionInfo,
-] = {{.type_name}}InstanceInfo{}
+	int32, {{.type_name}}DeletionState,
+] = {{.type_name}}InstanceState{}
 var _ {{.base.azcore_pkg}}.ValueObjectAssert[
-	{{.type_name}}InstanceDeletionInfo,
-] = {{.type_name}}InstanceDeletionInfo{}
+	{{.type_name}}DeletionState,
+] = {{.type_name}}DeletionState{}
 
-// {{.type_name}}InstanceInfoZero returns an instance of
-// {{.type_name}}InstanceInfo with attributes set their respective zero
+// {{.type_name}}InstanceStateZero returns an instance of
+// {{.type_name}}InstanceState with attributes set their respective zero
 // value.
-func {{.type_name}}InstanceInfoZero() {{.type_name}}InstanceInfo {
-	return {{.type_name}}InstanceInfo{}
+func {{.type_name}}InstanceStateZero() {{.type_name}}InstanceState {
+	return {{.type_name}}InstanceState{}
 }
 
-func (instInfo {{.type_name}}InstanceInfo) Clone() {{.type_name}}InstanceInfo {
+func (instInfo {{.type_name}}InstanceState) Clone() {{.type_name}}InstanceState {
 {{- if .lifecycle.deletion.enabled}}
 	if instInfo.Deletion_ != nil {
 		cp := instInfo
@@ -59,20 +59,20 @@ func (instInfo {{.type_name}}InstanceInfo) Clone() {{.type_name}}InstanceInfo {
 	return instInfo
 }
 
-func (instInfo {{.type_name}}InstanceInfo) RevisionNumber() int32 { return instInfo.RevisionNumber_ }
-func (instInfo {{.type_name}}InstanceInfo) Deletion() *{{.type_name}}InstanceDeletionInfo {
+func (instInfo {{.type_name}}InstanceState) RevisionNumber() int32 { return instInfo.RevisionNumber_ }
+func (instInfo {{.type_name}}InstanceState) Deletion() *{{.type_name}}DeletionState {
 	return instInfo.Deletion_
 }
 
 // IsActive returns true if the instance is considered as active.
-func (instInfo {{.type_name}}InstanceInfo) IsActive() bool {
+func (instInfo {{.type_name}}InstanceState) IsActive() bool {
     // Note: we will check other flags in the future, but that's said,
     // deleted instance is considered inactive.
     return !instInfo.IsDeleted()
 }
 
 // IsDeleted returns true if the instance was deleted.
-func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
+func (instInfo {{.type_name}}InstanceState) IsDeleted() bool {
 {{- if .lifecycle.deletion.enabled}}
 	if delInfo := instInfo.Deletion(); delInfo != nil {
 		return delInfo.Deleted()
@@ -85,28 +85,32 @@ func (instInfo {{.type_name}}InstanceInfo) IsDeleted() bool {
 
 //----
 
-// {{.type_name}}InstanceDeletionInfo holds information about
+// {{.type_name}}DeletionState holds information about
 // the deletion of an instance if the instance has been deleted.
-type {{.type_name}}InstanceDeletionInfo struct {
+type {{.type_name}}DeletionState struct {
 	Deleted_       bool
 {{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes_ string
 {{- end}}
 }
 
-var _ {{.base.azcore_pkg}}.EntityDeletionInfo = {{.type_name}}InstanceDeletionInfo{}
+var _ {{.base.azcore_pkg}}.EntityDeletionInfo = {{.type_name}}DeletionState{}
 var _ {{.base.azcore_pkg}}.ValueObjectAssert[
-	{{.type_name}}InstanceDeletionInfo,
-] = {{.type_name}}InstanceDeletionInfo{}
+	{{.type_name}}DeletionState,
+] = {{.type_name}}DeletionState{}
 
-func (instDelInfo {{.type_name}}InstanceDeletionInfo) Clone() {{.type_name}}InstanceDeletionInfo {
+func (instDelInfo {{.type_name}}DeletionState) Clone() {{.type_name}}DeletionState {
 	// Already a copy and there's no shared underlying data instance
 	return instDelInfo
 }
 
-func (instDelInfo {{.type_name}}InstanceDeletionInfo) Deleted() bool { return instDelInfo.Deleted_ }
+func (instDelInfo {{.type_name}}DeletionState) Deleted() bool {
+	return instDelInfo.Deleted_
+}
 {{- if .lifecycle.deletion.notes.enabled}}
-func (instDelInfo {{.type_name}}InstanceDeletionInfo) DeletionNotes() string { return instDelInfo.DeletionNotes_ }
+func (instDelInfo {{.type_name}}DeletionState) DeletionNotes() string {
+	return instDelInfo.DeletionNotes_
+}
 {{- end}}
 
 {{- end}}
@@ -120,19 +124,19 @@ func (instDelInfo {{.type_name}}InstanceDeletionInfo) DeletionNotes() string { r
 type {{.type_name}}InstanceServiceInternal interface {
 }
 
-// {{.type_name}}InstanceCreationInput contains data to be passed
-// as an argument when invoking the method Create{{.type_name}}InstanceInternal
+// {{.type_name}}CreationInput contains data to be passed
+// as an argument when invoking the method Create{{.type_name}}Internal
 // of {{.type_name}}InstanceServiceInternal.
-type {{.type_name}}InstanceCreationInput struct {
+type {{.type_name}}CreationInput struct {
 	{{- /* TODO: generate embedded fields or use {{.type_name}}Attributes */}}
 }
 
 {{- if .lifecycle.deletion.enabled}}
 
-// {{.type_name}}InstanceDeletionInput contains data to be passed
-// as an argument when invoking the method Delete{{.type_name}}InstanceInternal
+// {{.type_name}}DeletionInput contains data to be passed
+// as an argument when invoking the method Delete{{.type_name}}Internal
 // of {{.type_name}}InstanceServiceInternal.
-type {{.type_name}}InstanceDeletionInput struct {
+type {{.type_name}}DeletionInput struct {
 {{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes string
 {{- end}}

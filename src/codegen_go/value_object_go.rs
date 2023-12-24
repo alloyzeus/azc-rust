@@ -73,11 +73,12 @@ impl GoCodeGenerator {
             out_code = "".to_string();
         }
 
-        fs::create_dir_all(self.package_dir_base_name.to_owned())?;
+        fs::create_dir_all(self.contract_package_dir_base_name.to_owned())?;
         let mut service_file = fs::OpenOptions::new()
             .write(true)
-            .create_new(true)
-            .open(format!("{}/{}.go", self.package_dir_base_name, type_name,))?;
+            .create(true)
+            .truncate(true)
+            .open(format!("{}/{}.go", self.contract_package_dir_base_name, type_name,))?;
         service_file.write_all(out_code.as_bytes())?;
 
         Ok(())

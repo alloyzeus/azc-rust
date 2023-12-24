@@ -1,4 +1,4 @@
-module: iwm
+module: iam
 
 #NOTES:
 # -> For adjuncts, lifecycle is defined by cardinality and whether it could
@@ -9,8 +9,11 @@ module: iwm
 generator_options:
   - generator: "go"
     options:
-      package_identifier: "github.com/kadisoka/kadisoka-framework/pkg/iwm"
-      package_opts:
+      packages:
+        contract: "github.com/kadisoka/kad-iam"
+        server: "github.com/kadisoka/kad-iamserver"
+        client: "github.com/kadisoka/kad-iam/client"
+      imports:
         - identifier: telephony
           uri: "github.com/kadisoka/kadisoka-framework/volib/pkg/telephony"
         - identifier: email
@@ -379,12 +382,11 @@ symbols:
       A Terminal is an authorized instance of application. A new instance of
       Terminal will be created upon sucessful authorization-authentication.
 
-      As long the the
-      authorization is still valid, a terminal could be used to access the
-      service within the limit of the granted authorization. An
-      authorization of a Terminal will become invalid when it is expired, or
-      revoked by the user, if the terminal is associated to a user, or those
-      who have the permission to revoke the authorization.
+      As long the the authorization is still valid, a terminal
+      could be used to access the service within the limit of the granted
+      authorization. An authorization of a Terminal will become invalid when
+      it is expired, or revoked by the user, if the terminal is associated
+      to a user, or those who have the permission to revoke the authorization.
 
       After a Terminal authorization is invalid, their user must re-authorize
       their instance of Application if they wish to continue using their
@@ -394,6 +396,8 @@ symbols:
 
       A sucessful authorization will generate both a new instance of
       Terminal and an instance of initial Session.
+
+      A Terminal lifecycle determines whether Sessions can be renewed.
     kind: adjunct
     parameters:
       kind: entity
@@ -517,17 +521,17 @@ symbols:
       Application's authorization is still valid. There's only one instance
       of Session active at a time for a Terminal.
 
-      An access token represents a instance of Session.
+      A Session is represented by an access token.
     kind: adjunct
     parameters:
       name_is_prepared: true
       kind: entity
       hosts:
         - kind: Terminal
-      # only one instance of Session for a Terminal active at a time
-      cardinality:
-        min: 0
-        max: 1
+          # only one instance of Session for a Terminal active at a time
+          cardinality:
+            min: 0
+            max: 1
         # TODO: parent session
       # this is a directive to expose a host of one of the hosts of this
       # adjunct.

@@ -28,7 +28,7 @@ fn main() {
         Ok(compilation_state) => {
             println!("{:?}", compilation_state);
 
-            let module_identifier = "".to_owned();
+            let module_identifier = generator_go::GeneratorGoPackagesOptions::default();
 
             let azfl_pkg_identifier = "github.com/alloyzeus/go-azfl".to_owned();
             let azcore_pkg_path = "/azcore";
@@ -39,8 +39,8 @@ fn main() {
             use codegen::CodeGenerator;
             let mut go_codegen = codegen_go::GoCodeGenerator {
                 base_dir: "testdata/output/go".to_owned(),
-                base_pkg: "pkg".to_owned(),
-                module_identifier: module_identifier,
+                base_pkg: "".to_owned(),// "pkg".to_owned(),
+                module_identifier,
                 generate_servers: true,
                 file_per_struct: false,
                 package_urls: HashMap::new(),
@@ -54,8 +54,13 @@ fn main() {
                 azerrs_import: azfl_pkg_identifier.to_string() + azerrs_pkg_path,
                 azerrs_pkg: "errors".to_owned(),
                 compilation_state: None,
-                package_identifier: "".to_owned(),
-                package_dir_base_name: "".to_owned(),
+                contract_package_identifier: "".to_owned(),
+                contract_package_dir_base_name: "".to_owned(),
+                server_package_identifier: "".to_owned(),
+                server_package_dir_base_name: "".to_owned(),
+                client_package_identifier: "".to_owned(),
+                client_package_dir_base_name: "".to_owned(),
+                service_op_call_context_type_name: "CallContext".to_owned(),
             };
 
             let entry_module = compilation_state
@@ -76,10 +81,10 @@ fn main() {
                         if let Some(go_opts) =
                             go_pkg.downcast_ref::<generator_go::GeneratorGoOptions>()
                         {
-                            go_codegen.module_identifier = go_opts.package_identifier.to_owned();
+                            go_codegen.module_identifier = go_opts.packages.to_owned();
 
                             let mut package_uris: HashMap<String, String> = HashMap::new();
-                            for o in go_opts.package_opts.clone() {
+                            for o in go_opts.imports.clone() {
                                 package_uris.insert(o.identifier.to_owned(), o.uri.to_owned());
                             }
                             go_codegen.package_urls = package_uris;
