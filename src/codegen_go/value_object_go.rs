@@ -41,7 +41,7 @@ impl GoCodeGenerator {
                     })
                     .collect::<Vec<ValueObjectStructFieldContext>>(),
             };
-            let out_tpl_bytes = include_bytes!("templates/value_object_struct.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/value_object/value_object_struct.gtmpl");
 
             out_code = render_template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
@@ -84,7 +84,7 @@ impl GoCodeGenerator {
                     prim_zero
                 },
             };
-            let out_tpl_bytes = include_bytes!("templates/value_object_alias.gtmpl");
+            let out_tpl_bytes = include_bytes!("templates/value_object/value_object_alias.gtmpl");
 
             out_code = render_template(
                 String::from_utf8_lossy(out_tpl_bytes).as_ref(),
