@@ -3,37 +3,42 @@ package {{.pkg_name}}
 import (
 	{{if eq .primitive_type_name "[]byte" -}}
 	"bytes"
-
 	{{end -}}
+	"slices"
+
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = slices.Equal[[]string]
+
 {{range .type_doc_lines -}}
 {{if .}}// {{.}}{{else}}//{{end}}
 {{end -}}
-type {{.type_name}} {{.primitive_type_name}}
+type {{.type_name}} {{.kind.fqn}}
 
 var _ {{.base.azcore_pkg}}.ValueObject = {{.type_name}}({{.primitive_zero_value}})
 var _ {{.base.azcore_pkg}}.ValueObjectAssert[{{.type_name}}] = {{.type_name}}({{.primitive_zero_value}})
 
+// Clone returns a copy of self.
+func (vo {{.type_name}}) Clone() {{.type_name}} {
+	{{if .kind.is_slice -}}
+	return slices.Clone(vo)
+	{{- else -}}
+	return vo
+	{{- end}}
+}
+
 // Equals is required by {{.base.azcore_pkg}}.ValueObject.
 func (vo {{.type_name}}) Equals(other interface{}) bool {
 	if x, ok := other.({{.type_name}}); ok {
-		{{if eq .primitive_type_name "[]byte" -}}
-		return bytes.Equal(vo, x)
-		{{- else -}}
-		return vo == x
-		{{- end}}
+		return vo.Equals{{.type_name}}(x)
 	}
 	if x, _ := other.(*{{.type_name}}); x != nil {
-		{{if eq .primitive_type_name "[]byte" -}}
-		return bytes.Equal(vo, *x)
-		{{- else -}}
-		return vo == *x
-		{{- end}}
+		return vo.Equals{{.type_name}}(*x)
 	}
 	return false
 }
@@ -51,6 +56,10 @@ func (vo {{.type_name}}) Equals{{.type_name}}(
 	{{if eq .primitive_type_name "[]byte" -}}
 	return bytes.Equal(vo, other)
 	{{- else -}}
+	{{if .kind.is_slice -}}
+	return slices.Equal(vo, other)
+	{{- else -}}
 	return vo == other
+	{{- end}}
 	{{- end}}
 }

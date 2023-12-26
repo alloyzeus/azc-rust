@@ -45,13 +45,6 @@ func {{.ref_key_type_name}}Zero() {{.ref_key_type_name}} {
 	return {{unexported_global .ref_key_type_name}}Zero
 }
 
-// AZID is required by {{.base.azid_pkg}}.ID interface.
-func ({{.ref_key_type_name}}) AZID() {}
-
-// AZAdjunctEntityID is required
-// by {{.base.azcore_pkg}}.AdjunctEntityID interface.
-func ({{.ref_key_type_name}}) AZAdjunctEntityID() {}
-
 {{- range .implements}}{{- if .is_system}}
 
 {{- end}}{{- end}}
@@ -118,7 +111,7 @@ func {{.ref_key_type_name}}FromAZIDBin(
 	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(input[0])
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			{{.base.azerrs_pkg}}.ArgWrap("input", "type parsing", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "type parsing", err)
 	}
 	if typ != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
@@ -160,13 +153,13 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 ) (id {{.ref_key_type_name}}, readLen int, err error) {
 	if typeHint != {{.base.azid_pkg}}.BinDataTypeArray {
 		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("type", "unsupported"))
+			{{.base.azerrs_pkg}}.ArgMsg("typeHint", "value unsupported")
 	}
 
 	arrayLen := int(input[0])
 	if arrayLen != {{unexported_global .ref_key_type_name}}FieldCount {
 		return {{.ref_key_type_name}}Zero(), 0,
-			{{.base.azerrs_pkg}}.Arg("", {{.base.azerrs_pkg}}.EntMsg("field count", "mismatch"))
+			{{.base.azerrs_pkg}}.ArgMsg("input", "field count mismatch")
 	}
 
 	typeCursor := 1
@@ -179,14 +172,14 @@ func {{.ref_key_type_name}}FromAZIDBinField(
 	fieldType, err = {{$.base.azid_pkg}}.BinDataTypeFromByte(input[typeCursor])
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			{{$.base.azerrs_pkg}}.ArgWrap("input", "host {{.name_unexported}} ref-key type parsing", err)
+			{{$.base.azerrs_pkg}}.ArgMW("input", "host {{.name_unexported}} ref-key type parsing", err)
 	}
 	typeCursor++
 	{{unexported_field .id_name}}, readLen, err := {{.id_name}}FromAZIDBinField(
 		input[dataCursor:], fieldType)
 	if err != nil {
 		return {{$.ref_key_type_name}}Zero(), 0,
-			{{$.base.azerrs_pkg}}.ArgWrap("input", "host {{.name_unexported}} ref-key data parsing", err)
+			{{$.base.azerrs_pkg}}.ArgMW("input", "host {{.name_unexported}} ref-key data parsing", err)
 	}
 	dataCursor += readLen
 
@@ -238,12 +231,12 @@ func {{.ref_key_type_name}}FromAZIDText(input string) ({{.ref_key_type_name}}, e
 	b, err := {{.base.azid_pkg}}.TextDecode(input)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.ArgWrap("input", "decoding", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "decoding", err)
 	}
 	id, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.ArgWrap("input", "parsing", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "parsing", err)
 	}
 	return id, nil
 }
@@ -324,10 +317,3 @@ func (id {{$.ref_key_type_name}}) With{{.identifier_name}}(
 }
 
 {{- end}}
-
-// {{.ref_key_type_name}}Error defines an interface for all
-// {{.ref_key_type_name}}-related errors.
-type {{.ref_key_type_name}}Error interface {
-	error
-	{{.ref_key_type_name}}Error()
-}

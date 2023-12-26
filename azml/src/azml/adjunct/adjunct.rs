@@ -16,6 +16,7 @@ pub struct Adjunct {
     // append an alphabet for each of them.
     pub hosts: Vec<AdjunctHost>,
 
+    // TODO: define for a set of host?
     pub cardinality: cardinality::CardinalityConstraint,
 
     pub definition: Box<dyn AdjuctDefinition>,
@@ -75,7 +76,12 @@ pub struct AdjunctHost {
     // The identifier to use. If empty, the compiler
     // will derive from kind field.
     pub name: String,
-    //TODO: uniqueness, cardinality (?)
+
+    // adjunct -> host cardinality
+    pub cardinality: cardinality::CardinalityConstraint,
+    // adjunct <- host cardinality
+    pub inverse_cardinality: cardinality::CardinalityConstraint,
+    //TODO: uniqueness (?)
 }
 
 //endregion

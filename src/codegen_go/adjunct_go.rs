@@ -150,6 +150,7 @@ impl GoCodeGenerator {
             let ref_key_type_name = format!("{}ID", type_name);
             let attrs_type_name = format!("{}Attributes", type_name);
             let service_name = format!("{}Service", type_name);
+            let server_name = format!("{}Server", type_name);
             let attributes: Vec<AttributeContext> = (&adj_ent.attributes)
                 .iter()
                 .map(|attr| attr.into())
@@ -183,6 +184,7 @@ impl GoCodeGenerator {
                 attributes_type_name: attrs_type_name.to_owned(),
                 attributes,
                 service_name: service_name.to_owned(),
+                server_name: server_name.to_owned(),
                 lifecycle: (&adj_ent.lifecycle).into(),
                 hosts: hosts_ctx,
                 id_is_id_num: id_is_id_num,
@@ -199,7 +201,10 @@ impl GoCodeGenerator {
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
+                .open(format!(
+                    "{}/{}__azgen.go",
+                    self.contract_package_dir_base_name, type_name_snake
+                ))?;
             out_file.write_all(header_code.as_bytes())?;
             out_file.write_all(
                 format!(
@@ -233,13 +238,18 @@ impl GoCodeGenerator {
                 "templates/adjunct_entity/adjunct_entity_id_num.gtmpl",
                 tpl_ctx
             );
+            render_file_region!(
+                out_file,
+                "AttrSet",
+                "templates/adjunct_entity/adjunct_entity_attributes.gtmpl",
+                tpl_ctx
+            );
             // render_file_region!(
             //     out_file,
-            //     "Attributes",
-            //     "templates/adjunct_entity/adjunct_entity_attributes.gtmpl",
+            //     "Events",
+            //     "templates/adjunct_entity/adjunct_entity_event.gtmpl",
             //     tpl_ctx
             // );
-            // render_file_region!(out_file, "Events", "templates/adjunct_entity/adjunct_entity_event.gtmpl", tpl_ctx);
             render_file_region!(
                 out_file,
                 "Instance",
@@ -256,7 +266,7 @@ impl GoCodeGenerator {
             // ServiceServerBase
             render_file!(
                 format!("{}", self.server_package_dir_base_name),
-                format!("{}ServerBase", service_name),
+                format!("{}_serverbase__azgen", type_name_snake),
                 "templates/adjunct_entity/adjunct_entity_service_server_base.gtmpl",
                 tpl_ctx,
                 ""
@@ -334,6 +344,7 @@ impl GoCodeGenerator {
         let type_name = format!("{}{}", base_type_name, type_name);
         let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
         let service_name = format!("{}Service", type_name);
+        let server_name = format!("{}Server", type_name);
         let imports = sym
             .definition
             .collect_symbol_refs()
@@ -368,6 +379,7 @@ impl GoCodeGenerator {
             },
             implements: abstracts,
             service_name: service_name.to_owned(),
+            server_name: server_name.to_owned(),
             hosts: hosts_ctx,
             one_to_one: adj.cardinality.at_max_one(),
         };
@@ -383,7 +395,10 @@ impl GoCodeGenerator {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
+            .open(format!(
+                "{}/{}__azgen.go",
+                self.contract_package_dir_base_name, type_name_snake
+            ))?;
         out_file.write_all(header_code.as_bytes())?;
         out_file.write_all(
             format!(
@@ -425,7 +440,7 @@ impl GoCodeGenerator {
         // ServiceServerBase
         render_file!(
             format!("{}", self.server_package_dir_base_name),
-            format!("{}ServerBase", service_name),
+            format!("{}_serverbase__azgen", type_name_snake),
             "templates/adjunct_prime/adjunct_prime_service_server_base.gtmpl",
             tpl_ctx,
             ""
@@ -498,6 +513,7 @@ impl GoCodeGenerator {
         let type_name_snake = type_name.to_case(Case::Snake);
         let type_doc_lines: Vec<String> = sym.documentation.lines().map(|x| x.to_owned()).collect();
         let service_name = format!("{}Service", type_name);
+        let server_name = format!("{}Server", type_name);
         let imports = sym
             .definition
             .collect_symbol_refs()
@@ -528,6 +544,7 @@ impl GoCodeGenerator {
             },
             implements: abstracts,
             service_name: service_name.to_owned(),
+            server_name: server_name.to_owned(),
             hosts: hosts_ctx,
             one_to_one: adj.cardinality.at_max_one(),
         };
@@ -543,7 +560,10 @@ impl GoCodeGenerator {
             .write(true)
             .create(true)
             .truncate(true)
-            .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
+            .open(format!(
+                "{}/{}__azgen.go",
+                self.contract_package_dir_base_name, type_name_snake
+            ))?;
         out_file.write_all(header_code.as_bytes())?;
         out_file.write_all(
             format!(
@@ -576,7 +596,7 @@ impl GoCodeGenerator {
         // ServiceServerBase
         render_file!(
             format!("{}", self.server_package_dir_base_name),
-            format!("{}ServerBase", service_name),
+            format!("{}_serverbase__azgen", type_name_snake),
             "templates/adjunct_value/adjunct_value_service_server_base.gtmpl",
             tpl_ctx,
             ""
@@ -602,6 +622,7 @@ struct AdjunctEntityContext {
     attributes_type_name: String,
     attributes: Vec<AttributeContext>,
     service_name: String,
+    server_name: String,
     lifecycle: EntityLifecycleContext,
     hosts: Vec<AdjunctHostContext>,
     id_is_id_num: bool,
@@ -631,6 +652,7 @@ struct AdjunctPrimeContext {
     ref_key_def: RefKeyContext,
     implements: Vec<AbstractContext>,
     service_name: String,
+    server_name: String,
     hosts: Vec<AdjunctHostContext>,
     one_to_one: bool,
 }

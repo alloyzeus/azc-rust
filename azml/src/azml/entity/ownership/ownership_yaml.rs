@@ -9,6 +9,7 @@ use super::ownership;
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct OwnershipYaml {
     owner_cardinality: mixin_yaml::MixinFieldYaml<cardinality_yaml::CardinalityConstraintYaml>,
+    owned_cardinality: mixin_yaml::MixinFieldYaml<cardinality_yaml::CardinalityConstraintYaml>,
 }
 
 impl convert::TryFrom<OwnershipYaml> for ownership::Ownership {
@@ -20,8 +21,13 @@ impl convert::TryFrom<OwnershipYaml> for ownership::Ownership {
             overridable: x.owner_cardinality.overridable,
             value: x.owner_cardinality.value.try_into()?,
         };
+        let owned_cardinality = mixin::MixinField::<cardinality::CardinalityConstraint> {
+            overridable: x.owned_cardinality.overridable,
+            value: x.owned_cardinality.value.try_into()?,
+        };
         Ok(Self {
-            owner_cardinality: owner_cardinality,
+            owner_cardinality,
+            owned_cardinality,
         })
     }
 }

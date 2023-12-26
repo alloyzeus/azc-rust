@@ -2,7 +2,7 @@
 
 use std::convert::{self, TryInto};
 
-use crate::azml::{data_type, symbol, value_object::value_object, yaml};
+use crate::azml::{symbol::{self, SymbolRef}, value_object::value_object, yaml};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
 pub struct ValueObjectYaml {
@@ -23,9 +23,11 @@ impl convert::TryFrom<ValueObjectYaml> for value_object::ValueObject {
             }
             "alias" => {
                 let def: ValueObjectAliasYaml = yaml::from_value(x.parameters)?;
-                let dtype = def.data_type.parse::<data_type::DataType>()?;
+                let type_ref = SymbolRef::from(def.data_type);
                 Ok(Self {
-                    definition: Box::new(value_object::ValueObjectAlias { data_type: dtype }),
+                    definition: Box::new(value_object::ValueObjectAlias {
+                        data_type: type_ref,
+                    }),
                 })
             }
             _ => Err(yaml::Error::Msg("Unrecogized value object kind".to_owned())),
@@ -44,8 +46,8 @@ impl convert::TryFrom<ValueObjectAliasYaml> for value_object::ValueObjectAlias {
     type Error = yaml::Error;
 
     fn try_from(x: ValueObjectAliasYaml) -> Result<Self, Self::Error> {
-        let dtype = x.data_type.parse::<data_type::DataType>()?;
-        Ok(Self { data_type: dtype })
+        let type_ref = SymbolRef::from(x.data_type);
+        Ok(Self { data_type: type_ref })
     }
 }
 

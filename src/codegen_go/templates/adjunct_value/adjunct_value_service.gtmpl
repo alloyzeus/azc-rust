@@ -20,4 +20,6 @@ type {{.service_name}} interface {
 		{{- end}}
 	) ([]{{.kind}}, error)
 	{{- end}}
+
+	{{- /* TODO: get by host */}}
 }

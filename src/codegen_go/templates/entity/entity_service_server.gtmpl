@@ -6,9 +6,9 @@ import (
 	"{{.pkg_path}}"
 )
 
-// {{.service_name}}Server is the server
+// {{.server_name}} is the server
 // implementation for {{.service_name}}.
-type {{.service_name}}Server struct {
+type {{.server_name}} struct {
 	*{{.pkg_name}}.{{.base.azlib_prefix}}EntityServiceServerBase
 
 	// Embed shared service implementation.
@@ -17,15 +17,15 @@ type {{.service_name}}Server struct {
 	//TODO: implement this.
 }
 
-var _ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}Server{}
-var _ {{.base.azcore_pkg}}.EntityServiceServer = &{{.service_name}}Server{}
+var _ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}{}
+var _ {{.base.azcore_pkg}}.EntityServiceServer = &{{.server_name}}{}
 
 // Observe{{.type_name}}Events subscribes to {{.type_name}}-related events.
 //
 // This method enforces full access control as it was designed to be called
 // from the inter-process API layer. For the intra-process version,
 // see Observe{{.type_name}}EventsInternal.
-func (srv *{{.service_name}}Server) Observe{{.type_name}}Events(
+func (srv *{{.server_name}}) Observe{{.type_name}}Events(
 	input {{.pkg_name}}.{{.type_name}}EventsObserveInput,
 ) {{.pkg_name}}.{{.type_name}}EventsObserveOutput {
 	//TODO
@@ -39,7 +39,7 @@ func (srv *{{.service_name}}Server) Observe{{.type_name}}Events(
 // This method enforces full access control as it was designed to be called
 // from the inter-process API layer. For the intra-process version,
 // see Create{{.type_name}}Internal.
-func (srv *{{.service_name}}Server) Create{{.type_name}}(
+func (srv *{{.server_name}}) Create{{.type_name}}(
 	input {{.pkg_name}}.{{.type_name}}CreateRequest,
 ) {{.pkg_name}}.{{.type_name}}CreateResponse {
 	//TODO: access control. after it's been cleared, continue with internal.
@@ -82,7 +82,7 @@ type {{.type_name}}CreateResponseParameters struct {
 // Create{{.type_name}}Internal is for intra-process.
 //
 //TODO: create internal input-output as the non-internal might be not available.
-func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
+func (srv *{{.server_name}}) Create{{.type_name}}Internal(
 	input {{.type_name}}CreateRequest,
 ) {{.type_name}}CreateResponse {
 	//TODO
@@ -98,7 +98,7 @@ func (srv *{{.service_name}}Server) Create{{.type_name}}Internal(
 
 // new{{.id_num_type_name}} generates a new id-num which can be assigned
 // to a new entity.
-func (srv *{{.service_name}}Server) new{{.id_num_type_name}}() ({{.pkg_name}}.{{.id_num_type_name}}, error) {
+func (srv *{{.server_name}}) new{{.id_num_type_name}}() ({{.pkg_name}}.{{.id_num_type_name}}, error) {
 	//TODO
 	return {{.pkg_name}}.{{.id_num_type_name}}Zero, nil
 }

@@ -43,6 +43,7 @@ pub struct GoCodeGenerator {
 
     pub package_urls: HashMap<String, String>,
 
+    pub iam_pkg: String,
     pub azlib_prefix: String,
 
     // AZCore is the fundamental part of the language
@@ -77,6 +78,7 @@ impl GoCodeGenerator {
                 server: self.module_identifier.server.to_owned(),
                 client: self.module_identifier.client.to_owned(),
             },
+            iam_pkg: self.iam_pkg.to_owned(),
             azlib_prefix: self.azlib_prefix.to_owned(),
             azcore_import: self.azcore_import.to_owned(),
             azcore_pkg: self.azcore_pkg.to_owned(),
@@ -222,12 +224,12 @@ impl codegen::CodeGenerator for GoCodeGenerator {
         self.contract_package_dir_base_name = format!("{}/{}", self.base_dir, self.contract_package_identifier);
         self.server_package_identifier = if self.base_pkg.is_empty() {
             format!(
-                "{}/{}",
+                "{}/{}server",
                 self.module_identifier.server, compilation_state.entry_module
             )
         } else {
             format!(
-                "{}/{}/{}",
+                "{}/{}/{}server",
                 self.module_identifier.server, self.base_pkg, compilation_state.entry_module
             )
         };
@@ -265,6 +267,7 @@ impl codegen::CodeGenerator for GoCodeGenerator {
 #[derive(Clone, Gtmpl)]
 struct BaseContext {
     mod_name: PackagesContext,
+    iam_pkg: String,
     azlib_prefix: String,
     azcore_import: String,
     azcore_pkg: String,

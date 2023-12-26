@@ -42,13 +42,6 @@ func (id {{.ref_key_type_name}}) PrimitiveValue() {{.id_num_def.type_name}} {
 	return {{.id_num_def.type_name}}(id)
 }
 
-// AZID is required for conformance with {{.base.azid_pkg}}.ID.
-func ({{.ref_key_type_name}}) AZID() {}
-
-// AZEntityID is required for conformance
-// with {{.base.azcore_pkg}}.EntityID.
-func ({{.ref_key_type_name}}) AZEntityID() {}
-
 // IDNum returns the scoped identifier of the entity.
 func (id {{.ref_key_type_name}}) IDNum() {{.id_num_type_name}} {
 	return {{.id_num_type_name}}(id)
@@ -135,7 +128,7 @@ func {{.ref_key_type_name}}FromAZIDBin(
 	typ, err := {{.base.azid_pkg}}.BinDataTypeFromByte(input[0])
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			{{.base.azerrs_pkg}}.ArgWrap("input", "type parsing", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "type parsing", err)
 	}
 	if typ != {{.id_num_type_name}}BinDataType {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
@@ -145,7 +138,7 @@ func {{.ref_key_type_name}}FromAZIDBin(
 	i, readLen, err := {{.ref_key_type_name}}FromAZIDBinField(input[1:], typ)
 	if err != nil {
 		return {{unexported_global .ref_key_type_name}}Zero, 0,
-			{{.base.azerrs_pkg}}.ArgWrap("input", "id-num parsing", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "id-num parsing", err)
 	}
 
 	return {{.ref_key_type_name}}(i), 1 + readLen, nil
@@ -214,12 +207,12 @@ func {{.ref_key_type_name}}FromAZIDText(input string) ({{.ref_key_type_name}}, e
 	b, err := {{.base.azid_pkg}}.TextDecode(input)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.ArgWrap("input", "decoding", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "decoding", err)
 	}
 	id, _, err := {{.ref_key_type_name}}FromAZIDBin(b)
 	if err != nil {
 		return {{.ref_key_type_name}}Zero(),
-			{{.base.azerrs_pkg}}.ArgWrap("input", "parsing", err)
+			{{.base.azerrs_pkg}}.ArgMW("input", "parsing", err)
 	}
 	return id, nil
 }
@@ -275,11 +268,4 @@ type {{.ref_key_type_name}}Service interface {
 	// trully registered to system. It does not check whether the instance
 	// is active or not.
 	Is{{.ref_key_type_name}}Registered(id {{.ref_key_type_name}}) bool
-}
-
-// {{.ref_key_type_name}}Error defines an interface for all
-// {{.ref_key_type_name}}-related errors.
-type {{.ref_key_type_name}}Error interface {
-	error
-	{{.ref_key_type_name}}Error()
 }

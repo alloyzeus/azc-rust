@@ -70,9 +70,10 @@ impl Clone for Box<dyn SymbolDefinition> {
 //region SymbolRef
 
 #[derive(Clone, Debug)]
-pub struct SymbolRef {
+pub struct SymbolRef { // TODO: rename to TypeRef
     pub package_identifier: String,
     pub symbol_name: String,
+    pub is_slice: bool,
 
     //TODO: this should be optional. if the target symbol is an entity,
     // we defaults to reference.
@@ -87,25 +88,33 @@ impl From<String> for SymbolRef {
 
 impl From<&String> for SymbolRef {
     fn from(s: &String) -> Self {
-        // might not need to explicitly declare the reference.
-        let is_reference: bool = s.starts_with("@");
-        let s = if let Some(x) = s.strip_prefix("@") {
-            x
+        let is_slice = s.starts_with("list of ");
+        let s = if let Some(x) = s.strip_prefix("list of ") {
+            x.to_string()
         } else {
-            s
+            s.to_owned()
+        };
+        // might not need to explicitly declare the reference.
+        let is_reference = s.starts_with("@");
+        let s = if let Some(x) = s.strip_prefix("@") {
+            x.to_string()
+        } else {
+            s.to_owned()
         };
         let parts: Vec<&str> = s.rsplitn(2, ".").collect();
         if parts.len() == 2 {
             Self {
                 package_identifier: parts[1].to_owned(),
                 symbol_name: parts[0].to_owned(),
-                is_reference: is_reference,
+                is_slice,
+                is_reference,
             }
         } else {
             Self {
                 package_identifier: "".to_owned(),
                 symbol_name: s.to_owned(),
-                is_reference: is_reference,
+                is_slice,
+                is_reference,
             }
         }
     }

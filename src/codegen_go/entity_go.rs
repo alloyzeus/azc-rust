@@ -37,9 +37,11 @@ impl GoCodeGenerator {
         if let Some(id_int) = id_num_def.downcast_ref::<id_num::IntegerIdNum>() {
             let id_num_type_name = format!("{}IDNum", type_name);
             let ref_key_type_name = format!("{}ID", type_name);
-            let attrs_type_name = format!("{}Attributes", type_name);
+            let attrs_type_name = format!("{}AttrSet", type_name);
             let event_interface_name = format!("{}Event", type_name);
             let service_name = format!("{}Service", type_name);
+            let server_name = format!("{}Server", type_name);
+            //let service_name_snake = service_name.to_case(Case::Snake);
             let type_doc_lines: Vec<String> =
                 symbol.documentation.lines().map(|x| x.to_owned()).collect();
             let attributes: Vec<AttributeContext> =
@@ -98,6 +100,7 @@ impl GoCodeGenerator {
                 attributes,
                 event_interface_name: event_interface_name.to_owned(),
                 service_name: service_name.to_owned(),
+                server_name: server_name.to_owned(),
                 lifecycle: (&ent.lifecycle).into(),
             };
 
@@ -111,7 +114,10 @@ impl GoCodeGenerator {
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open(format!("{}/{}__azgen.go", self.contract_package_dir_base_name, type_name_snake))?;
+                .open(format!(
+                    "{}/{}__azgen.go",
+                    self.contract_package_dir_base_name, type_name_snake
+                ))?;
             out_file.write_all(header_code.as_bytes())?;
             out_file.write_all(format!("\n// Entity {}.\n", type_name).as_bytes())?;
             if !type_doc_lines.is_empty() {
@@ -138,13 +144,18 @@ impl GoCodeGenerator {
                 "templates/entity/entity_id_num.gtmpl",
                 tpl_ctx
             );
+            render_file_region!(
+                out_file,
+                "AttrSet",
+                "templates/entity/entity_attributes.gtmpl",
+                tpl_ctx
+            );
             // render_file_region!(
             //     out_file,
-            //     "Attributes",
-            //     "templates/entity/entity_attributes.gtmpl",
+            //     "Events",
+            //     "templates/entity/entity_event.gtmpl",
             //     tpl_ctx
             // );
-            // render_file_region!(out_file, "Events", "templates/entity/entity_event.gtmpl", tpl_ctx);
             render_file_region!(
                 out_file,
                 "Instance",
@@ -176,7 +187,7 @@ impl GoCodeGenerator {
             // ServiceServerBase
             render_file!(
                 format!("{}", self.server_package_dir_base_name),
-                format!("{}ServerBase", service_name),
+                format!("{}_serverbase__azgen", type_name_snake),
                 "templates/entity/entity_service_server_base.gtmpl",
                 tpl_ctx,
                 ""
@@ -226,6 +237,7 @@ struct EntityContext {
     attributes: Vec<AttributeContext>,
     event_interface_name: String,
     service_name: String,
+    server_name: String,
     lifecycle: EntityLifecycleContext,
 }
 

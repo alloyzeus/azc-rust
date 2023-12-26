@@ -20,8 +20,4 @@ type {{.base.azlib_prefix}}EntityServiceServerBase struct {
 
 var _ {{.base.azlib_prefix}}EntityServiceServer = &{{.base.azlib_prefix}}EntityServiceServerBase{}
 
-// AZEntityServiceServer is required for conformance
-// with {{.base.azcore_pkg}}.EntityService.
-func (srv *{{.base.azlib_prefix}}EntityServiceServerBase) AZEntityServiceServer() {}
-
 //endregion

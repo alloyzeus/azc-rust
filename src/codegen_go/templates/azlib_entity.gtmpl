@@ -6,22 +6,14 @@ import (
 
 // This file contains specializations of azfl types.
 
-//region EntityAttributesBase
+//region EntityAttrSetBase
 
-// {{.base.azlib_prefix}}EntityAttributesBase is
-// a partial implementation of {{.base.azcore_pkg}}.EntityAttributes.
+// {{.base.azlib_prefix}}EntityAttrSetBase is
+// a partial implementation of {{.base.azcore_pkg}}.EntityAttrSet.
 // This struct was designed to be embedded in other
-// {{.base.azcore_pkg}}.EntityAttributes implementations.
-type {{.base.azlib_prefix}}EntityAttributesBase struct {
+// {{.base.azcore_pkg}}.EntityAttrSet implementations.
+type {{.base.azlib_prefix}}EntityAttrSetBase struct {
 }
-
-// AZAttributes is required
-// for conformance with {{.base.azcore_pkg}}.Attributes
-func (attrs {{.base.azlib_prefix}}EntityAttributesBase) AZAttributes() {}
-
-// AZEntityAttributes is required
-// for conformance with {{.base.azcore_pkg}}.EntityAttributes
-func (attrs {{.base.azlib_prefix}}EntityAttributesBase) AZEntityAttributes() {}
 
 //endregion
 
@@ -43,10 +35,6 @@ type {{.base.azlib_prefix}}EntityServiceBase struct {
 
 var _ {{.base.azlib_prefix}}EntityService = &{{.base.azlib_prefix}}EntityServiceBase{}
 
-// AZEntityService is required for conformance
-// with {{.base.azcore_pkg}}.EntityService.
-func (svc *{{.base.azlib_prefix}}EntityServiceBase) AZEntityService() {}
-
 //endregion
 
 //region EntityCreation
@@ -62,10 +50,6 @@ type {{.base.azlib_prefix}}EntityCreationResponseContext struct {
 type {{.base.azlib_prefix}}EntityCreationEventBase struct {
 	{{.base.azcore_pkg}}.EntityCreationEventBase
 }
-
-func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEntityEvent() {}
-
-func (evt {{.base.azlib_prefix}}EntityCreationEventBase) AZEvent() {}
 
 type {{.base.azlib_prefix}}EntityCreationInfo struct {
 	{{.base.azcore_pkg}}.EntityCreationInfoBase

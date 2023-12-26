@@ -1,26 +1,95 @@
 package {{.pkg_name}}server
 
 import (
+	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/binary"
 
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
+	{{- range .imports}}
+	{{.alias}} "{{.url}}"
+	{{- end}}
 
 	"{{.pkg_path}}"
 )
 
-const (
-	{{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
-)
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the azfl package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// azfl package needs to be updated.
+var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 
-// {{.service_name}}Serverbase is the server-side
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = binary.BigEndian
+var _ = context.Canceled
+var _ = errors.ErrUnimplemented
+var _ = rand.Reader
+
+// ----
+
+// {{.server_name}}Base is the server-side
 // base implementation of {{.service_name}}.
-type {{.service_name}}ServerBase struct {
+type {{.server_name}}Base struct {
 	db *sql.DB
 }
 
+// Interface conformance assertions.
+var (
+	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}Base{}
+)
+{{- if .one_to_one}}
+
+func (srv *{{.server_name}}Base) Get{{.type_name}}(
+	ctx context.Context,
+	{{- range .hosts}}
+	{{arg_name .id_name}} {{$.pkg_name}}.{{.id_name}},
+	{{- end}}
+) (*{{.kind}}, error) {
+	callMD := iam.CallMetadataOf(ctx)
+	if callMD == nil {
+		return nil, iam.ErrCallMetadataContextNotFound
+	}
+	if err := callMD.ContextError(); err != nil {
+		return nil, err
+	}
+	callAuth := callMD.Authorization()
+
+	// // e.g., Oso
+	// allowed, err := srv.authzEngine.Authorize(ctx, "get", {{.type_name}}ID(userID))
+	// if err != nil {
+	//	return nil, errors.Op("permission check", err)
+	// }
+	// if !allowed {
+	//	return nil, errors.AccessForbidden()
+	// }
+
+	//TODO(exa):
+	{{- /* TODO: only when the host is User */}}
+	{{- /* TODO: de-hardcode */}}
+	// - respect privacy settings
+	// - ensure context user has the right permission
+	//
+	//  For now, we are limiting access to own data
+	if !callAuth.IsUser(userID) { 
+		return nil, {{.base.azerrs_pkg}}.AccessForbidden()
+	}
+
+	return srv.get{{.type_name}}Insecure(
+		ctx,
+		{{- range .hosts}}
+		{{arg_name .id_name}},
+		{{- end}}
+	)
+}
+{{- end}}
+
+// ----
+
 const (
+	{{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
+
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_cr_ts"
 	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_cr_tid"
 	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_cr_uid"

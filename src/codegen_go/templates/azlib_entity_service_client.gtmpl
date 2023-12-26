@@ -19,8 +19,4 @@ type {{.base.azlib_prefix}}EntityServiceClientBase struct {
 
 var _ {{.base.azlib_prefix}}EntityServiceClient = &{{.base.azlib_prefix}}EntityServiceClientBase{}
 
-// AZEntityServiceClient is required for conformance
-// with {{.base.azcore_pkg}}.EntityService.
-func (svc *{{.base.azlib_prefix}}EntityServiceClientBase) AZEntityServiceClient() {}
-
 //endregion

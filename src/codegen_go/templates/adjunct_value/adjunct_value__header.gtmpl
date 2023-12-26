@@ -1,6 +1,7 @@
 package {{.pkg_name}}
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"strings"
@@ -22,6 +23,7 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = {{.base.azid_pkg}}.BinDataTypeUnspecified
 var _ = {{.base.azerrs_pkg}}.ErrUnimplemented
+var _ = context.Canceled
 var _ = binary.MaxVarintLen16
 var _ = rand.Reader
 var _ = strings.Compare

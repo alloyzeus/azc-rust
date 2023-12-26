@@ -1,8 +1,10 @@
 package {{.pkg_name}}
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/binary"
+	"slices"
 	"strings"
 
 	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
@@ -23,5 +25,7 @@ var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 var _ = {{.base.azid_pkg}}.BinDataTypeUnspecified
 var _ = {{.base.azerrs_pkg}}.ErrUnimplemented
 var _ = binary.MaxVarintLen16
+var _ = context.Canceled
 var _ = rand.Reader
+var _ = slices.Equal[[]string]
 var _ = strings.Compare

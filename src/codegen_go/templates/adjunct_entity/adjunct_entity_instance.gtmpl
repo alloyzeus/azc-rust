@@ -124,19 +124,19 @@ func (instDelInfo {{.type_name}}DeletionState) DeletionNotes() string {
 type {{.type_name}}InstanceServiceInternal interface {
 }
 
-// {{.type_name}}CreationInput contains data to be passed
+// {{.type_name}}CreationParams contains data to be passed
 // as an argument when invoking the method Create{{.type_name}}Internal
 // of {{.type_name}}InstanceServiceInternal.
-type {{.type_name}}CreationInput struct {
-	{{- /* TODO: generate embedded fields or use {{.type_name}}Attributes */}}
+type {{.type_name}}CreationParams struct {
+	{{- /* TODO: generate embedded fields or use {{.type_name}}AttrSet */}}
 }
 
 {{- if .lifecycle.deletion.enabled}}
 
-// {{.type_name}}DeletionInput contains data to be passed
+// {{.type_name}}DeletionParams contains data to be passed
 // as an argument when invoking the method Delete{{.type_name}}Internal
 // of {{.type_name}}InstanceServiceInternal.
-type {{.type_name}}DeletionInput struct {
+type {{.type_name}}DeletionParams struct {
 {{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes string
 {{- end}}

@@ -25,7 +25,7 @@ impl From<&attribute::Attribute> for AttributeContext {
             identifier: x.name.to_owned(),
             kind: (&x.kind).into(),
             finality: (&x.finality).into(),
-            db_col_name: db_col_name,
+            db_col_name,
         }
     }
 }

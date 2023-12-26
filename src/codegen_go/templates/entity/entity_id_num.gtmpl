@@ -59,22 +59,6 @@ func (idNum {{.id_num_type_name}}) PrimitiveValue() {{.id_num_def.type_name}} {
 // Clone returns a copy of self.
 func (idNum {{.id_num_type_name}}) Clone() {{.id_num_type_name}} { return idNum }
 
-// AZIDNum is required for conformance
-// with {{.base.azid_pkg}}.IDNum.
-func ({{.id_num_type_name}}) AZIDNum() {}
-
-// AZEntityIDNum is required for conformance
-// with {{.base.azcore_pkg}}.EntityIDNum.
-func ({{.id_num_type_name}}) AZEntityIDNum() {}
-
-{{- range .implements}}{{- if .is_system}}
-
-// AZ{{.type_name}}IDNum is required for conformance
-// with {{$.base.azcore_pkg}}.{{.type_name}}IDNum.
-func ({{$.id_num_type_name}}) AZ{{.type_name}}IDNum() {}
-
-{{- end}}{{- end}}
-
 // IsZero is required as {{.id_num_type_name}} is a value-object.
 func (idNum {{.id_num_type_name}}) IsZero() bool {
 	return idNum == {{.id_num_type_name}}Zero
@@ -189,10 +173,5 @@ func (idNum {{$.id_num_type_name}}) Has{{.identifier}}Bits() bool {
 }
 
 {{- end}}
-
-type {{.id_num_type_name}}Error interface {
-	error
-	{{.id_num_type_name}}Error()
-}
 
 {{- /* TODO: (Un)MarshalText (for SQL?) */}}

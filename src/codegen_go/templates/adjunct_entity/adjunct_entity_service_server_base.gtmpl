@@ -1,50 +1,63 @@
 package {{.pkg_name}}server
 
 import (
+	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/binary"
 
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
 	{{.base.azerrs_pkg}} "{{.base.azerrs_import}}"
-	lru "github.com/hashicorp/golang-lru"
+	goqu "github.com/doug-martin/goqu/v9"
+	lru "github.com/hashicorp/golang-lru/v2"
 
 	"{{.pkg_path}}"
 )
 
-const (
-	{{unexported_field .type_name}}DBTableName           = "{{.type_name_snake}}_dt"
-	{{unexported_field .type_name}}DBTablePrimaryKeyName = {{unexported_field .type_name}}DBTableName + "_pkey"
-)
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the azfl package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// azfl package needs to be updated.
+var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
 
-// {{.service_name}}Serverbase is the server-side
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = context.Canceled
+var _ = goqu.Wait
+
+// ----
+
+// {{.server_name}}Base is the server-side
 // base implementation of {{.service_name}}.
-type {{.service_name}}ServerBase struct {
+type {{.server_name}}Base struct {
 	db *sql.DB
 
-	deletionTxHook func(
+	{{unexported_field .ref_key_type_name}}DeletionTxHook func(
 		ctx {{.base.service_op_call_context_type_name}},
-		deletionTx *sql.Tx, instanceIDBeingDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
-	deletionHook func(
+		deletionTx *sql.Tx,
+		instanceIDBeingDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
+	{{unexported_field .ref_key_type_name}}DeletionHook func(
 		ctx {{.base.service_op_call_context_type_name}},
 		instanceIDDeleted ...{{.pkg_name}}.{{.ref_key_type_name}}) error
 
-	registered{{.ref_key_type_name}}Cache *lru.ARCCache
-	deleted{{.ref_key_type_name}}Cache    *lru.ARCCache
+	registered{{.ref_key_type_name}}Cache *lru.TwoQueueCache[{{.pkg_name}}.{{.ref_key_type_name}}, bool]
+	deleted{{.ref_key_type_name}}Cache    *lru.TwoQueueCache[{{.pkg_name}}.{{.ref_key_type_name}}, bool]
 }
 
 // Interface conformance assertions.
 var (
-	_ {{.pkg_name}}.{{.service_name}} = &{{.service_name}}ServerBase{}
-	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.service_name}}ServerBase{}
+	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}Base{}
+	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.server_name}}Base{}
 )
 
-func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
+func (srv *{{.server_name}}Base) Is{{.ref_key_type_name}}Registered(
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) bool {
-	idStr := id.AZIDText()
+	if id.IsNotStaticallyValid() {
+		return false
+	}
 
 	// Look up for the ID num in the cache.
-	if _, idRegistered := srv.registered{{.ref_key_type_name}}Cache.Get(idStr); idRegistered {
+	if _, idRegistered := srv.registered{{.ref_key_type_name}}Cache.Get(id); idRegistered {
 		return true
 	}
 
@@ -55,7 +68,7 @@ func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
 	}
 
 	if idRegistered {
-		srv.registered{{.ref_key_type_name}}Cache.Add(idStr, nil)
+		srv.registered{{.ref_key_type_name}}Cache.Remove(id)
 	}
 
 	return idRegistered
@@ -67,7 +80,7 @@ func (srv *{{.service_name}}ServerBase) Is{{.ref_key_type_name}}Registered(
 //
 // If it's required only to determine the existence of the ID,
 // Is{{.ref_key_type_name}}Registered is generally more efficient.
-func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceState(
+func (srv *{{.server_name}}Base) Get{{.type_name}}InstanceState(
 	ctx {{.base.service_op_call_context_type_name}},
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceState, error) {
@@ -75,24 +88,27 @@ func (srv *{{.service_name}}ServerBase) Get{{.type_name}}InstanceState(
 	return srv.get{{.type_name}}InstanceStateInsecure(ctx, id)
 }
 
-func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateInsecure(
+func (srv *{{.server_name}}Base) get{{.type_name}}InstanceStateInsecure(
 	ctx {{.base.service_op_call_context_type_name}},
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceState, error) {
+	if id.IsNotStaticallyValid() {
+		return nil, nil
+	}
+
 	idRegistered := false
 	idRegisteredCacheHit := false
 	instDeleted := false
 	instDeletionCacheHit := false
-	idStr := id.AZIDText()
 
 	// Look up for the ID num in the cache.
-	if _, idRegistered = srv.registered{{.ref_key_type_name}}Cache.Get(idStr); idRegistered {
+	if _, idRegistered = srv.registered{{.ref_key_type_name}}Cache.Get(id); idRegistered {
 		// ID num is positively registered.
 		idRegisteredCacheHit = true
 	}
 
 	// Look up in the deletion cache
-	if _, instDeleted = srv.deleted{{.ref_key_type_name}}Cache.Get(idStr); instDeleted {
+	if _, instDeleted = srv.deleted{{.ref_key_type_name}}Cache.Get(id); instDeleted {
 		// Instance is positively deleted
 		instDeletionCacheHit = true
 	}
@@ -120,10 +136,10 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateInsecure(
 	}
 
 	if !idRegisteredCacheHit && idRegistered {
-		srv.registered{{.ref_key_type_name}}Cache.Add(idStr, nil)
+		srv.registered{{.ref_key_type_name}}Cache.Remove(id)
 	}
 	if !instDeletionCacheHit && instDeleted {
-		srv.deleted{{.ref_key_type_name}}Cache.Add(idStr, nil)
+		srv.deleted{{.ref_key_type_name}}Cache.Remove(id)
 	}
 
 	if !idRegistered {
@@ -144,7 +160,7 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateInsecure(
 	}, nil
 }
 
-func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByID(
+func (srv *{{.server_name}}Base) get{{.type_name}}InstanceStateByID(
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (idRegistered, instanceDeleted bool, err error) {
 	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
@@ -156,9 +172,9 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByID(
 		).
 		Where(
 			{{if not .id_is_id_num -}}{{range .hosts -}}
-			goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq(id.{{.identifier_name}}().IDNum().PrimitiveValue()),
+			goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq(azIDToSQLValue(id.{{.identifier_name}}())),
 			{{end}}{{- end -}}
-			goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(id.IDNum().PrimitiveValue()),
+			goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(azIDToSQLValue(id)),
 		).
 		ToSQL()
 
@@ -175,54 +191,67 @@ func (srv *{{.service_name}}ServerBase) get{{.type_name}}InstanceStateByID(
 	return true, instanceDeleted, nil
 }
 
-func (srv *{{.service_name}}ServerBase) Delete{{.type_name}}Internal(
+func (srv *{{.server_name}}Base) Delete{{.type_name}}Internal(
 	ctx {{.base.service_op_call_context_type_name}},
 	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
-	input {{.pkg_name}}.{{.type_name}}DeletionInput,
+	params {{.pkg_name}}.{{.type_name}}DeletionParams,
 ) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceState, err error) {
-	if ctx == nil {
-		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), nil
-	}
-
 {{- /*TODO: only if it's trully implement User */}}
 {{- if eq .type_name "User"}}
-	ctxAuth := ctx.Authorization()
-	if !ctxAuth.IsUser(instanceIDToDelete) {
-		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), nil //TODO: should be an error
+	callMD := {{.base.iam_pkg}}.CallMetadataOf(ctx)
+	if callMD == nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(),
+			{{.base.iam_pkg}}.ErrCallMetadataContextNotFound
+	}
+	if err := callMD.ContextError(); err != nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), err
+	}
+	callAuth := callMD.Authorization()
+
+	if !callAuth.IsUser(instanceIDToDelete) {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), {{.base.azerrs_pkg}}.AccessForbidden()
 	}
 {{- end}}
 
 	//TODO: access control
 
-	return srv.delete{{.type_name}}Insecure(ctx, instanceIDToDelete, input)
+	return srv.delete{{.type_name}}Insecure(ctx, instanceIDToDelete, params)
 }
 
-func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
+func (srv *{{.server_name}}Base) delete{{.type_name}}Insecure(
 	ctx {{.base.service_op_call_context_type_name}},
 	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
-	input {{.pkg_name}}.{{.type_name}}DeletionInput,
+	params {{.pkg_name}}.{{.type_name}}DeletionParams,
 ) (justDeleted bool, currentState {{.pkg_name}}.{{.type_name}}InstanceState, err error) {
-	ctxAuth := ctx.Authorization()
-	ctxTime := ctx.CallInputMetadata().ReceiveTime
+	callMD := {{.base.iam_pkg}}.CallMetadataOf(ctx)
+	if callMD == nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(),
+			{{.base.iam_pkg}}.ErrCallMetadataContextNotFound
+	}
+	if err := callMD.ContextError(); err != nil {
+		return false, {{.pkg_name}}.{{.type_name}}InstanceStateZero(), err
+	}
+	callAuth := callMD.Authorization()
+	callTS := callMD.ReceiveTime()
 
 	err = doTx(srv.db, func(dbTx *sql.Tx) error {
 		sqlString, _, _ := goqu.
 			From({{unexported_field .type_name}}DBTableName).
 			Where(
 				{{if not .id_is_id_num -}}{{range .hosts -}}
-				goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq(instanceIDToDelete.{{.identifier_name}}().IDNum().PrimitiveValue()),
+				goqu.C({{unexported_field $.type_name}}DBCol{{.id_name}}).Eq(azIDToSQLValue(instanceIDToDelete.{{.identifier_name}}())),
 				{{end}}{{- end -}}
-				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(instanceIDToDelete.IDNum().PrimitiveValue()),
+				goqu.C({{unexported_field .type_name}}DBColIDNum).Eq(azIDToSQLValue(instanceIDToDelete)),
 				goqu.C({{unexported_field .type_name}}DBColMDDeletionTimestamp).IsNull(),
 			).
 			Update().
 			Set(
 				goqu.Record{
-					{{unexported_field .type_name}}DBColMDDeletionTimestamp: ctxTime,
-					{{unexported_field .type_name}}DBColMDDeletionTerminalID: ctxAuth.TerminalIDNum().PrimitiveValue(),
-					{{unexported_field .type_name}}DBColMDDeletionUserID: ctxAuth.UserIDNum().PrimitiveValue(),
+					{{unexported_field .type_name}}DBColMDDeletionTimestamp: callTS,
+					{{unexported_field .type_name}}DBColMDDeletionTerminalID: azIDToSQLValue(callAuth.TerminalID()),
+					{{unexported_field .type_name}}DBColMDDeletionUserID: azIDToSQLValue(callAuth.UserID()),
 					{{- if .lifecycle.deletion.notes.enabled}}
-					{{unexported_field .type_name}}DBColMDDeletionNotes: input.DeletionNotes,
+					{{unexported_field .type_name}}DBColMDDeletionNotes: params.DeletionNotes,
 					{{- end}}
 				},
 			).
@@ -239,7 +268,7 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
 		}
 		justDeleted = n == 1
 
-		if cb := srv.deletionTxHook; cb != nil {
+		if cb := srv.{{unexported_field .ref_key_type_name}}DeletionTxHook; cb != nil {
 			return cb(ctx, dbTx, instanceIDToDelete)
 		}
 
@@ -254,10 +283,10 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
 		deletion = &{{.pkg_name}}.{{.type_name}}DeletionState{
 			Deleted_: true,
 			{{- if .lifecycle.deletion.notes.enabled}}
-			DeletionNotes_: input.DeletionNotes,
+			DeletionNotes_: params.DeletionNotes,
 			{{- end -}}
 		}
-		if cb := srv.deletionHook; cb != nil {
+		if cb := srv.{{unexported_field .ref_key_type_name}}DeletionHook; cb != nil {
 			cb(ctx, instanceIDToDelete)
 		}
 	} else {
@@ -280,7 +309,12 @@ func (srv *{{.service_name}}ServerBase) delete{{.type_name}}Insecure(
 	return justDeleted, currentState, nil
 }
 
+// ----
+
 const (
+	{{unexported_field .type_name}}DBTableName           = "{{.type_name_snake}}_dt"
+	{{unexported_field .type_name}}DBTablePrimaryKeyName = {{unexported_field .type_name}}DBTableName + "_pkey"
+
 	// Creation metadata columns
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_cr_ts"
 	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_cr_tid"
@@ -314,6 +348,8 @@ const (
 	{{- end}}
 )
 
+// ----
+
 {{- /* TODO: generate the following generator function only when the id num is random */}}
 
 // Generate{{.id_num_type_name}} generates a new {{.pkg_name}}.{{.id_num_type_name}}.
@@ -332,7 +368,7 @@ func Generate{{.id_num_type_name}}(
 	idBytes := make([]byte, {{.id_num_def.primitive_size_bytes}})
 	_, err := rand.Read(idBytes)
 	if err != nil {
-		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Op("random number source reading").Wrap(err)
+		return {{.pkg_name}}.{{.id_num_type_name}}Zero, {{.base.azerrs_pkg}}.Op("random number source reading", err)
 	}
 
 	idUint := (embeddedFieldBits & {{.pkg_name}}.{{.id_num_type_name}}EmbeddedFieldsMask) |

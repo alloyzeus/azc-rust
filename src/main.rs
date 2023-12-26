@@ -30,7 +30,7 @@ fn main() {
 
             let module_identifier = generator_go::GeneratorGoPackagesOptions::default();
 
-            let azfl_pkg_identifier = "github.com/alloyzeus/go-azfl".to_owned();
+            let azfl_pkg_identifier = "github.com/alloyzeus/go-azfl/v2".to_owned();
             let azcore_pkg_path = "/azcore";
             let azid_pkg_path = "/azid";
             let azob_pkg_path = "/azob";
@@ -44,6 +44,7 @@ fn main() {
                 generate_servers: true,
                 file_per_struct: false,
                 package_urls: HashMap::new(),
+                iam_pkg: "iam".to_owned(),
                 azlib_prefix: "AZx".to_owned(),
                 azcore_import: azfl_pkg_identifier.to_string() + azcore_pkg_path,
                 azcore_pkg: "azcore".to_owned(),
@@ -60,7 +61,7 @@ fn main() {
                 server_package_dir_base_name: "".to_owned(),
                 client_package_identifier: "".to_owned(),
                 client_package_dir_base_name: "".to_owned(),
-                service_op_call_context_type_name: "CallContext".to_owned(),
+                service_op_call_context_type_name: "context.Context".to_owned(),
             };
 
             let entry_module = compilation_state

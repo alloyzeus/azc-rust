@@ -124,7 +124,7 @@ func (instDelInfo {{.type_name}}DeletionState) DeletionNotes() string {
 type {{.type_name}}InstanceServiceInternal interface {
 	Create{{.type_name}}Internal(
 		ctx {{.base.service_op_call_context_type_name}},
-		input {{.type_name}}CreationInput,
+		input {{.type_name}}CreationParams,
 	) (id {{.ref_key_type_name}}, initialState {{.type_name}}InstanceState, err error);
 
 	{{- if .lifecycle.deletion.enabled}}
@@ -137,25 +137,25 @@ type {{.type_name}}InstanceServiceInternal interface {
 	Delete{{.type_name}}Internal(
 		ctx {{.base.service_op_call_context_type_name}},
 		idOfInstToDel {{.ref_key_type_name}},
-		input {{.type_name}}DeletionInput,
+		input {{.type_name}}DeletionParams,
 	) (justDeleted bool, currentState {{.type_name}}InstanceState, err error)
 
 	{{- end}}
 }
 
-// {{.type_name}}CreationInput contains data to be passed
+// {{.type_name}}CreationParams contains data to be passed
 // as an argument when invoking the method Create{{.type_name}}Internal
 // of {{.type_name}}InstanceServiceInternal.
-type {{.type_name}}CreationInput struct {
-	{{- /* TODO: generate embedded fields or use {{.type_name}}Attributes */}}
+type {{.type_name}}CreationParams struct {
+	{{- /* TODO: generate embedded fields or use {{.type_name}}AttrSet */}}
 }
 
 {{- if .lifecycle.deletion.enabled}}
 
-// {{.type_name}}DeletionInput contains data to be passed
+// {{.type_name}}DeletionParams contains data to be passed
 // as an argument when invoking the method Delete{{.type_name}}Internal
 // of {{.type_name}}InstanceServiceInternal.
-type {{.type_name}}DeletionInput struct {
+type {{.type_name}}DeletionParams struct {
 {{- if .lifecycle.deletion.notes.enabled}}
 	DeletionNotes string
 {{- end}}

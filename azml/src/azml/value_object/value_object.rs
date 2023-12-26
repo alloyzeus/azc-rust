@@ -1,6 +1,6 @@
 //
 
-use crate::azml::{data_type, symbol};
+use crate::azml::symbol;
 
 //region ValueObject
 
@@ -51,8 +51,7 @@ mopafy!(ValueObjectDefinition);
 // or a named struct.
 #[derive(Clone, Debug)]
 pub struct ValueObjectAlias {
-    //TODO: Not limited to primitives, i.e., use SymbolRef
-    pub data_type: data_type::DataType,
+    pub data_type: symbol::SymbolRef,
 }
 
 impl ValueObjectDefinition for ValueObjectAlias {}

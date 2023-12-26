@@ -15,9 +15,9 @@ generator_options:
         client: "github.com/kadisoka/kad-iam/client"
       imports:
         - identifier: telephony
-          uri: "github.com/kadisoka/kadisoka-framework/volib/pkg/telephony"
+          uri: "github.com/kadisoka/kad-volib/telephony"
         - identifier: email
-          uri: "github.com/kadisoka/kadisoka-framework/volib/pkg/email"
+          uri: "github.com/kadisoka/kad-volib/email"
 
 server:
   #TODO: directives for generating server packages and applications.
@@ -133,18 +133,18 @@ symbols:
         unique: true
 
   # TODO: must be unique when verified
-  - identifier: KeyBlockchainAddress
-    documentation: |
-      A key blockchain address is a blockchain address that can be used as
-      the identifier for logging in by the specified user.
-    kind: adjunct
-    parameters:
-      kind: value
-      hosts:
-        - kind: User
-      parameters:
-        kind: BlockchainAddress
-        unique: true
+  # - identifier: KeyBlockchainAddress
+  #   documentation: |
+  #     A key blockchain address is a blockchain address that can be used as
+  #     the identifier for logging in by the specified user.
+  #   kind: adjunct
+  #   parameters:
+  #     kind: value
+  #     hosts:
+  #       - kind: User
+  #     parameters:
+  #       kind: BlockchainAddress
+  #       unique: true
 
   - identifier: Application
     documentation: |
@@ -316,66 +316,79 @@ symbols:
       mixins:
         - kind: Ownership
           parameters:
+            # TODO: owner type param. it should entity that has agency.
+            # Owner cardinality limits the number of owner of an Entity
+            # instance.
             owner_cardinality:
               # overridable means that the configuration could be overriden
               # through, e.g., environment variables or config server.
               # RFC: should we, instead making these value here as value
               # available in config server?
               overridable: true
+              # This means that an application instance must be owned
+              # by at least one owner 
               value:
                 min: 1
                 max: 4
+            # Owned cardinality limits the number of owned instances
+            # of an owner.
+            owned_cardinality:
+              # The following means that an owner can own up to 4
+              # applications.
+              value:
+                min: 0
+                max: 4
 
-  - identifier: ApplicationAccessKey
-    kind: adjunct
-    parameters:
-      kind: entity
-      name_is_prepared: true
-      hosts:
-        - kind: Application
-      cardinality:
-        min: 0
-        max: 4
-      parameters:
-        id:
-          num:
-            kind: integer
-            parameters:
-              total_bits: 64
-              identifier_bits: 56
-              bitfield:
-                # An adjunct can inherit its hosts' bitfields.
-                # This is similar to entity ID, but instead of encode own
-                # attributes, we encode host's attributes.
-                #
-                # For this specific case, we want to able to quickly determine
-                # some of the Application's attributes based on information
-                # embedded in this access key ID without the need
-                # to fetch the complete data of the Application.
-                inherits:
-                  - host: 0
-                    # The size of the inherited bitfield from this host. This
-                    # value must be exactly same as host's. This is required
-                    # for ensuring consistency.
-                    size: 5
+  # - identifier: ApplicationAccessKey
+  #   kind: adjunct
+  #   parameters:
+  #     kind: entity
+  #     name_is_prepared: true
+  #     hosts:
+  #       - kind: Application
+  #     cardinality:
+  #       min: 0
+  #       max: 4
+  #     parameters:
+  #       id:
+  #         num:
+  #           kind: integer
+  #           parameters:
+  #             total_bits: 64
+  #             identifier_bits: 56
+  #             bitfield:
+  #               # An adjunct can inherit its hosts' bitfields.
+  #               # This is similar to entity ID, but instead of encode own
+  #               # attributes, we encode host's attributes.
+  #               #
+  #               # For this specific case, we want to able to quickly determine
+  #               # some of the Application's attributes based on information
+  #               # embedded in this access key ID without the need
+  #               # to fetch the complete data of the Application.
+  #               inherits:
+  #                 - host: 0
+  #                   # The size of the inherited bitfield from this host. This
+  #                   # value must be exactly same as host's. This is required
+  #                   # for ensuring consistency.
+  #                   size: 5
 
-          ref_key:
-            azid_text:
-              prefix: "KAK0"
+  #         ref_key:
+  #           azid_text:
+  #             prefix: "KAK0"
 
-        lifecycle:
-          creation:
-            authorization:
-              cross_process:
-                allow: always_disallow
-          deletion:
-            enabled: true
+  #       lifecycle:
+  #         creation:
+  #           authorization:
+  #             cross_process:
+  #               allow: always_disallow
+  #         deletion:
+  #           enabled: true
 
-        attributes:
-          - name: Secret
-            kind: ApplicationAccessKeySecret
-            finality: on_creation
-            # TODO: describe: can it be changed? by who? other requirements?
+  #       attributes:
+  #         - name: Secret
+  #           kind: ApplicationAccessKeySecret
+  #           finality: on_creation
+  #           # TODO: describe: can it be changed? by who? other requirements?
 
   - identifier: Terminal
     documentation: |
@@ -502,13 +515,13 @@ symbols:
           methods:
 
   # Interface
-  - identifier: TerminalRegistrationIdentifierVerification
-    kind: abstract
-    parameters:
-      attributes:
-        - name: Status
-          kind: TerminalRegistrationIdentifierVerificationStatus
-          finality: set_once
+  # - identifier: TerminalRegistrationIdentifierVerification
+  #   kind: abstract
+  #   parameters:
+  #     attributes:
+  #       - name: Status
+  #         kind: TerminalRegistrationIdentifierVerificationStatus
+  #         finality: set_once
 
   - identifier: Session
     documentation: |
@@ -583,168 +596,168 @@ symbols:
   # TODO: we could just use prebuilt functionality,
   # e.g., PhoneNumberVerification, but we still need to declare something
   # to bring in the functionality here.
-  - identifier: TerminalRegistrationPhoneNumber
-    documentation: |
-      TerminalRegistrationPhoneNumber is used to track terminal registrations
-      which each was requested by requesting a verification of a phone-number
-      associated to a user.
-    kind: entity
-    parameters:
-      implements:
-        - kind: TerminalRegistrationIdentifierVerification
-      # The idea is that this entity is built upon a component. We are
-      # encapsulating the component as an entity in this domain. A component
-      # deals only with the value it contained.
-      # TODO: same or similar concept to mixins? an entity can have only one
-      # component? is this similar to Go's struct embedding?
-      component:
-        name: PhoneNumberVerificationWithIntegerCode
-        parameters:
-          code_length: 6
-      substrate:
-        product:
-          kind: Terminal
-      id:
-        num:
-          kind: integer
-          parameters:
-            total_bits: 64
-            identifier_bits: 48
-      mixins:
-        #TODO: migrate to 'lifecycle'
-        - kind: Expiration
-          parameters:
-            duration:
-              overridability:
-                default: true
-              value:
-                quantity: 5
-                unit: minute
-      lifecycle:
-        # Creation is a special service method.
-        creation:
-          # Master flag. Only if the value is true, each of creation methods
-          # could set its own flag.
-          #
-          # By default, this flag is set to false.
-          #
-          # If the value is false, we won't allow any creation through
-          # other application, including the same kind of application on
-          # different process/machine; the creation can only be performed by other
-          # part of the same application. It means that the entity was
-          # designed as by-product of other entity's method, i.e., non-direct
-          # creation.
-          #
-          # If the value is true, we want to allow the creation to be initiated
-          # directly by other applications.
-          authorization:
-            cross_process:
-              allow: on_condition
-          # authorization:
-          #   - kind: Application
-          #     allow: on-condition
-          #     condition:
-          #       eq:
-          #         a: $.id_num.UserAgent
-          #         b: true
-          allowed_isolations:
-            - all
-          methods:
-            create:
-              allow_cross_process_callers: true
-              input_parameters:
-                Self.phone_number:
-          # A flag to determine if applications from other realms is allowed
-          # to make call to this method.
-          #
-          # An application from other realms is an application which received
-          # authorization to integrate with this realm. In contrast to
-          # own-realm applications.
-          allow_cross_realm_callers: false
-      attributes:
-        - name: PhoneNumber
-          kind: telephony.PhoneNumber
-          finality: on_creation
-        - name: VerificationCode
-          kind: PhoneNumberVerificationCode
-          finality: on_creation
-      service:
-        # Instance methods
-        methods:
-          confirm:
-            # instance cardinality?
-            mutate: true
-            authorization:
-              - kind: oso
-                parameters:
-                  policy: 'allow(ctx: Context, "confirm", _resource: Self) if ctx.is_intraprocess'
-            input_parameters:
-              Self:
-              Self.verification_code:
-            output_parameters:
-              session: Session
-            process: |
-              self.confirm_verification(code):{
-                error(err) -> return err
-                ok(phone_number) -> KeyPhoneNumber.service.get_user_or_create(phone_number):{
-                  error(err) -> return err
-                  ok(uid) -> Terminal.create(self.application, uid):{
-                    error(err) -> return err
-                    ok(term) -> Session.create(term)
-                  }
-                }
-              }
+  # - identifier: TerminalRegistrationPhoneNumber
+  #   documentation: |
+  #     TerminalRegistrationPhoneNumber is used to track terminal registrations
+  #     which each was requested by requesting a verification of a phone-number
+  #     associated to a user.
+  #   kind: entity
+  #   parameters:
+  #     implements:
+  #       - kind: TerminalRegistrationIdentifierVerification
+  #     # The idea is that this entity is built upon a component. We are
+  #     # encapsulating the component as an entity in this domain. A component
+  #     # deals only with the value it contained.
+  #     # TODO: same or similar concept to mixins? an entity can have only one
+  #     # component? is this similar to Go's struct embedding?
+  #     component:
+  #       name: PhoneNumberVerificationWithIntegerCode
+  #       parameters:
+  #         code_length: 6
+  #     substrate:
+  #       product:
+  #         kind: Terminal
+  #     id:
+  #       num:
+  #         kind: integer
+  #         parameters:
+  #           total_bits: 64
+  #           identifier_bits: 48
+  #     mixins:
+  #       #TODO: migrate to 'lifecycle'
+  #       - kind: Expiration
+  #         parameters:
+  #           duration:
+  #             overridability:
+  #               default: true
+  #             value:
+  #               quantity: 5
+  #               unit: minute
+  #     lifecycle:
+  #       # Creation is a special service method.
+  #       creation:
+  #         # Master flag. Only if the value is true, each of creation methods
+  #         # could set its own flag.
+  #         #
+  #         # By default, this flag is set to false.
+  #         #
+  #         # If the value is false, we won't allow any creation through
+  #         # other application, including the same kind of application on
+  #         # different process/machine; the creation can only be performed by other
+  #         # part of the same application. It means that the entity was
+  #         # designed as by-product of other entity's method, i.e., non-direct
+  #         # creation.
+  #         #
+  #         # If the value is true, we want to allow the creation to be initiated
+  #         # directly by other applications.
+  #         authorization:
+  #           cross_process:
+  #             allow: on_condition
+  #         # authorization:
+  #         #   - kind: Application
+  #         #     allow: on-condition
+  #         #     condition:
+  #         #       eq:
+  #         #         a: $.id_num.UserAgent
+  #         #         b: true
+  #         allowed_isolations:
+  #           - all
+  #         methods:
+  #           create:
+  #             allow_cross_process_callers: true
+  #             input_parameters:
+  #               Self.phone_number:
+  #         # A flag to determine if applications from other realms is allowed
+  #         # to make call to this method.
+  #         #
+  #         # An application from other realms is an application which received
+  #         # authorization to integrate with this realm. In contrast to
+  #         # own-realm applications.
+  #         allow_cross_realm_callers: false
+  #     attributes:
+  #       - name: PhoneNumber
+  #         kind: telephony.PhoneNumber
+  #         finality: on_creation
+  #       - name: VerificationCode
+  #         kind: PhoneNumberVerificationCode
+  #         finality: on_creation
+  #     service:
+  #       # Instance methods
+  #       methods:
+  #         confirm:
+  #           # instance cardinality?
+  #           mutate: true
+  #           authorization:
+  #             - kind: oso
+  #               parameters:
+  #                 policy: 'allow(ctx: Context, "confirm", _resource: Self) if ctx.is_intraprocess'
+  #           input_parameters:
+  #             Self:
+  #             Self.verification_code:
+  #           output_parameters:
+  #             session: Session
+  #           process: |
+  #             self.confirm_verification(code):{
+  #               error(err) -> return err
+  #               ok(phone_number) -> KeyPhoneNumber.service.get_user_or_create(phone_number):{
+  #                 error(err) -> return err
+  #                 ok(uid) -> Terminal.create(self.application, uid):{
+  #                   error(err) -> return err
+  #                   ok(term) -> Session.create(term)
+  #                 }
+  #               }
+  #             }
 
   #TODO: generator
-  - identifier: ApplicationAccessKeySecret
-    documentation: |
-      ApplicationAccessKeySecret encapsulates application access key secret.
-    kind: value_object
-    parameters:
-      kind: alias
-      parameters:
-        data_type: string
+  # - identifier: ApplicationAccessKeySecret
+  #   documentation: |
+  #     ApplicationAccessKeySecret encapsulates application access key secret.
+  #   kind: value_object
+  #   parameters:
+  #     kind: alias
+  #     parameters:
+  #       data_type: string
 
-  - identifier: PhoneNumberVerificationCode
-    documentation: |
-      PhoneNumberVerificationCode is the type for storing the code
-      of a phone-number verification.
-    kind: value_object
-    parameters:
-      kind: alias
-      parameters:
-        data_type: int16
+  # - identifier: PhoneNumberVerificationCode
+  #   documentation: |
+  #     PhoneNumberVerificationCode is the type for storing the code
+  #     of a phone-number verification.
+  #   kind: value_object
+  #   parameters:
+  #     kind: alias
+  #     parameters:
+  #       data_type: int16
 
-  #TODO: this object is an identity, not an-object-that-has-identity.
-  - identifier: BlockchainAddress
-    documentation: |
-      DID-like
-    kind: value_object
-    parameters:
-      kind: struct
-      parameters:
-        # Order matters
-        key:
-          fields:
-            - Method
-            - Network
-            - Identifier
-        fields:
-          - identifier: Method
-            data_type: string #TODO: constraints, normalizations, etc.
-            storage:
-              persistency: persistent
-              security: none
-          - identifier: Network
-            data_type: string
-            storage:
-              persistency: persistent
-          - identifier: Identifier
-            data_type: string
-            storage:
-              persistency: persistent
-          - identifier: RawInput
-            data_type: string
-            storage:
-              persistency: none
-        holds_string_raw_input: true #TODO
+  #TODO: this object provides identity, not an-object-that-has-identity.
+  # - identifier: BlockchainAddress
+  #   documentation: |
+  #     DID-like
+  #   kind: value_object
+  #   parameters:
+  #     kind: struct
+  #     parameters:
+  #       # Order matters
+  #       key:
+  #         fields:
+  #           - Method
+  #           - Network
+  #           - Identifier
+  #       fields:
+  #         - identifier: Method
+  #           data_type: string #TODO: constraints, normalizations, etc.
+  #           storage:
+  #             persistency: persistent
+  #             security: none
+  #         - identifier: Network
+  #           data_type: string
+  #           storage:
+  #             persistency: persistent
+  #         - identifier: Identifier
+  #           data_type: string
+  #           storage:
+  #             persistency: persistent
+  #         - identifier: RawInput
+  #           data_type: string
+  #           storage:
+  #             persistency: none
+  #       holds_string_raw_input: true #TODO

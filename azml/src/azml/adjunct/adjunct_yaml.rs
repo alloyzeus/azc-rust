@@ -34,13 +34,13 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
         let hosts = x.hosts.iter().map(|h| h.into()).collect();
         match x.kind.as_str() {
             "" => Ok(Self {
-                hosts: hosts,
+                hosts,
                 cardinality: x.cardinality.into(),
                 definition: Box::new(adjunct::AdjunctNone {}),
                 name_is_prepared: x.name_is_prepared,
             }),
             "none" => Ok(Self {
-                hosts: hosts,
+                hosts,
                 cardinality: x.cardinality.into(),
                 definition: Box::new(adjunct::AdjunctNone {}),
                 name_is_prepared: x.name_is_prepared,
@@ -48,7 +48,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
             "entity" => {
                 let def: adjunct_entity_yaml::AdjunctEntityYaml = yaml::from_value(x.parameters)?;
                 Ok(Self {
-                    hosts: hosts,
+                    hosts,
                     cardinality: x.cardinality.into(),
                     definition: Box::new(adjunct_entity::AdjunctEntity::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
@@ -57,7 +57,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
             "prime" => {
                 let def: adjunct_prime_yaml::AdjunctPrimeYaml = yaml::from_value(x.parameters)?;
                 Ok(Self {
-                    hosts: hosts,
+                    hosts,
                     cardinality: x.cardinality.into(),
                     definition: Box::new(adjunct_prime::AdjunctPrime::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
@@ -66,7 +66,7 @@ impl convert::TryFrom<AdjunctYaml> for adjunct::Adjunct {
             "value" => {
                 let def: adjunct_value_yaml::AdjunctValueYaml = yaml::from_value(x.parameters)?;
                 Ok(Self {
-                    hosts: hosts,
+                    hosts,
                     cardinality: x.cardinality.into(),
                     definition: Box::new(adjunct_value::AdjunctValue::from(def.try_into()?)),
                     name_is_prepared: x.name_is_prepared,
@@ -86,6 +86,11 @@ pub struct AdjunctHostYaml {
 
     #[serde(default)]
     name: String,
+
+    #[serde(default)]
+    cardinality: cardinality_yaml::CardinalityConstraintYaml,
+    #[serde(default)]
+    inverse_cardinality: cardinality_yaml::CardinalityConstraintYaml,
 }
 
 impl From<AdjunctHostYaml> for adjunct::AdjunctHost {
@@ -99,6 +104,8 @@ impl From<&AdjunctHostYaml> for adjunct::AdjunctHost {
         Self {
             kind: symbol::SymbolRef::from(x.kind.to_owned()),
             name: x.name.to_owned(),
+            cardinality: (&x.cardinality).into(),
+            inverse_cardinality: (&x.inverse_cardinality).into(),
         }
     }
 }

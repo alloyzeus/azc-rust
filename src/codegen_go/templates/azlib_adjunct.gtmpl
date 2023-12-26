@@ -6,22 +6,14 @@ import (
 
 // This file contains specializations of azfl types.
 
-//region AdjunctEntityAttributesBase
+//region AdjunctEntityAttrSetBase
 
-// {{.base.azlib_prefix}}AdjunctEntityAttributesBase is
-// a partial implementation of {{.base.azcore_pkg}}.AZAdjunctEntityAttributes.
+// {{.base.azlib_prefix}}AdjunctEntityAttrSetBase is
+// a partial implementation of {{.base.azcore_pkg}}.AZAdjunctEntityAttrSet.
 // This struct was designed to be embedded in other
-// {{.base.azcore_pkg}}.AdjunctEntityAttributes implementations.
-type {{.base.azlib_prefix}}AdjunctEntityAttributesBase struct {
+// {{.base.azcore_pkg}}.AdjunctEntityAttrSet implementations.
+type {{.base.azlib_prefix}}AdjunctEntityAttrSetBase struct {
 }
-
-// AZAttributes is required
-// for conformance with {{.base.azcore_pkg}}.Attributes.
-func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAttributes() {}
-
-// AZAdjunctEntityAttributes is required
-// for conformance with {{.base.azcore_pkg}}.AdjunctEntityAttributes.
-func (attrs {{.base.azlib_prefix}}AdjunctEntityAttributesBase) AZAdjunctEntityAttributes() {}
 
 //endregion
 
