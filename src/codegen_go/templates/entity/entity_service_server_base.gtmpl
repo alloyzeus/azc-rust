@@ -27,9 +27,9 @@ var _ = goqu.Wait
 
 // ----
 
-// {{.server_name}}Base is the server-side
+// {{.server_name}} is the server-side
 // base implementation of {{.service_name}}.
-type {{.server_name}}Base struct {
+type {{.server_name}} struct {
 	db *sql.DB
 
 	{{unexported_field .ref_key_type_name}}DeletionTxHook func(
@@ -46,12 +46,14 @@ type {{.server_name}}Base struct {
 
 // Interface conformance assertions.
 var (
-	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}Base{}
-	_ {{.pkg_name}}.{{.ref_key_type_name}}Service = &{{.server_name}}Base{}
-	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.server_name}}Base{}
+	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}{}
+	_ {{.pkg_name}}.{{.ref_key_type_name}}Service = &{{.server_name}}{}
+	_ {{.pkg_name}}.{{.type_name}}InstanceService = &{{.server_name}}{}
+	_ {{.pkg_name}}.{{.type_name}}InstanceServiceInternal = &{{.server_name}}{}
+	_ {{.pkg_name}}.{{.type_name}}InstanceStateService = &{{.server_name}}{}
 )
 
-func (srv *{{.server_name}}Base) Is{{.ref_key_type_name}}Registered(
+func (srv *{{.server_name}}) Is{{.ref_key_type_name}}Registered(
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) bool {
 	if id.IsNotStaticallyValid() {
@@ -82,7 +84,7 @@ func (srv *{{.server_name}}Base) Is{{.ref_key_type_name}}Registered(
 //
 // If it's required only to determine the existence of the ID,
 // Is{{.ref_key_type_name}}Registered is generally more efficient.
-func (srv *{{.server_name}}Base) Get{{.type_name}}InstanceState(
+func (srv *{{.server_name}}) Get{{.type_name}}InstanceState(
 	ctx {{.base.service_op_call_context_type_name}},
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceState, error) {
@@ -90,7 +92,7 @@ func (srv *{{.server_name}}Base) Get{{.type_name}}InstanceState(
 	return srv.get{{.type_name}}InstanceStateInsecure(ctx, id)
 }
 
-func (srv *{{.server_name}}Base) get{{.type_name}}InstanceStateInsecure(
+func (srv *{{.server_name}}) get{{.type_name}}InstanceStateInsecure(
 	ctx {{.base.service_op_call_context_type_name}},
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (*{{.pkg_name}}.{{.type_name}}InstanceState, error) {
@@ -162,7 +164,7 @@ func (srv *{{.server_name}}Base) get{{.type_name}}InstanceStateInsecure(
 	}, nil
 }
 
-func (srv *{{.server_name}}Base) get{{.type_name}}InstanceStateByID(
+func (srv *{{.server_name}}) get{{.type_name}}InstanceStateByID(
 	id {{.pkg_name}}.{{.ref_key_type_name}},
 ) (idRegistered, instanceDeleted bool, err error) {
 	sqlString, _, _ := goqu.From({{unexported_field .type_name}}DBTableName).
@@ -190,7 +192,7 @@ func (srv *{{.server_name}}Base) get{{.type_name}}InstanceStateByID(
 	return true, instanceDeleted, nil
 }
 
-func (srv *{{.server_name}}Base) Create{{.type_name}}Internal(
+func (srv *{{.server_name}}) Create{{.type_name}}Internal(
 	ctx {{.base.service_op_call_context_type_name}},
 	params {{.pkg_name}}.{{.type_name}}CreationParams,
 ) (id {{.pkg_name}}.{{.ref_key_type_name}}, initialState {{.pkg_name}}.{{.type_name}}InstanceState, err error) {
@@ -204,7 +206,7 @@ func (srv *{{.server_name}}Base) Create{{.type_name}}Internal(
 	}, err
 }
 
-func (srv *{{.server_name}}Base) create{{.type_name}}Insecure(
+func (srv *{{.server_name}}) create{{.type_name}}Insecure(
 	ctx {{.base.service_op_call_context_type_name}},
 ) ({{.pkg_name}}.{{.ref_key_type_name}}, error) {
 	callMD := {{.base.iam_pkg}}.CallMetadataOf(ctx)
@@ -266,7 +268,7 @@ func (srv *{{.server_name}}Base) create{{.type_name}}Insecure(
 	return {{.pkg_name}}.New{{.ref_key_type_name}}(newInstanceIDNum), nil
 }
 
-func (srv *{{.server_name}}Base) Delete{{.type_name}}Internal(
+func (srv *{{.server_name}}) Delete{{.type_name}}Internal(
 	ctx {{.base.service_op_call_context_type_name}},
 	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	params {{.pkg_name}}.{{.type_name}}DeletionParams,
@@ -293,7 +295,7 @@ func (srv *{{.server_name}}Base) Delete{{.type_name}}Internal(
 	return srv.delete{{.type_name}}Insecure(ctx, instanceIDToDelete, params)
 }
 
-func (srv *{{.server_name}}Base) delete{{.type_name}}Insecure(
+func (srv *{{.server_name}}) delete{{.type_name}}Insecure(
 	ctx {{.base.service_op_call_context_type_name}},
 	instanceIDToDelete {{.pkg_name}}.{{.ref_key_type_name}},
 	params {{.pkg_name}}.{{.type_name}}DeletionParams,
@@ -383,7 +385,7 @@ func (srv *{{.server_name}}Base) delete{{.type_name}}Insecure(
 
 // Designed to perform the migration if required
 //TODO: context: target version, current version (assert), prefix, etc.
-func (srv *{{.server_name}}Base) initDataStoreInTx(dbTx *sql.Tx) error {
+func (srv *{{.server_name}}) initDataStoreInTx(dbTx *sql.Tx) error {
 	_, err := dbTx.Exec(
 		`CREATE TABLE ` + {{unexported_field .type_name}}DBTableName + ` ( ` +
 			{{unexported_field .type_name}}DBColIDNum + `  {{.id_num_def.pg_type}}, ` +
@@ -414,12 +416,12 @@ const (
 	{{unexported_field .type_name}}DBTableName           = "{{.type_name_snake}}_dt"
 	{{unexported_field .type_name}}DBTablePrimaryKeyName = {{unexported_field .type_name}}DBTableName + "_pkey"
 
-	// Creation metadata columns
+	// Creation metadata (MD) columns
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_cr_ts"
 	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_cr_tid"
 	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_cr_uid"
 	{{- if .lifecycle.deletion.enabled}}
-	// Deletion metadata columns
+	// Deletion metadata (MD) columns
 	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_del_ts"
 	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_del_tid"
 	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_del_uid"

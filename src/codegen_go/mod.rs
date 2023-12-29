@@ -1,10 +1,8 @@
 //
 
-use std::{collections::HashMap, error, fs /*io::Write*/};
+use std::{collections::HashMap, error, fs, io::Write};
 
 use crate::codegen;
-
-//use crate::codegen_go::template::render_template;
 
 use azml::azml::{
     adjunct::adjunct,
@@ -15,14 +13,20 @@ use azml::azml::{
     value_object::value_object,
 };
 
+use template::render_template;
+
 #[macro_use]
 mod render_macros;
 
+mod adjunct_entity_go;
 mod adjunct_go;
+mod adjunct_prime_go;
+mod adjunct_value_go;
 mod attribute_go;
 mod entity_go;
 mod id_num_go;
 mod ref_key_go;
+mod server_core_go;
 mod symbol_go;
 mod template;
 mod value_object_go;
@@ -73,7 +77,7 @@ pub struct GoCodeGenerator {
 impl GoCodeGenerator {
     fn render_base_context(&self) -> BaseContext {
         BaseContext {
-            mod_name: PackagesContext{
+            mod_name: PackagesContext {
                 contract: self.module_identifier.contract.to_owned(),
                 server: self.module_identifier.server.to_owned(),
                 client: self.module_identifier.client.to_owned(),
@@ -121,19 +125,12 @@ impl GoCodeGenerator {
             _ => None,
         }
     }
-}
 
-impl GoCodeGenerator {
     fn generate_module_codes(
         &self,
         module_name: &String,
         module_def: &module::ModuleDefinition,
     ) -> Result<(), Box<dyn error::Error>> {
-        // let tpl_ctx = LibraryContext {
-        //     base: self.render_base_context(),
-        //     pkg_name: module_name.to_owned(),
-        // };
-
         let contract_target_dir = &self.contract_package_dir_base_name;
         fs::create_dir_all(contract_target_dir)?;
 
@@ -185,10 +182,13 @@ impl GoCodeGenerator {
         //     ""
         // );
 
+        let mut services: Vec<ServiceContext> = vec![];
+
         for symbol in &module_def.symbols {
             let params = &symbol.definition;
             if let Some(ent) = params.downcast_ref::<root_entity::RootEntity>() {
                 self.generate_root_entity_codes(module_name, ent, &symbol)?;
+                services.extend(self.root_entity_server_fields(module_name, ent, &symbol)?);
                 continue;
             }
             if let Some(adj) = params.downcast_ref::<adjunct::Adjunct>() {
@@ -200,6 +200,23 @@ impl GoCodeGenerator {
                 continue;
             }
         }
+
+        let tpl_ctx = LibraryContext {
+            base: self.render_base_context(),
+            pkg_name: module_name.to_owned(),
+            services: services.to_owned(),
+        };
+
+        render_file!(
+            contract_target_dir,
+            "service__azgen",
+            "templates/service/service.gtmpl",
+            tpl_ctx,
+            ""
+        );
+
+        self.generate_server_core_codes(module_name, module_def, &services)?;
+
         Ok(())
     }
 }
@@ -221,7 +238,8 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 self.module_identifier.contract, self.base_pkg, compilation_state.entry_module
             )
         };
-        self.contract_package_dir_base_name = format!("{}/{}", self.base_dir, self.contract_package_identifier);
+        self.contract_package_dir_base_name =
+            format!("{}/{}", self.base_dir, self.contract_package_identifier);
         self.server_package_identifier = if self.base_pkg.is_empty() {
             format!(
                 "{}/{}server",
@@ -233,7 +251,8 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 self.module_identifier.server, self.base_pkg, compilation_state.entry_module
             )
         };
-        self.server_package_dir_base_name = format!("{}/{}", self.base_dir, self.server_package_identifier);
+        self.server_package_dir_base_name =
+            format!("{}/{}", self.base_dir, self.server_package_identifier);
         self.client_package_identifier = if self.base_pkg.is_empty() {
             format!(
                 "{}/{}",
@@ -245,7 +264,8 @@ impl codegen::CodeGenerator for GoCodeGenerator {
                 self.module_identifier.client, self.base_pkg, compilation_state.entry_module
             )
         };
-        self.client_package_dir_base_name = format!("{}/{}", self.base_dir, self.client_package_identifier);
+        self.client_package_dir_base_name =
+            format!("{}/{}", self.base_dir, self.client_package_identifier);
         let entry_module = compilation_state
             .modules
             .get(&compilation_state.entry_module);
@@ -294,6 +314,7 @@ struct PackagesContext {
 struct LibraryContext {
     base: BaseContext,
     pkg_name: String,
+    services: Vec<ServiceContext>,
 }
 
 #[derive(Clone, Gtmpl)]
@@ -310,4 +331,11 @@ struct TerminalContext {
 #[derive(Clone, Gtmpl)]
 struct UserContext {
     pg_type: String,
+}
+
+#[derive(Clone, Gtmpl)]
+pub struct ServiceContext {
+    pub field_name: String,
+    pub type_name: String,
+    pub server_name: String,
 }

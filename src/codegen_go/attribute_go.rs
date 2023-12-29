@@ -4,7 +4,7 @@ use crate::convert_case::{Case, Casing};
 
 use azml::azml::attribute;
 
-use crate::codegen_go::symbol_go;
+use super::symbol_go;
 
 #[derive(Clone, Gtmpl)]
 pub struct AttributeContext {

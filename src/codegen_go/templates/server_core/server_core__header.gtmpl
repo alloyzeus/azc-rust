@@ -1,0 +1,35 @@
+package {{.pkg_name}}server
+
+import (
+	"context"
+
+	{{.base.azcore_pkg}} "{{.base.azcore_import}}"
+
+	"{{.pkg_path}}"
+)
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the azfl package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// azfl package needs to be updated.
+var _ = {{.base.azcore_pkg}}.{{.base.azcore_version}}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ = context.Canceled
+
+// ----
+
+type ServerCore struct {
+	{{- range .services}}
+	{{unexported_field .field_name}} *{{.server_name}}
+	{{- end}}
+}
+
+var _ iam.Service = &ServerCore{}
+
+{{range .services -}}
+func (srv *ServerCore) {{.field_name}}() {{$.pkg_name}}.{{.type_name}} {
+	return srv.{{unexported_field .field_name}}
+}
+
+{{end}}

@@ -13,11 +13,24 @@ generator_options:
         contract: "github.com/kadisoka/kad-iam"
         server: "github.com/kadisoka/kad-iamserver"
         client: "github.com/kadisoka/kad-iam/client"
-      imports:
+      imports: # Deprecated. Use top-level imports.
         - identifier: telephony
           uri: "github.com/kadisoka/kad-volib/telephony"
         - identifier: email
           uri: "github.com/kadisoka/kad-volib/email"
+
+imports:
+  - alias: telephony # Alias is not necessary.
+    url: ../telephony
+    options:
+      go:
+        # Usually already provided in the package, but we can override it here
+        package_url: "github.com/kadisoka/kad-volib/telephony"
+  - alias: email
+    url: ../email
+    options:
+      go:
+        package_url: "github.com/kadisoka/kad-volib/email"
 
 server:
   #TODO: directives for generating server packages and applications.
@@ -114,6 +127,50 @@ symbols:
       parameters:
         kind: telephony.PhoneNumber
         unique: true
+        services:
+          # Here we tell that the value is using the specified
+          # service.
+          #
+          # The service will provide additional attributes related
+          # to the value, which is verification-related attributes.
+          - kind: Verification
+            enabled: true
+            state_change_emission:
+              # TODO
+            parameters:
+              unverify_enable: false
+              time_to_live:
+                soft: 3 months # we will notify the user to confirm that the phone number is still usable
+              # TODO: configuration for the verification service
+      attributes:
+        # TODO: this is starting getting serious
+        #
+        # Should we create a mixin for "VerificationStatus"?
+        # Verification will have two added attributes:
+        # the verification timestamp and a reference to
+        # the verification entity ("any").
+        #
+        # When a verification entity is "confirmed",
+        # it will emit an event to those that depended on
+        # said verification.
+        # Event consumers will "automatically" update their
+        # attributes.
+        # And then, update to the attribute will emit
+        # another event that will update depended entities.
+        #
+        # For example, we have PhoneNumberVerification that
+        # holds the verification state. KeyPhoneNumber declares
+        # that its verification status is depended on
+        # PhoneNumberVerification's. And then, User is depended
+        # on KeyPhoneNumber as one of properties that affects
+        # its verification status.
+        - name: verification_ts
+          kind: timestamp
+          optional: true
+          # TODO: make this set-once
+          filter:
+            # TODO: part of default query
+            # expect non-null in default query
 
   # TODO: must be unique when verified
   - identifier: KeyEmailAddress

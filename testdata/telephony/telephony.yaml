@@ -1,0 +1,39 @@
+# TODO: abstract module interface
+
+symbols:
+  - identifier: PhoneNumber
+    kind: value_object # TODO: what we define here is the abstraction
+    parameters:
+      attributes:
+        - name: CountryCode # TODO: this is persistent
+        - name: NationalNumber
+        - name: RawInput # TODO: unparsed
+        - name: IsStaticallyValid # TODO: this is a getter
+          get:
+          set:
+            disabled:
+  - identifier: PhoneNumberVerification
+    # A component provides functionality to an entity. Note that this
+    # in self is an entity an its service.
+    kind: component
+    parameters:
+      # Declares that the implementation of this component is located
+      # externally; what we have here is only the interface/contract. The
+      # implementation is usually located in library or package which will be
+      # imported.
+      external: true
+      attributes:
+        - name: Timestamp
+          description: When the verification is confirmed
+        - name: 
+      creation:
+        input_parameters:
+          phone_number:
+            type: telephony.PhoneNumber
+      service:
+        confirm:
+          mutate: true
+          input_parameters:
+            phone_number:
+              type: telephony.PhoneNumber
+

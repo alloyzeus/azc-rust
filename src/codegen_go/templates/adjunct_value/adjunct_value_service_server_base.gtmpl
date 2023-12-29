@@ -29,19 +29,19 @@ var _ = rand.Reader
 
 // ----
 
-// {{.server_name}}Base is the server-side
+// {{.server_name}} is the server-side
 // base implementation of {{.service_name}}.
-type {{.server_name}}Base struct {
+type {{.server_name}} struct {
 	db *sql.DB
 }
 
 // Interface conformance assertions.
 var (
-	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}Base{}
+	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}{}
 )
 {{- if .one_to_one}}
 
-func (srv *{{.server_name}}Base) Get{{.type_name}}(
+func (srv *{{.server_name}}) Get{{.type_name}}(
 	ctx context.Context,
 	{{- range .hosts}}
 	{{arg_name .id_name}} {{$.pkg_name}}.{{.id_name}},
@@ -57,7 +57,7 @@ func (srv *{{.server_name}}Base) Get{{.type_name}}(
 	callAuth := callMD.Authorization()
 
 	// // e.g., Oso
-	// allowed, err := srv.authzEngine.Authorize(ctx, "get", {{.type_name}}ID(userID))
+	// allowed, err := srv.authzEngine.Authorize(ctx, "get", {{.ref_key_type_name}}(userID))
 	// if err != nil {
 	//	return nil, errors.Op("permission check", err)
 	// }
@@ -90,13 +90,16 @@ func (srv *{{.server_name}}Base) Get{{.type_name}}(
 const (
 	{{unexported_field .type_name}}DBTableName = "{{.type_name_snake}}_dt"
 
+	// Creation metadata (MD) columns
 	{{unexported_field .type_name}}DBColMDCreationTimestamp  = "md_cr_ts"
 	{{unexported_field .type_name}}DBColMDCreationTerminalID = "md_cr_tid"
 	{{unexported_field .type_name}}DBColMDCreationUserID     = "md_cr_uid"
+	// Deletion metadata (MD) columns
 	{{unexported_field .type_name}}DBColMDDeletionTimestamp  = "md_del_ts"
 	{{unexported_field .type_name}}DBColMDDeletionTerminalID = "md_del_tid"
 	{{unexported_field .type_name}}DBColMDDeletionUserID     = "md_del_uid"
 
+	// Identity (hosts, and own, if any)
 	{{range .hosts -}}
 	{{unexported_field $.type_name}}DBCol{{.id_name}} = "{{.db_col_name}}"
 	{{- end}}

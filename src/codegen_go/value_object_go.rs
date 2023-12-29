@@ -2,12 +2,10 @@
 
 use std::{error, fs, io::Write};
 
-use crate::codegen_go::{template::render_template, BaseContext, GoCodeGenerator};
-
 use azml::azml::{data_type::DataType, symbol, value_object::value_object};
 use convert_case::{Case, Casing};
 
-use super::symbol_go::SymbolRefContext;
+use super::{symbol_go::SymbolRefContext, template::render_template, BaseContext, GoCodeGenerator};
 
 impl GoCodeGenerator {
     pub fn generate_value_object_codes(

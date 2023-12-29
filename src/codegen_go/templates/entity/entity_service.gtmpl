@@ -3,6 +3,7 @@
 type {{.service_name}} interface {
 	// {{.base.azlib_prefix}}EntityService
 
+	{{.ref_key_type_name}}Service
 	{{.type_name}}InstanceService
 
 	{{- /* TODO: this interface should be dynamically filled by mixins */}}

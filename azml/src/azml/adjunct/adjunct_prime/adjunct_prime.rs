@@ -21,6 +21,7 @@ use crate::azml::{adjunct::adjunct, entity::abstract_, symbol};
 // to resolve its GroupChat.
 //
 //TODO:
+// - it's weak entity in ERD!
 // - finalize the terminology
 // - identifier prefix that is different from host entity
 

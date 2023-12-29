@@ -30,7 +30,7 @@ var _ {{.base.azid_pkg}}.BinFieldUnmarshalable = &{{unexported_global .ref_key_t
 var _ {{.base.azid_pkg}}.TextUnmarshalable = &{{unexported_global .ref_key_type_name}}Zero
 var _ {{.base.azcore_pkg}}.AdjunctEntityID = {{unexported_global .ref_key_type_name}}Zero
 {{- range .implements}}{{- if .is_system}}
-var _ {{$.base.azcore_pkg}}.{{.type_name}}ID = {{unexported_global $.ref_key_type_name}}Zero
+var _ {{$.base.azcore_pkg}}.{{.ref_key_type_name}} = {{unexported_global $.ref_key_type_name}}Zero
 {{- end}}{{- end}}
 
 var {{unexported_global .ref_key_type_name}}Zero = {{.ref_key_type_name}}{
