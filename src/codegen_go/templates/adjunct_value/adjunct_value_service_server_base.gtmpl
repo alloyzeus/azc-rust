@@ -32,7 +32,9 @@ var _ = rand.Reader
 // {{.server_name}} is the server-side
 // base implementation of {{.service_name}}.
 type {{.server_name}} struct {
-	db *sql.DB
+	core       *ServerCore
+	db         *sql.DB
+	readOnlyDB *sql.DB
 }
 
 // Interface conformance assertions.

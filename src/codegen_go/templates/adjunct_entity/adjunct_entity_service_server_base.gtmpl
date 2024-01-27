@@ -29,7 +29,9 @@ var _ = goqu.Wait
 // {{.server_name}} is the server-side
 // base implementation of {{.service_name}}.
 type {{.server_name}} struct {
-	db *sql.DB
+	core       *ServerCore
+	db         *sql.DB
+	readOnlyDB *sql.DB
 
 	{{unexported_field .ref_key_type_name}}DeletionTxHook func(
 		ctx {{.base.service_op_call_context_type_name}},

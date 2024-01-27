@@ -13,7 +13,9 @@ import (
 // {{.server_name}} is the server-side
 // base implementation of {{.service_name}}.
 type {{.server_name}} struct {
-	db *sql.DB
+	core       *ServerCore
+	db         *sql.DB
+	readOnlyDB *sql.DB
 }
 
 // delete{{.type_name}}Insecure deassociate any prime adjunct

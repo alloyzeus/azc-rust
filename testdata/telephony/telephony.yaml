@@ -2,7 +2,7 @@
 
 symbols:
   - identifier: PhoneNumber
-    kind: value_object # TODO: what we define here is the abstraction
+    kind: value_object # TODO: what we define here is the abstraction. implementations are native
     parameters:
       attributes:
         - name: CountryCode # TODO: this is persistent
