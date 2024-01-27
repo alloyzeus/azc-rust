@@ -41,6 +41,13 @@ type {{.server_name}} struct {
 var (
 	_ {{.pkg_name}}.{{.service_name}} = &{{.server_name}}{}
 )
+
+func (srv *{{.server_name}}) readDB() *sql.DB {
+	if db := srv.readOnlyDB; db != nil {
+		return db
+	}
+	return srv.db
+}
 {{- if .one_to_one}}
 
 func (srv *{{.server_name}}) Get{{.type_name}}(

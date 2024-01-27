@@ -18,6 +18,13 @@ type {{.server_name}} struct {
 	readOnlyDB *sql.DB
 }
 
+func (srv *{{.server_name}}) readDB() *sql.DB {
+	if db := srv.readOnlyDB; db != nil {
+		return db
+	}
+	return srv.db
+}
+
 // delete{{.type_name}}Insecure deassociate any prime adjunct
 // {{.type_name}} from its host(s).
 //
